@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Presentations/">
+    <Project Path="SCICHRPortal.API/SCICHRPortal.API.csproj" />
+    <Project Path="SCICHRPortal.Web/SCICHRPortal.Web.csproj" />
+  </Folder>
+  <Project Path="SCICHRPortal.Core/SCICHRPortal.Core.csproj" />
+  <Project Path="SCICHRPortal.Data/SCICHRPortal.Data.csproj" />
+  <Project Path="SCICHRPortal.Repository/SCICHRPortal.Repository.csproj" />
+  <Project Path="SCICHRPortal.Service/SCICHRPortal.Service.csproj" />
+  <Project Path="SCICHRPortal.Utility/SCICHRPortal.Utility.csproj" />
+</Solution>
