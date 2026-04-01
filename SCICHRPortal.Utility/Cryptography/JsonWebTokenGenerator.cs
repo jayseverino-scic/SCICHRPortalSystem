@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using SCICHRPortal.Utility;
+using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Utility.Cryptography.Interfaces;
 using SCICHRPortal.Utility.Cryptography.Models;
 
