@@ -34,7 +34,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("DateTime")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("NewValues")
                         .HasColumnType("text");
@@ -78,13 +78,13 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("DateTimeLog")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("Deleted")
                         .ValueGeneratedOnAdd()
@@ -113,7 +113,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -153,26 +153,26 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("BreakEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("BreakIn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<double>("BreakLate")
                         .HasColumnType("double precision");
 
                     b.Property<DateTime?>("BreakOut")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("BreakStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<double>("BreakUndertime")
                         .HasColumnType("double precision");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -207,7 +207,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("double precision");
 
                     b.Property<DateTime>("ShiftEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<double>("ShiftHours")
                         .HasColumnType("double precision");
@@ -216,25 +216,25 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("double precision");
 
                     b.Property<DateTime>("ShiftStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<double>("ShiftUndertime")
                         .HasColumnType("double precision");
 
                     b.Property<DateTime>("TimeIn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("TimeLogId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("TimeOut")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<double>("TotalLoggedHours")
                         .HasColumnType("double precision");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -257,14 +257,14 @@ namespace SCICHRPortal.Repository.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AssignedShiftId"));
 
                     b.Property<DateTime?>("BreakEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("BreakStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -293,19 +293,19 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("ShiftDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("ShiftEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("ShiftId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("ShiftStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -330,35 +330,35 @@ namespace SCICHRPortal.Repository.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TimeLogId"));
 
                     b.Property<DateTime?>("BreakEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("BreakIn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("BreakOut")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("BreakStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("DateBreakIn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("DateBreakOut")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("DateIn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("DateOut")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("Deleted")
                         .ValueGeneratedOnAdd()
@@ -381,19 +381,19 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("ShiftEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("ShiftStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("TimeIn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("TimeOut")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -415,13 +415,13 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("DateRequest")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("Deleted")
                         .ValueGeneratedOnAdd()
@@ -432,7 +432,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("FromDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("LeaveReason")
                         .IsRequired()
@@ -446,10 +446,10 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("double precision");
 
                     b.Property<DateTime>("ToDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -473,7 +473,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -484,16 +484,16 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -513,7 +513,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -534,7 +534,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(10)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -542,64 +542,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasKey("DepartmentId");
 
                     b.ToTable("Department");
-
-                    b.HasData(
-                        new
-                        {
-                            DepartmentId = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            DepartmentName = "Faculty",
-                            DeptCode = "Fac"
-                        },
-                        new
-                        {
-                            DepartmentId = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            DepartmentName = "Administration",
-                            DeptCode = "Admin"
-                        },
-                        new
-                        {
-                            DepartmentId = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            DepartmentName = "Janitorial",
-                            DeptCode = "Jan"
-                        },
-                        new
-                        {
-                            DepartmentId = 4,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            DepartmentName = "Maintenance",
-                            DeptCode = "Main"
-                        },
-                        new
-                        {
-                            DepartmentId = 5,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            DepartmentName = "Accounting",
-                            DeptCode = "Acctg"
-                        },
-                        new
-                        {
-                            DepartmentId = 6,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            DepartmentName = "Security",
-                            DeptCode = "Sec"
-                        },
-                        new
-                        {
-                            DepartmentId = 7,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            DepartmentName = "Management",
-                            DeptCode = "Mgmt"
-                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Employee", b =>
@@ -621,7 +563,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(120)
@@ -669,7 +611,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(10)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(120)
@@ -699,7 +641,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -710,7 +652,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("HolidayDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("HolidayName")
                         .IsRequired()
@@ -725,7 +667,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -733,78 +675,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasKey("HolidayId");
 
                     b.ToTable("Holiday");
-
-                    b.HasData(
-                        new
-                        {
-                            HolidayId = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            HolidayDate = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HolidayName = "New Year",
-                            HolidayType = 0,
-                            HolidayTypes = 0
-                        },
-                        new
-                        {
-                            HolidayId = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            HolidayDate = new DateTime(2023, 6, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HolidayName = "Indepdence Day",
-                            HolidayType = 0,
-                            HolidayTypes = 0
-                        },
-                        new
-                        {
-                            HolidayId = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            HolidayDate = new DateTime(2022, 9, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HolidayName = "Christmas Day",
-                            HolidayType = 0,
-                            HolidayTypes = 0
-                        },
-                        new
-                        {
-                            HolidayId = 4,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            HolidayDate = new DateTime(2023, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HolidayName = "Araw ng Kagitingan",
-                            HolidayType = 0,
-                            HolidayTypes = 0
-                        },
-                        new
-                        {
-                            HolidayId = 5,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            HolidayDate = new DateTime(2023, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HolidayName = "Labor Day",
-                            HolidayType = 0,
-                            HolidayTypes = 0
-                        },
-                        new
-                        {
-                            HolidayId = 6,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            HolidayDate = new DateTime(2023, 11, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HolidayName = "Andres Bonifacio Day",
-                            HolidayType = 0,
-                            HolidayTypes = 0
-                        },
-                        new
-                        {
-                            HolidayId = 7,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            HolidayDate = new DateTime(2023, 12, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HolidayName = "Rizal Day",
-                            HolidayType = 0,
-                            HolidayTypes = 0
-                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.LeaveType", b =>
@@ -820,7 +690,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -839,7 +709,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -859,7 +729,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(120)
@@ -876,7 +746,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(120)
@@ -897,7 +767,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -913,7 +783,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -932,14 +802,14 @@ namespace SCICHRPortal.Repository.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ShiftId"));
 
                     b.Property<DateTime?>("BreakEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("BreakStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -950,7 +820,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("ShiftEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("ShiftName")
                         .IsRequired()
@@ -958,10 +828,10 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("ShiftStart")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -969,17 +839,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasKey("ShiftId");
 
                     b.ToTable("Shift");
-
-                    b.HasData(
-                        new
-                        {
-                            ShiftId = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            ShiftEnd = new DateTime(2026, 1, 1, 16, 0, 0, 0, DateTimeKind.Unspecified),
-                            ShiftName = "Day Shift",
-                            ShiftStart = new DateTime(2026, 1, 1, 7, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.TimekeepingAdminSetup", b =>
@@ -998,7 +857,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -1021,7 +880,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -1029,20 +888,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasKey("SetupId");
 
                     b.ToTable("TimekeepingAdminSetup");
-
-                    b.HasData(
-                        new
-                        {
-                            SetupId = 1,
-                            BreakLateMinuteGracePeriod = 0,
-                            BreakLateTotalMinuteLimit = 0,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            NoLeaveAbsentCountLimit = 0,
-                            NoTimeLogCountLimit = 0,
-                            ShiftLateMinuteGracePeriod = 0,
-                            ShiftLateTotalMinuteLimit = 0
-                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Role", b =>
@@ -1055,7 +900,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(120)
@@ -1077,7 +922,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(60)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(120)
@@ -1086,120 +931,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasKey("RoleId");
 
                     b.ToTable("Role");
-
-                    b.HasData(
-                        new
-                        {
-                            RoleId = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Administrator",
-                            Name = "Administrator"
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Admission",
-                            Name = "Admission"
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Parent",
-                            Name = "Parent"
-                        },
-                        new
-                        {
-                            RoleId = 4,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Registrar",
-                            Name = "Registrar"
-                        },
-                        new
-                        {
-                            RoleId = 5,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "HS Principal",
-                            Name = "HS Principal"
-                        },
-                        new
-                        {
-                            RoleId = 6,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Elem Principal",
-                            Name = "Elem Principal"
-                        },
-                        new
-                        {
-                            RoleId = 7,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "HS Coordinator",
-                            Name = "HS Coordinator"
-                        },
-                        new
-                        {
-                            RoleId = 8,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Elem Coordinator",
-                            Name = "Elem Coordinator"
-                        },
-                        new
-                        {
-                            RoleId = 9,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Teacher Elem",
-                            Name = "Teacher Elem"
-                        },
-                        new
-                        {
-                            RoleId = 10,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Teacher HS",
-                            Name = "Teacher HS"
-                        },
-                        new
-                        {
-                            RoleId = 11,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Librian",
-                            Name = "Librian"
-                        },
-                        new
-                        {
-                            RoleId = 12,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Supply Custodian",
-                            Name = "Supply Custodian"
-                        },
-                        new
-                        {
-                            RoleId = 13,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Student",
-                            Name = "Student"
-                        },
-                        new
-                        {
-                            RoleId = 14,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Description = "Other",
-                            Name = "Other"
-                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.User", b =>
@@ -1221,7 +952,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(120)
@@ -1273,7 +1004,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(120)
@@ -1286,25 +1017,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("User");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1,
-                            Active = false,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            Email = "superadmin@mail.com",
-                            FirstName = "Super",
-                            IsApproved = true,
-                            IsPasswordChanged = false,
-                            LastName = "Admin",
-                            Locked = false,
-                            LoginAttempts = 0,
-                            Password = "4DRtkqzRrxUk9Px/+Zu7vzTIk5f0dHc4mPgicSMkQzI=",
-                            Salt = "ml4A7caIeJit28zFyeiXVA==",
-                            Username = "superadmin"
-                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.UserRole", b =>
@@ -1317,7 +1029,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(120)
@@ -1332,7 +1044,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(120)
@@ -1348,16 +1060,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserRole");
-
-                    b.HasData(
-                        new
-                        {
-                            UserRoleId = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Deleted = false,
-                            RoleId = 1,
-                            UserId = 1
-                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeAttendance", b =>

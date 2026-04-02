@@ -11,7 +11,10 @@ namespace SCICHRPortal.Repository
     public class ApplicationContext : AuditableContext
     {
         private readonly IHttpContextService? _httpContextService;
-
+        //static ApplicationContext()
+        //{
+        //    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        //}
         public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
         {
         }

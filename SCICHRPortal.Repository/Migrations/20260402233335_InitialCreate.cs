@@ -4,8 +4,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace SCICHRPortal.Repository.Migrations
 {
     /// <inheritdoc />
@@ -25,7 +23,7 @@ namespace SCICHRPortal.Repository.Migrations
                     Type = table.Column<string>(type: "text", nullable: true),
                     TableName = table.Column<string>(type: "text", nullable: true),
                     SystemName = table.Column<string>(type: "text", nullable: true),
-                    DateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     OldValues = table.Column<string>(type: "text", nullable: true),
                     NewValues = table.Column<string>(type: "text", nullable: true),
                     AffectedColumns = table.Column<string>(type: "text", nullable: true),
@@ -50,12 +48,12 @@ namespace SCICHRPortal.Repository.Migrations
                     InOut = table.Column<string>(type: "text", nullable: true),
                     AntiPass = table.Column<int>(type: "integer", nullable: false),
                     ProxyWork = table.Column<int>(type: "integer", nullable: false),
-                    DateTimeLog = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateTimeLog = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -68,14 +66,14 @@ namespace SCICHRPortal.Repository.Migrations
                 {
                     CutOffId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -92,9 +90,9 @@ namespace SCICHRPortal.Repository.Migrations
                     DepartmentName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -108,14 +106,14 @@ namespace SCICHRPortal.Repository.Migrations
                     HolidayId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     HolidayName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    HolidayDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    HolidayDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     HolidayType = table.Column<int>(type: "integer", maxLength: 100, nullable: false),
                     HolidayTypes = table.Column<int>(type: "integer", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -133,9 +131,9 @@ namespace SCICHRPortal.Repository.Migrations
                     IsPaid = table.Column<bool>(type: "boolean", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -151,9 +149,9 @@ namespace SCICHRPortal.Repository.Migrations
                     Description = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -169,9 +167,9 @@ namespace SCICHRPortal.Repository.Migrations
                     PositionName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -188,9 +186,9 @@ namespace SCICHRPortal.Repository.Migrations
                     Description = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -204,15 +202,15 @@ namespace SCICHRPortal.Repository.Migrations
                     ShiftId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ShiftName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    ShiftStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ShiftEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    BreakStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BreakEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ShiftStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ShiftEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    BreakStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    BreakEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -233,9 +231,9 @@ namespace SCICHRPortal.Repository.Migrations
                     NoLeaveAbsentCountLimit = table.Column<int>(type: "integer", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -263,9 +261,9 @@ namespace SCICHRPortal.Repository.Migrations
                     Active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -291,9 +289,9 @@ namespace SCICHRPortal.Repository.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: true),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -325,9 +323,9 @@ namespace SCICHRPortal.Repository.Migrations
                     RoleId = table.Column<int>(type: "integer", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -355,20 +353,20 @@ namespace SCICHRPortal.Repository.Migrations
                     ShiftId = table.Column<int>(type: "integer", nullable: false),
                     EmployeeId = table.Column<int>(type: "integer", nullable: false),
                     DepartmentId = table.Column<int>(type: "integer", nullable: false),
-                    ShiftDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ShiftStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ShiftEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    BreakStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BreakEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ShiftDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ShiftStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ShiftEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    BreakStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    BreakEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsFlexibleShift = table.Column<bool>(type: "boolean", nullable: false),
                     IsFlexibleBreak = table.Column<bool>(type: "boolean", nullable: false),
                     IsNoShift = table.Column<bool>(type: "boolean", nullable: false),
                     IsNoBreak = table.Column<bool>(type: "boolean", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -397,27 +395,27 @@ namespace SCICHRPortal.Repository.Migrations
                     TimeLogId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EmployeeId = table.Column<int>(type: "integer", nullable: false),
-                    DateIn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DateOut = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TimeIn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TimeOut = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DateBreakOut = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DateBreakIn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BreakOut = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BreakIn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ShiftStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ShiftEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    BreakStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BreakEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DateIn = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    DateOut = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    TimeIn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    TimeOut = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DateBreakOut = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DateBreakIn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    BreakOut = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    BreakIn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ShiftStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ShiftEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    BreakStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    BreakEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsFlexibleShift = table.Column<bool>(type: "boolean", nullable: false),
                     IsFlexibleBreak = table.Column<bool>(type: "boolean", nullable: false),
                     IsNoShift = table.Column<bool>(type: "boolean", nullable: false),
                     IsNoBreak = table.Column<bool>(type: "boolean", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -437,16 +435,16 @@ namespace SCICHRPortal.Repository.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EmployeeId = table.Column<int>(type: "integer", nullable: false),
                     LeaveTypeId = table.Column<int>(type: "integer", nullable: false),
-                    DateRequest = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FromDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ToDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateRequest = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    FromDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ToDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     RequestDays = table.Column<double>(type: "double precision", nullable: false),
                     LeaveReason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -471,14 +469,14 @@ namespace SCICHRPortal.Repository.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TimeLogId = table.Column<int>(type: "integer", nullable: false),
                     EmployeeId = table.Column<int>(type: "integer", nullable: false),
-                    TimeIn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TimeOut = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    BreakIn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BreakOut = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ShiftStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ShiftEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    BreakStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BreakEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TimeIn = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    TimeOut = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    BreakIn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    BreakOut = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ShiftStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ShiftEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    BreakStart = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    BreakEnd = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     ShiftHours = table.Column<double>(type: "double precision", nullable: false),
                     RegularHour = table.Column<double>(type: "double precision", nullable: false),
                     TotalLoggedHours = table.Column<double>(type: "double precision", nullable: false),
@@ -501,9 +499,9 @@ namespace SCICHRPortal.Repository.Migrations
                     ApprovedRestDayOT = table.Column<bool>(type: "boolean", nullable: false),
                     Deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -519,75 +517,6 @@ namespace SCICHRPortal.Repository.Migrations
                         principalTable: "Employee",
                         principalColumn: "EmployeeId");
                 });
-
-            migrationBuilder.InsertData(
-                table: "Department",
-                columns: new[] { "DepartmentId", "CreatedBy", "DepartmentName", "DeptCode", "UpdatedAt", "UpdatedBy" },
-                values: new object[,]
-                {
-                    { 1, null, "Faculty", "Fac", null, null },
-                    { 2, null, "Administration", "Admin", null, null },
-                    { 3, null, "Janitorial", "Jan", null, null },
-                    { 4, null, "Maintenance", "Main", null, null },
-                    { 5, null, "Accounting", "Acctg", null, null },
-                    { 6, null, "Security", "Sec", null, null },
-                    { 7, null, "Management", "Mgmt", null, null }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Holiday",
-                columns: new[] { "HolidayId", "CreatedBy", "HolidayDate", "HolidayName", "HolidayType", "HolidayTypes", "UpdatedAt", "UpdatedBy" },
-                values: new object[,]
-                {
-                    { 1, null, new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "New Year", 0, 0, null, null },
-                    { 2, null, new DateTime(2023, 6, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), "Indepdence Day", 0, 0, null, null },
-                    { 3, null, new DateTime(2022, 9, 14, 0, 0, 0, 0, DateTimeKind.Unspecified), "Christmas Day", 0, 0, null, null },
-                    { 4, null, new DateTime(2023, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Araw ng Kagitingan", 0, 0, null, null },
-                    { 5, null, new DateTime(2023, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Labor Day", 0, 0, null, null },
-                    { 6, null, new DateTime(2023, 11, 30, 0, 0, 0, 0, DateTimeKind.Unspecified), "Andres Bonifacio Day", 0, 0, null, null },
-                    { 7, null, new DateTime(2023, 12, 30, 0, 0, 0, 0, DateTimeKind.Unspecified), "Rizal Day", 0, 0, null, null }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Role",
-                columns: new[] { "RoleId", "CreatedBy", "Description", "Name", "UpdatedAt", "UpdatedBy" },
-                values: new object[,]
-                {
-                    { 1, null, "Administrator", "Administrator", null, null },
-                    { 2, null, "Admission", "Admission", null, null },
-                    { 3, null, "Parent", "Parent", null, null },
-                    { 4, null, "Registrar", "Registrar", null, null },
-                    { 5, null, "HS Principal", "HS Principal", null, null },
-                    { 6, null, "Elem Principal", "Elem Principal", null, null },
-                    { 7, null, "HS Coordinator", "HS Coordinator", null, null },
-                    { 8, null, "Elem Coordinator", "Elem Coordinator", null, null },
-                    { 9, null, "Teacher Elem", "Teacher Elem", null, null },
-                    { 10, null, "Teacher HS", "Teacher HS", null, null },
-                    { 11, null, "Librian", "Librian", null, null },
-                    { 12, null, "Supply Custodian", "Supply Custodian", null, null },
-                    { 13, null, "Student", "Student", null, null },
-                    { 14, null, "Other", "Other", null, null }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Shift",
-                columns: new[] { "ShiftId", "BreakEnd", "BreakStart", "CreatedBy", "ShiftEnd", "ShiftName", "ShiftStart", "UpdatedAt", "UpdatedBy" },
-                values: new object[] { 1, null, null, null, new DateTime(2026, 1, 1, 16, 0, 0, 0, DateTimeKind.Unspecified), "Day Shift", new DateTime(2026, 1, 1, 7, 0, 0, 0, DateTimeKind.Unspecified), null, null });
-
-            migrationBuilder.InsertData(
-                table: "TimekeepingAdminSetup",
-                columns: new[] { "SetupId", "BreakLateMinuteGracePeriod", "BreakLateTotalMinuteLimit", "CreatedBy", "NoLeaveAbsentCountLimit", "NoTimeLogCountLimit", "ShiftLateMinuteGracePeriod", "ShiftLateTotalMinuteLimit", "UpdatedAt", "UpdatedBy" },
-                values: new object[] { 1, 0, 0, null, 0, 0, 0, 0, null, null });
-
-            migrationBuilder.InsertData(
-                table: "User",
-                columns: new[] { "UserId", "ContactNumber", "CreatedBy", "Email", "FirstName", "IsApproved", "IsPasswordChanged", "LastName", "Locked", "LoginAttempts", "MiddleName", "Password", "Salt", "UpdatedAt", "UpdatedBy", "Username" },
-                values: new object[] { 1, null, null, "superadmin@mail.com", "Super", true, false, "Admin", false, 0, null, "4DRtkqzRrxUk9Px/+Zu7vzTIk5f0dHc4mPgicSMkQzI=", "ml4A7caIeJit28zFyeiXVA==", null, null, "superadmin" });
-
-            migrationBuilder.InsertData(
-                table: "UserRole",
-                columns: new[] { "UserRoleId", "CreatedBy", "RoleId", "UpdatedAt", "UpdatedBy", "UserId" },
-                values: new object[] { 1, null, 1, null, null, 1 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employee_DepartmentId",

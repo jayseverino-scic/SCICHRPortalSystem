@@ -13,14 +13,14 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
             entityBuilder.Property(x => x.ShiftEnd).IsRequired();
 
 
-            entityBuilder.HasData(new Shift[] {
-                new Shift {
-                    ShiftId = 1,
-                    ShiftName = "Day Shift",
-                    ShiftStart = new DateTime(2026,1,1,7,0,0),
-                    ShiftEnd = new DateTime(2026,1,1,16,0,0)
-                }
-            });
+            //entityBuilder.HasData(new Shift[] {
+            //    new Shift {
+            //        ShiftId = 1,
+            //        ShiftName = "Day Shift",
+            //        ShiftStart = new DateTime(2026,1,1,7,0,0),
+            //        ShiftEnd = new DateTime(2026,1,1,16,0,0)
+            //    }
+            //});
         }
     }
 }
