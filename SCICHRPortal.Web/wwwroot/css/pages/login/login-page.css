@@ -1,0 +1,761 @@
+﻿.fa-user {
+    float: left;
+    margin-right: 6px;
+    margin-top: -45px;
+    position: relative;
+    z-index: 2;
+    color: white;
+}
+
+.fa-unlock-alt {
+    float: left;
+    margin-right: 6px;
+    margin-top: -45px;
+    position: relative;
+    z-index: 2;
+    color: white;
+}
+.ml-5 {
+    margin-left: 3.5em;
+}
+
+.form-group input, #add-user-role {
+    color: #188198;
+}
+    .form-group input:focus {
+        outline: 0px !important;
+        box-shadow: none !important;
+        color: #188198;
+    }
+#main-logo, #school-name {
+    height: 80%;
+    width: 80%;
+}
+#lmsi-logo {
+    max-height: 600px;
+    max-width: 600px;
+    margin-right: 16px;
+}
+#lmsi-main-logo {
+    height: 200px;
+    width: 214px;
+}
+#login-logo {
+    width: 31%;
+}
+.forgot-password-link {
+    margin-left: 3rem;
+    text-decoration: none;
+    color: #726f6f;
+}
+.enrollment-tool-word-style {
+    font-size: 43px;
+    color: #212529;
+    margin-left: 35px;
+    font-family: "Times New Roman", Times, serif;
+}
+/*input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus
+input:-webkit-autofill {
+    -webkit-text-fill-color: #188198;
+    transition: background-color 5000s ease-in-out 0s;
+}
+    input:-webkit-autofill::first-line {
+        font-size: 22px
+    }*/
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: #188198 !important;
+}
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: #188198 !important;
+}
+
+::-moz-placeholder { /* Firefox 19+ */
+    color: #188198 !important;
+}
+
+:-ms-input-placeholder { /* IE 10+ */
+    color: #188198 !important;
+}
+:-moz-placeholder { /* Firefox 18- */
+    color: #188198 !important;
+}
+.show-pass {
+    position: relative;
+    bottom: 40px;
+    margin-right: 63px;
+    color: #838383 !important;
+}
+.log-in-form {
+    padding: 20px;
+}
+.login-container-2 {
+    height: 80%;
+    height: 80%;
+    background: #F3F7F8;
+    border-radius: 5px;
+    box-shadow: 0px 0px 6px 0px #8080;
+   
+}
+#register-form {
+    height: 80%;
+}
+
+.align-container-1 {
+    position: absolute;
+    top: 36%;
+    left: 34%;
+    transform: translate(-50%, -50%);
+    max-height: 700px;
+    max-width: 700px;
+}
+
+.align-container-2 {
+    position: absolute;
+    top: 32%;
+    left: 83%;
+    transform: translate(-50%, -50%);
+    max-height: 700px;
+    max-width: 470px;
+}
+
+
+.log-in-main-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 15px;
+    bottom: 0;
+    background-image: linear-gradient(#0089ff, #f4f7f7)
+}
+
+.log-in-container {
+    border-left: 5px solid #808580;
+    background: #FFFF;
+}
+
+.user-login-text {
+    color: #2B4E8C;
+    margin-bottom: 42px;
+    font-family: sans-serif;
+}
+
+hr.solid {
+    border-top: 3px solid #137CDE;
+    width: 50%;
+    margin-left: 25% !important;
+    margin-right: 25% !important;
+    margin-top: 7px;
+}
+.sign-up-span, .sign-in-span {
+    color: #137CDE;
+    text-decoration: underline;
+    
+}
+    .sign-up-span:hover, .sign-in-span:hover {
+        cursor: pointer;
+    }
+
+.log-in-btn {
+    border-radius: 5px;
+    color: #FFFFFF;
+    width: 26%;
+    box-shadow: 2px 3px 0px 0px rgb(0 0 0 / 10%);
+    font-weight: bold;
+    background-color: #1E82DF;
+}
+
+    .log-in-btn:hover {
+        color: #FFFFFF;
+        background-color: #0871d3;
+    }
+
+#change-pass-btn {
+    width: 33% !important;
+}
+
+
+.username-field, .password-field {
+    border: none;
+    background-color: #FFFFFF !important;
+    border-bottom: 2px solid white;
+    color: #188198 !important;
+    border-radius: 24PX;
+    font-size: 22px;
+    width: 80%;
+    margin: auto;
+    box-shadow: 3px 3px 2px 1px #00000054;
+}
+
+.enrollment-word-style {
+    font-size: 2.5rem;
+    color: #212529;
+    margin-left: 36px;
+    font-family: "Times New Roman", Times, serif;
+}
+
+.operation-word-style {
+    font-size: 111px;
+    color: #006400;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+
+@media (max-width: 1366px) {
+
+    .log-in-btn {
+        width: 40%;
+    }
+
+    .align-center {
+        position: absolute;
+        top: 48%;
+    }
+
+    .log-in-form {
+        padding: 33px;
+    }
+
+    .align-container-2 {
+        top: 38%;
+    }
+
+    .align-container-1 {
+        top: 46%;
+    }
+
+    .form-group {
+        /*margin-bottom: 3.5rem;*/
+    }
+}
+
+
+
+
+
+
+/*-------------------------Media Queries Here-------------------------*/
+
+
+
+/*Iphone 5/SE*/
+@media only screen and (max-width: 320px) {
+
+    .align-container-1 {
+        position: absolute;
+        left: 46%;
+        transform: translate(-50%, -50%);
+    }
+
+    .log-in-container {
+        margin-top: 313px;
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 153px;
+    }
+
+    #logo {
+        margin-left: 143px;
+    }
+
+    #lmsi-main-logo {
+        height: 50px;
+        width: 70px;
+    }
+
+    .operation-word-style {
+        font-size: 37px;
+        margin-top: 5px;
+    }
+
+    #lmsi-logo {
+        max-height: 406px;
+        max-width: 221px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 17px;
+        color: #212529;
+        margin-left: 149px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+
+    .form-group {
+        /*margin-bottom: 0rem;*/
+    }
+
+    .align-container-2 {
+        top: 59%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+
+    .log-in-btn {
+        margin-top: -33px;
+    }
+
+    .username-field, .password-field {
+        border: none;
+        background-color: #2E8B57 !important;
+        border-bottom: 2px solid white;
+        color: white;
+        border-radius: 1PX;
+        padding-left: 49px;
+        font-size: 22px;
+        margin-top: -23px;
+    }
+}
+
+
+/*Galaxy S5 & Moto G4*/
+@media only screen and (min-width:321px) and (max-width: 360px) {
+
+    .log-in-container {
+        margin-top: 313px;
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 153px;
+    }
+
+    #logo {
+        margin-left: 143px;
+    }
+
+    #lmsi-main-logo {
+        height: 81px;
+        width: 93px;
+    }
+
+    .operation-word-style {
+        font-size: 43px;
+        margin-top: 5px;
+    }
+
+    #lmsi-logo {
+        max-height: 406px;
+        max-width: 221px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 17px;
+        color: #212529;
+        margin-left: 149px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+
+    .form-group {
+        /*margin-bottom: 0rem;*/
+    }
+
+    .align-container-2 {
+        top: 72%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+}
+
+/*Iphone 6/7/8  && Iphone X*/
+@media only screen and (min-width:361px) and (max-width: 375px) {
+
+    .align-container-1 {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .log-in-container {
+        margin-top: 313px;
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 153px;
+    }
+
+    #logo {
+        margin-left: 135px;
+    }
+
+    #lmsi-main-logo {
+        height: 81px;
+        width: 93px;
+    }
+
+    .operation-word-style {
+        font-size: 49px;
+        margin-top: 5px;
+    }
+
+    #lmsi-logo {
+        max-height: 406px;
+        max-width: 221px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 19px;
+        color: #212529;
+        margin-left: 127px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    .form-group {
+        /*margin-bottom: 0rem;*/
+    }
+
+    .align-container-2 {
+        top: 61%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+}
+
+/*Pixel 2 and Pixel XL*/
+@media only screen and (min-width:376px) and (max-width: 411px) {
+
+
+    .log-in-container {
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+        margin-top: 372px;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 187px;
+    }
+
+    #logo {
+        margin-left: 143px;
+    }
+
+    #lmsi-main-logo {
+        height: 81px;
+        width: 93px;
+    }
+
+    .operation-word-style {
+        font-size: 53px;
+    }
+
+    #lmsi-logo {
+        max-height: 406px;
+        max-width: 221px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 19px;
+        color: #212529;
+        margin-left: 127px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+
+    .form-group {
+        /*margin-bottom: 0rem;*/
+    }
+
+    .align-container-2 {
+        top: 68%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+}
+
+/*Iphone 6/7/8*/
+@media only screen and (min-width:412px) and (max-width: 414px) {
+    .align-container-1 {
+        position: absolute;
+        left: 52%;
+        transform: translate(-50%, -50%);
+    }
+
+    .log-in-container {
+        margin-top: 388px;
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 197px;
+    }
+
+    #logo {
+        margin-left: 162px;
+    }
+
+    #lmsi-main-logo {
+        height: 81px;
+        width: 93px;
+    }
+
+    .operation-word-style {
+        font-size: 53px;
+        margin-top: 5px;
+    }
+
+    #lmsi-logo {
+        max-height: 406px;
+        max-width: 221px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 19px;
+        color: #212529;
+        margin-left: 154px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    .form-group {
+        /*margin-bottom: 0rem;*/
+    }
+
+    .align-container-2 {
+        top: 68%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+}
+
+
+
+/*Surface Duo*/
+@media only screen and (min-width:415px) and (max-width: 540px) {
+
+    .align-container-1 {
+        position: absolute;
+        left: 58%;
+        transform: translate(-50%, -50%);
+    }
+
+    .log-in-container {
+        margin-top: 270px;
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 123px;
+    }
+
+    #logo {
+        margin-left: 143px;
+    }
+
+    #lmsi-main-logo {
+        height: 81px;
+        width: 93px;
+    }
+
+    .operation-word-style {
+        font-size: 53px;
+        margin-top: 5px;
+    }
+
+    #lmsi-logo {
+        max-height: 578px;
+        max-width: 463px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 30px;
+        color: #212529;
+        margin-left: 187px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    .form-group {
+        /*margin-bottom: 0rem;*/
+    }
+
+    .align-container-2 {
+        top: 57%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+
+    .log-in-form {
+        padding: 0 33px 33px 33px 33px;
+    }
+}
+
+
+
+/*Ipad*/
+@media only screen and (min-width:541px) and (max-width: 768px) {
+
+
+    .align-container-1 {
+        position: absolute;
+        left: 64%;
+        transform: translate(-50%, -50%);
+    }
+
+    .log-in-container {
+        margin-top: 325px;
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 148px;
+    }
+
+    #logo {
+        margin-left: 100px;
+    }
+
+    #lmsi-main-logo {
+        height: 81px;
+        width: 93px;
+    }
+
+    .operation-word-style {
+        font-size: 89px;
+        margin-top: 23px;
+    }
+
+    #lmsi-logo {
+        max-height: 600px;
+        max-width: 600px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 48px;
+        color: #212529;
+        margin-left: 104px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    .align-container-2 {
+        top: 64%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+
+    .form-group {
+        /*margin-bottom: 0;*/
+    }
+
+    .log-in-form {
+        padding: 0 33px 33px 33px 33px;
+    }
+}
+
+
+
+/*Ipad pro*/
+@media only screen and (min-width:769px) and (max-width: 1024px) {
+
+
+    .align-container-1 {
+        position: absolute;
+        left: 68%;
+        transform: translate(-50%, -50%);
+    }
+
+    .log-in-container {
+        margin-top: 351px;
+        margin-left: 15px;
+        padding-right: 100%;
+        border-style: none;
+    }
+
+    .logo-container {
+        position: absolute;
+        margin-top: 190px;
+    }
+
+    #logo {
+        margin-left: 80px;
+    }
+
+    #lmsi-main-logo {
+        height: 159px;
+        width: 169px;
+    }
+
+    .operation-word-style {
+        font-size: 95px;
+        margin-top: 5px;
+    }
+
+    #lmsi-logo {
+        max-height: 600px;
+        max-width: 600px;
+        margin-right: 6px;
+    }
+
+    .enrollment-tool-word-style {
+        font-size: 43px;
+        color: #212529;
+        margin-left: 106px;
+        font-family: "Times New Roman", Times, serif;
+    }
+
+
+    .align-container-2 {
+        top: 67%;
+        left: 47%;
+    }
+
+    .user-login-text {
+        display: none;
+    }
+
+    .form-group {
+        /*margin-bottom: -15px;*/
+    }
+}
+

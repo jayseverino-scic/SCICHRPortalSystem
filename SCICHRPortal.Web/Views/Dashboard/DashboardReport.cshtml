@@ -1,0 +1,178 @@
+﻿@model SCICHRPortal.Web.Models.ViewModels.Admin.LookupsViewModel
+@{
+    ViewData["Title"] = "Enrollment System";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-select-dt/select.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    @* <link href="~/css/pages/grading/grading.css" rel="stylesheet" /> *@
+    <link href="~/css/pages/dashboard/dashboard-report.css" rel="stylesheet" />
+
+}
+
+<div id="content-container" class="row">
+    <!-- Header Section -->
+    <header class="bg-primary text-white p-3">
+        <h1 class="m-0 text-center">Total Students: <span id="total-students">0</span></h1>
+    </header>
+
+    <!-- Main Content Section -->
+    <main class="container my-4">
+        <div class="row">
+            <!-- Total Enrolled Card -->
+            <div class="col-md-6">
+                <div class="card text-center">
+                    <div class="card-header">
+                        Total Enrolled
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title" id="total-enrolled">0</h5>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Reserved Card -->
+            <div class="col-md-6">
+                <div class="card text-center">
+                    <div class="card-header">
+                        Total Reserved
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title" id="total-reserved">0</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enrolled Carousel Header -->
+        <h3 class="text-center mt-4">Enrolled Student(s) for each Grade Level</h3>
+        <div class="slideshow-container">
+            <!-- Slides -->
+            <div class="slide active">
+                <h5>Nursery: 4</h5>
+            </div>
+            <div class="slide">
+                <h5>Kindergarten: 10</h5>
+            </div>
+            <div class="slide">
+                <h5>Grade 1: 8</h5>
+            </div>
+            <div class="slide">
+                <h5>Grade 2: 12</h5>
+            </div>
+            <div class="slide">
+                <h5>Grade 3: 9</h5>
+            </div>
+            <div class="slide">
+                <h5>Grade 4: 11</h5>
+            </div>
+            <div class="slide">
+                <h5>Grade 5: 6</h5>
+            </div>
+
+            <!-- Navigation buttons -->
+            <button class="prev" onclick="changeSlide(-1)">&#10094;</button>
+            <button class="next" onclick="changeSlide(1)">&#10095;</button>
+        </div>
+        <!-- Enrolled Carousel Section -->
+      @*   <div id="enrolledCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner" id="enrolled-carousel">
+                <!-- Carousel Items here -->
+            </div>
+            <!-- Enrolled Carousel controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#enrolledCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#enrolledCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div> *@
+@* 
+        <!-- Reserved Carousel Header -->
+        <h3 class="text-center mt-4">Reserved Student(s) for each Grade Level</h3>
+
+        <!-- Reserved Carousel Section -->
+        <div id="reservedCarousel" class="carousel slide mt-4" data-bs-ride="carousel" >
+            <div class="carousel-inner" id="reserved-carousel">
+                <!-- Reserved Carousel Items here -->
+            </div>
+            <!-- Carousel controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#reservedCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#reservedCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+
+        <!-- Reserved Carousel Header -->
+        <h3 class="text-center mt-4">Section Counts Status</h3>
+
+        <!-- Section Carousel Section -->
+        <div id="sectionCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
+            <div class="carousel-inner" id="section-carousel">
+                <!-- Section Carousel Items here -->
+            </div>
+            <!-- Carousel controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#sectionCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#sectionCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div> *@
+
+    </main>
+
+</div>
+
+<!-- Handlebars Template Script -->
+<script id="carousel-template" type="text/x-handlebars-template">
+    {{#each items}}
+        <div class="carousel-item {{#if @@first}}active{{/if}}">
+            <div class="d-flex justify-content-center align-items-center h-100">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title {{cssClass}}">{{grade}}: {{count}}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/each}}
+</script>
+@section Scripts {
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
+    <script src="~/lib/toastr.js/toastr.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/printThis/printThis.min.js"></script>
+    <script src="~/lib/handlebars.js/handlebars.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
+    <script src="~/lib/datatables.net-select-dt/select.dataTables.js"></script>
+    <script src="~/lib/datatables.net-select-dt/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-buttons/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
+    <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/pages/dashboard/dashboard-report.js"></script>
+}

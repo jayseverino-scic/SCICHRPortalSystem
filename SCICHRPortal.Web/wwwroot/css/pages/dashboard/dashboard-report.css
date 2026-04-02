@@ -1,0 +1,51 @@
+﻿/* Custom styles */
+header {
+    background-color: #4CAF50;
+}
+
+.card-header {
+    background-color: #2196F3;
+    color: #fff;
+}
+
+.card-body {
+    font-size: 1.5em;
+}
+
+.carousel-item {
+    height: 150px;
+}
+
+    .carousel-item .card {
+        height: 100%;
+    }
+
+/* Custom Carousel Control Styles */
+.carousel-control-prev,
+.carousel-control-next {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(33, 150, 243, 0.7); /* Blue background with transparency */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for a pop-out effect */
+}
+
+    /* Add a hover effect to controls */
+    .carousel-control-prev:hover,
+    .carousel-control-next:hover {
+        background-color: #2196F3; /* Solid blue on hover */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Slightly larger shadow */
+    }
+
+/* Custom icon styles */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 20px;
+    height: 20px;
+    background-size: 100%, 100%;
+    filter: invert(1); /* White icon on darker background */
+}

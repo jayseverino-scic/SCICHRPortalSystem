@@ -1,0 +1,30 @@
+﻿body, 
+#content-container, 
+.container.col-md-12,
+#employee-attendance-grid_wrapper {
+    min-width: 1400px !important; /* Adjust based on your needs */
+    width: 100% !important;
+    overflow-x: auto !important;
+}
+
+/* DataTable specific fixes */
+.dataTables_scrollHead,
+.dataTables_scrollBody {
+    min-width: 1400px !important;
+    width: 100% !important;
+}
+body,
+#content-container,
+.container.col-md-12,
+#employee-attendance-grid_wrapper {
+    min-width: 1400px !important; /* Adjust based on your needs */
+    width: 100% !important;
+    overflow-x: auto !important;
+}
+
+/* DataTable specific fixes */
+.dataTables_scrollHead,
+.dataTables_scrollBody {
+    min-width: 1400px !important;
+    width: 100% !important;
+}

@@ -1,0 +1,212 @@
+﻿.icon-edit {
+    color: #0070c0 !important;
+    cursor: pointer;
+}
+.icon-view {
+    color: #5a6268 !important;
+    cursor: pointer;
+}
+.icon-delete {
+    color: #f35353 !important;
+    cursor: pointer;
+}
+.table-container {
+    border-left: 1px dashed;
+    height: 100%;
+}
+.tab-content {
+    background: #FCFBFB;
+    border-radius: 5px;
+}
+.btn-filter {
+    margin-top: 24px;
+    background-color: #0d6efd;
+    color: white;
+}
+.btn-filter:hover {
+    margin-top: 24px;
+    background-color: #0d6efd;
+    color: white;
+}
+.underline-input {
+    border: 0;
+    outline: 0;
+    background: transparent;
+    border-bottom: 2px solid #665f5f;
+    display: block;
+}
+.modal {
+    overflow-y: scroll;
+}
+.soa-container {
+    border: 1px solid #121111;
+    padding: 10px;
+}
+.balance-details, .total-fee-details {
+    padding: 10px;
+    border: 2px solid black;
+    background: #FFF;
+}
+hr.solid {
+    border-top: 2px solid #000;
+    margin: 0;
+}
+.btn-primary {
+    color: #fff !important;
+    background-color: #337ab7 !important;
+    border-color: #2e6da4 !important;
+}
+.ml-3 {
+    margin-left: 6px !important;
+}
+.payment-history-container {
+    background: #FFF
+}
+.breakdown-balance {
+    padding: 0 31px 0 31px;
+}
+    .breakdown-balance label {
+        text-transform: capitalize;
+    }
+    .toggle-register-form.active {
+        color: #FFF;
+        background: #6c757d;
+    }
+.breakdown-balance span.bal-amount {
+    float: right;
+}
+.toggle-register-form {
+    background: #CCC;
+    color: #FFF;
+}
+.tab-pane {
+    height: 100%;
+}
+.mr-auto {
+    margin-right: auto
+}
+
+.ml-auto {
+    margin-left: auto
+}
+.radio-label{
+    color: #FFF;
+}
+#enrollment-form label {
+    color: #FFF;
+}
+.class-schedule-container label {
+    margin-right: 12px;
+}
+#class-schedule-container {
+    color: #FFF;
+    margin-right: 123px;
+}
+    #class-schedule-container label {
+        margin-right: 12px;
+    }
+    #register-student-form {
+        height: 100%;
+        padding: 15px;
+    }
+    #register-student-form .register-form-container {
+        margin-left: -3px !important;
+    }
+.left-header-container {
+    margin-top: 36px;
+}
+    .left-header-container .icon {
+        margin-bottom: 17px;
+    }
+    .left-header-container .title {
+        display: inline;
+        font-weight: bold;
+    }
+
+#user-detail-form {
+    border: 1px solid black;
+}
+
+    #user-detail-form .edit-icon:hover {
+        color: #6fbbfc;
+        cursor: pointer;
+    }
+
+#edit-user-detail.active {
+    color: #6fbbfc;
+}
+.user-details-form-container {
+    height: 100%;
+    padding: 15px;
+}
+
+.dataTables_wrapper {
+    margin-top: 25px;
+}
+    .dataTables_wrapper table.dataTable thead th {
+        border-bottom: 2px solid #309ffd;
+    }
+    .dataTables_wrapper table.dataTable tbody tr td {
+        border-bottom: 2px solid #309ffd;
+    }
+.dataTables_wrapper table.dataTable tbody tr td {
+    background: #FCFBFB;
+}
+.dataTables_length {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+    .dataTables_length select {
+        margin: 0px 0.8em;
+        border: 2px solid #309ffd;
+    }
+
+    .dataTables_length label {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-content: center;
+        align-items: center;
+        justify-content: flex-start;
+        color: #309ffd;
+        font-weight: 700 !important;
+        margin: 4px 0;
+    }
+.dataTables_filter{
+    margin-top: 3px;
+}
+.dataTables_filter label {
+    color: #309ffd;
+    font-size: 20px;
+    font-weight: bold;
+}
+.dataTables_filter input[type=search] {
+    border: 2px solid #309ffd;
+    border-radius: 8px;
+    outline: none;
+}
+    .cancel-form{
+    margin-right: 5px !important;
+}
+.status-label {
+    color: #309ffd;
+}
+
+.main-container {
+    /*background-image: linear-gradient(to right, #BEEFFF, #edf5f7);*/
+    background-color: #030374 !important;
+}
+.register-container, modal-body {
+    background: #4343a9;
+}
+.register-header, .register-footer, modal-footer {
+    background: #7e0505;
+    color: #FFF;
+    font-weight: bold;
+}
+
+.register-container .col-form-label {
+    color: #FFF !important;
+}

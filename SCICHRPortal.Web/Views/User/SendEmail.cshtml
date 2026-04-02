@@ -1,0 +1,75 @@
+﻿@model SCICHRPortal.Web.Models.ViewModels.Login.LoginViewModel
+
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Login";
+    Layout = "LoginLayout";
+
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="~/css/pages/user/send-email.css" rel="stylesheet" asp-append-version="true" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" />
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+</head>
+<body>
+    <input id="base-api-url" type="hidden" value="@Configuration["BaseApiUrl"]" />
+    <div class="logo">
+        <img src="~/images/logo.png" alt="LMSI Enrolment Logo">
+    </div>
+    <div id="row-container" class="row d-flex">
+
+        <div id="reset-container" class="col-md-5 content-container send-email">
+            <form id="forgot-password-form" class="email ">
+                <h3 id="banner" class="font-weight-bold">Forgot Password?</h3>
+                <div class="reset">
+                    <div class="email-section">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Enter your email to reset your password</label>
+                            <input placeholder="Email" class="form-control lowercase" id="Email" name="Email" runat="server" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-section">
+                    <button id="resetBtn" type="submit" class="btn btn-info  btn-sm float-right font-weight-bold">SUBMIT</button>
+                    <a id="backToLogin" class="btn btn-secondary btn-sm float-right font-weight-bold" href="/Login/">CANCEL</a>
+                </div>
+            </form>
+        </div>
+        <div id="success-container" class="col-md-5 content-container d-none">
+            <h3 id="banner" class="font-weight-bold">Email Sent!</h3>
+            <div class="reset">
+                <div class="email-section">
+                    <label class="font-weight-bold">Please check your email for temporary password then proceed to log in.
+On your profile, you can changes your temporary password.</label>
+                </div>
+            </div>
+            <div class="back-to-login p-3">
+                <a class="btn btn-secondary btn-sm font-weight-bold" href="/Login/">Back to login</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<div id="busy-indicator-container" class="d-none">
+    <img class="indicator-img-position " src="/images/loading-indicator.gif">
+</div>
+
+@section Scripts {
+    @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
+<script src="~/lib/toastr.js/toastr.min.js"></script>
+<script src="~/js/helpers/api-helper.js"></script>
+<script src="~/js/helpers/form-helper.js"></script>
+<script src="~/js/helpers/cookie-helper.js"></script>
+<script src="~/js/pages/user/send-email.js"></script>
+
+}
+
+

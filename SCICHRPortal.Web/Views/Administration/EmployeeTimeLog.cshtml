@@ -1,0 +1,207 @@
+﻿@model SCICHRPortal.Web.Models.ViewModels.Administration.EmployeeTimeLogViewModel
+@{
+    ViewData["Title"] = "Administration System";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-select-dt/select.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
+
+}
+<div class="modal" id="employee-time-log-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl" role="document" style="width: 1100px">
+        <form id="employee-time-log-form">
+            <div class="modal-content">
+                <div class="form-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="addModalLabel">Time Log Form</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="row col-md-12 mx-auto" align="center">
+                                <input name="timeLogId" id="TimeLogId" hidden type="number" value=0 class="form-control">
+                                <div class="col-md-12 mr-auto row">
+                                    <div class="col-6 row m-0">
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="EmployeeNo" class="text-white select2-label">Employee Number</label>
+                                            <select asp-for="EmployeeNo" id="employeeNo" style="width:100%;" class="form-control select borrow-initial"></select>
+                                            <span asp-validation-for="EmployeeNo" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="EmployeeName" class="text-white select2-label">Employee Name</label>
+                                            <select asp-for="EmployeeName" id="employeeName" style="width:100%;" class="form-control select borrow-initial"></select>
+                                            <span asp-validation-for="EmployeeName" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="DateIn" class="col-form-label">Date In</label>
+                                            <input type="date" asp-for="DateIn" id="dateIn" class="form-control lowercase borrow-initial">
+                                            <span asp-validation-for="DateIn" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="TimeIn" class="col-form-label">Time In</label>
+                                            <input type="time" asp-for="TimeIn" id="timeIn" class="form-control lowercase borrow-initial">
+                                            <span asp-validation-for="TimeIn" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="DateOut" class="col-form-label">Date Out</label>
+                                            <input type="date" asp-for="DateOut" id="dateOut" class="form-control lowercase borrow-initial">
+                                            <span asp-validation-for="DateOut" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="TimeOut" class="col-form-label">Time Out</label>
+                                            <input type="time" asp-for="TimeOut" id="timeOut" class="form-control lowercase borrow-initial">
+                                            <span asp-validation-for="TimeOut" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="DateBreakOut" class="col-form-label">Date Break Out</label>
+                                            <input type="date" asp-for="DateBreakOut" id="dateBreakOut" class="form-control lowercase borrow-initial">
+                                            <span asp-validation-for="DateBreakOut" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="BreakOut" class="col-form-label">Break Out</label>
+                                            <input type="time" asp-for="BreakOut" id="breakOut" class="form-control lowercase borrow-initial">
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="DateBreakIn" class="col-form-label">Date Break In</label>
+                                            <input type="date" asp-for="DateBreakIn" id="dateBreakIn" class="form-control lowercase borrow-initial">
+                                            <span asp-validation-for="DateBreakIn" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="BreakIn" class="col-form-label">Break In</label>
+                                            <input type="time" asp-for="BreakIn" id="breakIn" class="form-control lowercase borrow-initial">
+                                        </div>
+                                    </div>
+                                    <div class="col-6 row m-0">
+                                        <div class="form-group col-md-12 row form-border">
+                                            <div class="col-md-12">
+                                                <label class="col-form-label">Shift Details</label>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="ShiftStart" class="col-form-label">Shift Start</label>
+                                                <input type="time" asp-for="ShiftStart" id="shiftStart" class="form-control lowercase borrow-initial">
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="ShiftEnd" class="col-form-label">Shift End</label>
+                                                <input type="time" asp-for="ShiftEnd" id="shiftEnd" class="form-control lowercase borrow-initial">
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="BreakStart" class="col-form-label">Break Start</label>
+                                                <input type="time" asp-for="BreakStart" id="breakStart" class="form-control lowercase borrow-initial">
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="BreakEnd" class="col-form-label">Break End</label>
+                                                <input type="time" asp-for="BreakEnd" id="breakEnd" class="form-control lowercase borrow-initial">
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <div class="float-left">
+                                                    <input id="isFlexibleShift" type="checkbox" asp-for="IsFlexibleShift" class="" disabled readonly>
+                                                    <label class="text-white" asp-for="IsFlexibleShift">Is Flexible Shift</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <div class="float-left">
+                                                    <input id="isFlexibleBreak" type="checkbox" asp-for="IsFlexibleBreak" class="" disabled readonly>
+                                                    <label class="text-white" asp-for="IsFlexibleBreak">Is Flexible Break</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <div class="float-left">
+                                                    <input id="isNoShift" type="checkbox" asp-for="IsNoShift" class="" disabled readonly>
+                                                    <label class="text-white" asp-for="IsNoShift">Is No Shift</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <div class="float-left">
+                                                    <input id="isNoBreak" type="checkbox" asp-for="IsNoBreak" class="" disabled readonly>
+                                                    <label class="text-white" asp-for="IsNoBreak">Is No Break</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer register-footer">
+                    <button type="button" data-bs-dismiss="modal" class="btn btn-secondary cancel-button save-button">Cancel</button>
+                    <button type="submit" id="borrower-modal-btn" class="btn btn btn-primary save-button">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="content-container" class="row">
+    <div class="container col-md-12">
+        <div class="left-header-container">
+            <img class="icon" src="/images/administration/attendancebig.png">
+            <h1 class="title">Employee Time Logs</h1>
+        </div>
+        <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
+            <div>
+                <div class="form-label">Start</div>
+                <input id="start-import-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+            </div>
+            <div>
+                <div class="form-label">End</div>
+                <input id="end-import-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+            </div>
+            <div>
+                <div class="form-label" style="color: transparent;">Button</div>
+                <button id="import" class="btn btn-primary" style="height: 38px; width: auto;">Get Imported Logs</button> &nbsp; &nbsp; &nbsp; &nbsp;
+                <button class="btn btn-primary add-new-btn" id="add-button">New Log</button>
+            </div>
+        </div>
+        <br />
+        <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
+            <div>
+                <div class="form-label">From</div>
+                <input id="start-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+            </div>
+            <div>
+                <div class="form-label">To</div>
+                <input id="end-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+            </div>
+            <div>
+                <div class="form-label" style="color: transparent;">Button</div>
+                <button id="filter" class="btn btn-primary" style="height: 38px; width: 80px;">Filter</button>
+            </div>
+        </div>
+        <table id="employee-time-log-grid" class="display" cellspacing="0" width="100%" style="background-color:cornflowerblue">
+        </table>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/toastr.js/toastr.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/printThis/printThis.min.js"></script>
+    <script src="~/lib/handlebars.js/handlebars.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
+    <script src="~/lib/datatables.net-select-dt/select.dataTables.js"></script>
+    <script src="~/lib/datatables.net-select-dt/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-buttons/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
+    <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/pages/administration/employee-time-log.js"></script>
+}

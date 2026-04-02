@@ -1,0 +1,77 @@
+﻿@model SCICHRPortal.Web.Models.ViewModels.Administration.EmployeeTimeLogViewModel
+@{
+    ViewData["Title"] = "Administration System";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-select-dt/select.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
+}
+<div id="content-container" class="row">
+    <div class="container col-md-12">
+        <div class="left-header-container">
+            <img class="icon" src="/images/administration/biometricsbig.png">
+            <h1 class="title">Employee Biometrics Logs</h1>
+        </div>
+        <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
+            <div>
+                <div class="form-label">From</div>
+                <input id="start-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+            </div>
+            <div>
+                <div class="form-label">To</div>
+                <input id="end-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+            </div>
+            <div>
+                <div class="form-label" style="color: transparent;">Button</div>
+                <button id="filter" class="btn btn-primary" style="height: 38px; width: 80px;">Filter</button>
+            </div>
+            <br />
+            <div></div>
+            <div></div>
+            <div></div>
+            <div>
+                <div class="form-label">Import Log File</div>
+                <div class="d-flex">
+                    <input type="file" id="upload-file" class="form-control" style="width: 500px; height: 38px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                    <button id="import" class="btn btn-primary" style="height: 38px; border-top-left-radius: 0; border-bottom-left-radius: 0;">Import
+                        <i class="fas fa-upload"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <table id="biometrics-log-grid" class="display" cellspacing="0" width="100%" style="background-color:cornflowerblue">
+        </table>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/toastr.js/toastr.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/printThis/printThis.min.js"></script>
+    <script src="~/lib/handlebars.js/handlebars.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
+    <script src="~/lib/datatables.net-select-dt/select.dataTables.js"></script>
+    <script src="~/lib/datatables.net-select-dt/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-buttons/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
+    <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/pages/administration/biometrics-log.js"></script>
+}

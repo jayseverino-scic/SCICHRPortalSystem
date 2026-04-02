@@ -1,0 +1,254 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Operations;
+using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Service.Implementations;
+using SCICHRPortal.Service.Interfaces;
+using SCICHRPortal.Utility.Constants;
+
+namespace SCICHRPortal.API.Controllers.Authenticated
+{
+    [Authorize]
+    [Route("api/Authenticated/[controller]")]
+    [ApiController]
+    public class EmployeeTimeLogController : ControllerBase
+    {
+        private IEmployeeTimeLogService EmployeeTimeLogService { get; }
+        private IBiometricsLogService BiometricsLogService { get; }
+        private IEmployeeService EmployeeService { get; }
+        private IEmployeeShiftService EmployeeShiftService { get; }
+
+        public EmployeeTimeLogController(IEmployeeTimeLogService employeeTimeLogService, IBiometricsLogService biometricsLogService, IEmployeeService employeeService, IEmployeeShiftService employeeShiftService)
+        {
+            EmployeeTimeLogService = employeeTimeLogService;
+            BiometricsLogService = biometricsLogService;
+            EmployeeService = employeeService;
+            EmployeeShiftService = employeeShiftService;
+        }
+        [HttpGet()]
+        public async Task<IActionResult> GetAsync()
+        {
+            var employeeTimeLogs = await EmployeeTimeLogService.GetAllAsync();
+            return Ok(employeeTimeLogs);
+        }
+        [HttpGet("Filter")]
+        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate)
+        {
+            var tuple = await EmployeeTimeLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startDate, endDate);
+            var maxOrderNumber = pageNumber * pageSize;
+            var orderNumber = maxOrderNumber - pageSize + 1;
+
+            var data = tuple.Item1.Select(d => new
+            {
+                d.TimeLogId,
+                d.EmployeeId,
+                employeeNo = d.Employee!.EmployeeNo,
+                EmployeeName = d.Employee!.LastName + "," + d.Employee.FirstName,
+                d.DateIn,
+                d.DateOut,
+                d.DateBreakOut,
+                d.DateBreakIn,
+                d.TimeIn,
+                d.TimeOut,
+                d.BreakOut,
+                d.BreakIn,
+                d.ShiftStart,
+                d.ShiftEnd,
+                d.BreakStart,
+                d.BreakEnd,
+                d.IsFlexibleShift,
+                d.IsFlexibleBreak,
+                d.IsNoShift,
+                d.IsNoBreak,
+                d.CreatedAt,
+                OrderNumber = orderNumber++
+            });
+
+            var dto = new
+            {
+                Data = data,
+                Total = tuple.Item2
+            };
+            return Ok(dto);
+        }
+
+        [HttpPost("Import")]
+        public async Task<IActionResult> ImportAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startImportDate, DateTime? endImportDate)
+        {
+            var tuple = await BiometricsLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startImportDate, endImportDate);
+            var data = tuple.Item1.Select(d => new
+            {
+                d.BiometricsLogId,
+                d.TMNo,
+                d.EmployeeNo,
+                d.EmployeeName,
+                d.GMNo,
+                d.Mode,
+                d.InOut,
+                d.AntiPass,
+                d.ProxyWork,
+                d.DateTimeLog
+            });
+
+            var dto = new
+            {
+                Data = data,
+                Total = tuple.Item2
+            };
+
+            List<string?> bioEmployees = new List<string?>();
+            List<string> bioDates = new List<string>();
+            bioDates = tuple.Item1.Select(d => d.DateTimeLog.ToShortDateString()).Distinct().ToList();
+            bioEmployees = tuple.Item1.Select(static d => d.EmployeeNo).Distinct().ToList();
+            IEnumerable<Employee> employees = await EmployeeService.GetAllAsync();
+            IEnumerable<EmployeeShift> shifts = await EmployeeShiftService.GetAllAsync();
+            var filteredEmployees = from e in employees join b in bioEmployees on e.EmployeeNo equals b select e;
+            List<EmployeeTimeLog> timeLogs = new List<EmployeeTimeLog>();
+            foreach (var employee in filteredEmployees)
+            {
+                EmployeeShift? shift = shifts.Where(s => s.EmployeeId == employee.EmployeeId).FirstOrDefault();
+                foreach (var date in bioDates)
+                {
+                    EmployeeTimeLog employeeTimeLog = new EmployeeTimeLog();
+                    employeeTimeLog.EmployeeId = employee.EmployeeId;
+                    employeeTimeLog.DateIn = Convert.ToDateTime(date);
+                    employeeTimeLog.DateOut = Convert.ToDateTime(date);
+                    employeeTimeLog.DateBreakOut  = Convert.ToDateTime(date);
+                    employeeTimeLog.DateBreakIn = Convert.ToDateTime(date);
+                    employeeTimeLog.TimeIn = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).FirstOrDefault();
+                    if (shift!.ShiftEnd < shift.ShiftStart)
+                    {
+                        employeeTimeLog.TimeOut = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.ShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).LastOrDefault();
+                    }
+                    else
+                    {
+                        employeeTimeLog.TimeOut = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).LastOrDefault();
+                    }
+                    employeeTimeLog.BreakOut = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).Skip(1).FirstOrDefault();
+                    if (shift.BreakEnd < shift.BreakStart)
+                    {
+                        employeeTimeLog.BreakIn = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.BreakStart!.Value.ToShortTimeString())).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).Skip(1).LastOrDefault();
+                    }
+                    else
+                    {
+                        employeeTimeLog.BreakIn = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).Skip(1).LastOrDefault();
+                    }
+                    employeeTimeLog.ShiftStart = Convert.ToDateTime(date + " " + shift.ShiftStart!.Value.ToShortTimeString());
+                    employeeTimeLog.ShiftEnd = shift.ShiftEnd > shift.ShiftStart ? Convert.ToDateTime(date + " " + shift.ShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.ShiftEnd!.Value.ToShortTimeString());
+                    employeeTimeLog.BreakStart = Convert.ToDateTime(date + " " + Convert.ToDateTime(shift.BreakStart.ToString()).ToShortTimeString());
+                    employeeTimeLog.BreakEnd = shift.BreakEnd > shift.BreakStart ? Convert.ToDateTime(date + " " + shift.BreakEnd.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.BreakEnd!.Value.ToShortTimeString());
+                    employeeTimeLog.IsNoShift = shift.IsNoShift;
+                    employeeTimeLog.IsNoBreak = shift.IsNoBreak;
+                    employeeTimeLog.IsFlexibleBreak  = shift.IsFlexibleBreak;
+                    employeeTimeLog.IsFlexibleShift = shift.IsFlexibleShift;
+                    timeLogs.Add(employeeTimeLog);
+                    await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
+                }
+            }
+            var displayData = timeLogs.Select(d => new
+            {
+                d.TimeLogId,
+                d.EmployeeId,
+                employeeNo = d.Employee!.EmployeeNo,
+                EmployeeName = d.Employee!.LastName + "," + d.Employee.FirstName,
+                d.DateIn,
+                d.DateOut,
+                d.TimeIn,
+                d.TimeOut,
+                d.DateBreakOut,
+                d.DateBreakIn,
+                d.BreakOut,
+                d.BreakIn,
+                d.ShiftStart,
+                d.ShiftEnd,
+                d.BreakStart,
+                d.BreakEnd,
+                d.IsFlexibleShift,
+                d.IsFlexibleBreak,
+                d.IsNoShift,
+                d.IsNoBreak,
+                d.CreatedAt
+            });
+            return Ok(displayData);
+        }
+
+        [HttpPost()]
+        public async Task<IActionResult> InsertAsync(EmployeeTimeLog employeeTimeLog)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Bad Request.");
+
+            if (employeeTimeLog.TimeIn == null && employeeTimeLog.TimeOut == null)
+                return BadRequest("Bad Request.");
+            var hasDuplicate = await EmployeeTimeLogService.HasDuplicateName(employeeTimeLog);
+            if (hasDuplicate.IsDuplicated)
+                return Conflict(hasDuplicate);
+
+            if (employeeTimeLog.TimeOut < employeeTimeLog.TimeIn && employeeTimeLog.DateIn == employeeTimeLog.DateOut)
+            {
+                employeeTimeLog.DateOut = employeeTimeLog.DateOut!.Value.AddDays(1);
+                employeeTimeLog.TimeOut = employeeTimeLog.TimeOut.Value.AddDays(1);
+            }
+            if (employeeTimeLog.BreakIn < employeeTimeLog.BreakOut && employeeTimeLog.DateBreakIn == employeeTimeLog.DateBreakOut)
+            {
+                employeeTimeLog.DateBreakIn = employeeTimeLog.DateBreakIn!.Value.AddDays(1);
+                employeeTimeLog.BreakIn = employeeTimeLog.DateBreakIn!.Value.AddDays(1);
+            }
+            if (employeeTimeLog.ShiftStart > employeeTimeLog.ShiftEnd)
+            {
+                employeeTimeLog.ShiftEnd = employeeTimeLog.ShiftEnd!.Value.AddDays(1);
+            }
+            if (employeeTimeLog.BreakStart > employeeTimeLog.BreakEnd)
+            {
+                employeeTimeLog.BreakEnd = employeeTimeLog.BreakEnd.Value.AddDays(1);
+            }
+            await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
+
+            return StatusCode(201, employeeTimeLog.TimeLogId);
+        }
+
+        [HttpPut()]
+        public async Task<IActionResult> UpdateAsync(EmployeeTimeLog employeeTimeLog)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Bad Request.");
+            if (employeeTimeLog.TimeOut < employeeTimeLog.TimeIn && employeeTimeLog.DateIn == employeeTimeLog.DateOut)
+            {
+                employeeTimeLog.DateOut = employeeTimeLog.DateOut!.Value.AddDays(1);
+                employeeTimeLog.TimeOut = employeeTimeLog.TimeOut.Value.AddDays(1);
+            }
+            if (employeeTimeLog.BreakIn < employeeTimeLog.BreakOut && employeeTimeLog.DateBreakIn == employeeTimeLog.DateBreakOut)
+            {
+                employeeTimeLog.DateBreakIn = employeeTimeLog.DateBreakIn!.Value.AddDays(1);
+                employeeTimeLog.BreakIn = employeeTimeLog.DateBreakIn!.Value.AddDays(1);
+            }
+            if (employeeTimeLog.ShiftStart > employeeTimeLog.ShiftEnd)
+            {
+                employeeTimeLog.ShiftEnd = employeeTimeLog.ShiftEnd!.Value.AddDays(1);
+            }
+            if (employeeTimeLog.BreakStart > employeeTimeLog.BreakEnd)
+            {
+                employeeTimeLog.BreakEnd = employeeTimeLog.BreakEnd.Value.AddDays(1);
+            }
+            var updated = await EmployeeTimeLogService.UpdateAsync(employeeTimeLog);
+            if (!updated)
+                return NotFound(ResponseMessage.NotFound);
+
+            return Ok();
+        }
+
+        [HttpDelete("{employeeTimeLogId}")]
+        public async Task<IActionResult> DeleteAsync(int employeeTimeLogId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Bad Request.");
+
+            var deleted = await EmployeeTimeLogService.DeleteAsync(employeeTimeLogId);
+            if (!deleted)
+                return NotFound(ResponseMessage.NotFound);
+
+            return Ok();
+        }
+    }
+}

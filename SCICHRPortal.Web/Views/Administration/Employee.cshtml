@@ -1,0 +1,152 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration;
+@using SCICHRPortal.Utility.Securities;
+
+@inject IAuthorizationService AuthorizationService
+@inherits AuthorizePage<TModel>
+@{
+    bool isAuthorize = await IsAuthorize();
+    bool hasAdminPermission = await HasRoleByArrayAsync(new string[] { "Administrator", "Admission" });
+}
+
+@model SCICHRPortal.Web.Models.ViewModels.Administration.EmployeeViewModel
+@{
+    ViewData["Title"] = @ViewBag.SystemSelected + " System";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-select-dt/select.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
+
+}
+<div class="modal" id="employee-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-md" role="document" style="width: 1100px">
+        <form id="employee-form">
+            <div class="modal-content">
+                <div class="form-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="addModalLabel">Employee Form</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="row col-md-12 mx-auto" align="center">
+                                <input name="employeeId" id="EmployeeId" hidden type="number" value=0 class="form-control">
+                                <div class="col-md-12 mr-auto row">
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="EmployeeNo" class="col-form-label">Employee No.</label>
+                                        <input type="text" asp-for="EmployeeNo" class="form-control">
+                                        <span asp-validation-for="EmployeeNo" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="LastName" class="col-form-label">Last Name</label>
+                                        <input type="text" asp-for="LastName" class="form-control">
+                                        <span asp-validation-for="LastName" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="FirstName" class="col-form-label">First Name</label>
+                                        <input type="text" asp-for="FirstName" class="form-control">
+                                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="MiddleName" class="col-form-label">Middle Name</label>
+                                        <input type="text" asp-for="MiddleName" class="form-control">
+                                        <span asp-validation-for="MiddleName" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="Suffix" class="col-form-label">Suffix</label>
+                                        <input type="text" asp-for="Suffix" class="form-control">
+                                        <span asp-validation-for="Suffix" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="Email" class="col-form-label">Email</label>
+                                        <input type="text" asp-for="Email" class="form-control lowercase">
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="Address" class="col-form-label">Address</label>
+                                        <input type="text" asp-for="Address" class="form-control">
+                                        <span asp-validation-for="Address" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="ContactNumber" class="col-form-label">Contact Number</label>
+                                        <input type="text" asp-for="ContactNumber" class="form-control">
+                                        <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="PositionId" class="col-form-label">Position</label>
+                                        <select asp-for="PositionId" id="PositionId" class="form-control select"></select>
+                                        <span asp-validation-for="PositionId" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="DepartmentId" class="col-form-label">Department</label>
+                                        <select asp-for="DepartmentId" id="DepartmentId" class="form-control select"></select>
+                                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer register-footer">
+                    <button type="button" data-bs-dismiss="modal" class="btn btn-secondary cancel-button save-button">Cancel</button>
+                    @if (@ViewBag.SystemSelected == "Administration")
+                    {
+                        <button type="submit" id="employee-modal-btn" class="btn btn btn-primary save-button">Add</button>
+                    }
+                   
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+    <div id="content-container" class="row">
+    <div class="container col-md-12">
+        <div class="left-header-container">
+            <img class="icon" src="/images/administration/employeebig.png">
+            <h1 class="title">Employees</h1>
+        </div>
+        @if (@ViewBag.SystemSelected == "Administration")
+        {
+        <button class="btn btn-primary add-new-btn" id="add-button">Add new</button>
+            
+        }
+        <table id="employee-grid" class="display" cellspacing="0" width="100%">
+        </table>
+    </div>
+</div>
+
+<script>
+    var system = '@(ViewBag.SystemSelected)';
+</script>
+@section Scripts {
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
+    <script src="~/lib/toastr.js/toastr.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/underscore.js/underscore.min.js"></script>
+    <script src="~/lib/printThis/printThis.min.js"></script>
+    <script src="~/lib/handlebars.js/handlebars.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
+    <script src="~/lib/datatables.net-select-dt/select.dataTables.js"></script>
+    <script src="~/lib/datatables.net-select-dt/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-buttons/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
+    <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/pages/administration/employee.js"></script>
+}

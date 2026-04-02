@@ -1,0 +1,258 @@
+body {
+    min-height: 100vh;
+}
+
+#preview-profile-modal {
+    height: auto !important;
+    box-shadow: none;
+    background: transparent;
+    border: none;
+}
+
+    #preview-profile-modal .modal-body {
+        text-align: center;
+    }
+
+    #preview-profile-modal #profile-img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 1px solid #5555553b;
+    }
+
+.modal-backdrop {
+    opacity: 0.5;
+}
+
+#content-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+    #content-container .sidebar {
+        /*position: sticky;*/
+        /*background: #0089ff;*/
+        /*background: #6495ed;*/
+        border-right: ridge;
+        background-color: steelblue;
+        /*background-image: linear-gradient(#0089ff, #f4f7f7);*/
+        min-height: 87vh;
+        max-height: 100vh;
+        padding: 15px;
+        top: 0;
+        border-radius: 5px 5px 0 0;
+        position: fixed;
+        overflow-y: auto;
+        overflow-x: hidden;
+        transition: all 0.5s ease;
+        z-index: 1000;
+    }
+
+        #content-container .sidebar .user-side-panel {
+            height: 80vh;
+        }
+
+            #content-container .sidebar .user-side-panel .user-profile {
+                color: #FFF;
+                height: 20%;
+            }
+
+                #content-container .sidebar .user-side-panel .user-profile .user-image {
+                    position: relative;
+                }
+
+                    #content-container .sidebar .user-side-panel .user-profile .user-image #edit-profile-icon {
+                        position: absolute;
+                        right: 22%;
+                        bottom: 5%;
+                        text-align: center;
+                        background: #e8ebeb;
+                        font-size: 20px;
+                        padding: .5vw;
+                        border-radius: 50%;
+                        cursor: pointer;
+                    }
+
+                    #content-container .sidebar .user-side-panel .user-profile .user-image .teacher-photo {
+                        display: block;
+                        margin-left: auto;
+                        margin-right: auto;
+                        height: 75px;
+                    }
+
+                #content-container .sidebar .user-side-panel .user-profile .nickname {
+                    background-color: midnightblue;
+                    text-align: center;
+                }
+
+            #content-container .sidebar .user-side-panel .nav-panel {
+                height: 70%;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+                #content-container .sidebar .user-side-panel .nav-panel .nav-link {
+                    padding: .5em .3em;
+                    margin: 0 5px;
+                    color: #FFF;
+                    display: list-item; /* This has to be "list-item"                                               */
+                    list-style-type: disc; /* See https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type     */
+                    list-style-position: inside;
+                    border-bottom: solid;
+                }
+
+                #content-container .sidebar .user-side-panel .nav-panel .float-right {
+                    padding-right: 10px;
+                }
+
+                #content-container .sidebar .user-side-panel .nav-panel .nav-link:hover {
+                    background-color: #c7f1fe !important;
+                    color: #555 !important;
+                }
+
+                #content-container .sidebar .user-side-panel .nav-panel .active {
+                    background-color: #c7f1fe !important;
+                    color: #555 !important;
+                }
+
+                #content-container .sidebar .user-side-panel .nav-panel .master-data-sub-menu .nav-link,
+                #content-container .sidebar .user-side-panel .nav-panel .report-sub-menu .nav-link,
+                #content-container .sidebar .user-side-panel .nav-panel .user-sub-menu .nav-link,
+                #content-container .sidebar .user-side-panel .nav-panel .transaction-sub-menu .nav-link,
+                #content-container .sidebar .user-side-panel .nav-panel .reference-sub-menu .nav-link,
+                #content-container .sidebar .user-side-panel .nav-panel .setting-sub-menu .nav-link {
+                    color: #fcfbfb;
+                    padding-left: 39px;
+                    line-height: 1;
+                    list-style-type: disc;
+                    list-style-position: unset;
+                    border-bottom: solid;
+                }
+
+        #content-container .sidebar .content-sign-out-menu {
+            position: absolute;
+            bottom: 0;
+            display: inline-grid;
+            width: 100%;
+            cursor: pointer;
+        }
+
+            #content-container .sidebar .content-sign-out-menu a.content-sign-out-btn {
+                font-size: 1.5em;
+                padding: .5em .3em;
+                color: black;
+                border: double;
+                background-color: skyblue;
+                margin: 0 5px;
+            }
+            #content-container .sidebar .content-sign-out-menu .help {
+                /*font-size: 1.5em;*/
+                padding: .5em .3em;
+                color: #FFF;
+                margin: 0 5px;
+            }
+#content-container .sidebar .content-sign-out-menu a:hover {
+        background-color: #22adf799;
+        color: #FFF; }
+/*#content-container .sidebar .content-sign-out-menu .active {
+        background-color: #22ADF7 !important;
+        color: white !important; }*/
+
+/* width */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #b3b3b3;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background-color: #8d8c8c;
+    border-radius: 5px;
+    border: 3px solid #8d8c8c;
+}
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+        background: #7a7a7a;
+        border: 3px solid #7a7a7a;
+    }
+
+@media screen and (max-height: 670px) {
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+        .sidebar .user-side-panel {
+            height: initial !important;
+        }
+
+            .sidebar .user-side-panel .user-profile {
+                height: initial !important;
+            }
+
+            .sidebar .user-side-panel .nav-panel {
+                height: initial !important;
+                overflow: initial;
+            }
+
+        .sidebar .content-sign-out-menu {
+            position: initial !important;
+        }
+}
+
+
+
+@media screen and (max-width: 768px) {
+    .sidebar {
+        min-height: auto !important;
+        height: auto;
+    }
+
+        .sidebar .user-side-panel {
+            height: initial !important;
+        }
+
+            .sidebar .user-side-panel .user-profile {
+                height: initial !important;
+            }
+
+            .sidebar .user-side-panel .nav-panel {
+                height: initial !important;
+                overflow: initial;
+            }
+
+        .sidebar .content-sign-out-menu {
+            position: initial !important;
+        }
+}
+
+.master-data-sub-menu, .report-sub-menu, .user-sub-menu, .transaction-sub-menu, .reference-sub-menu {
+    height: 100%;
+    font-size: 12px;
+    overflow-y: auto;
+}
+
+.nav-container .nav-items {
+    width: 20%;
+    max-width: none;
+}
+
+.nav {
+    padding-top: 5px;
+}
+.input-validation-error {
+    border: 1px solid red;
+}

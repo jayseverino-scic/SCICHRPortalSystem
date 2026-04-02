@@ -1,0 +1,58 @@
+{
+  "version": "3.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "datatables@1.10.21",
+      "destination": "wwwroot/lib/datatables/"
+    },
+    {
+      "library": "datatables.net-select-dt@3.1.1",
+      "destination": "wwwroot/lib/datatables.net-select-dt/"
+    },
+    {
+      "library": "datatables-buttons@3.2.5",
+      "destination": "wwwroot/lib/datatables-buttons/"
+    },
+    {
+      "library": "datatables-colvis@1.1.2",
+      "destination": "wwwroot/lib/datatables-colvis/"
+    },
+    {
+      "library": "font-awesome@7.0.1",
+      "destination": "wwwroot/lib/font-awesome/"
+    },
+    {
+      "library": "handlebars.js@4.7.8",
+      "destination": "wwwroot/lib/handlebars.js/"
+    },
+    {
+      "library": "limonte-sweetalert2@11.23.0",
+      "destination": "wwwroot/lib/limonte-sweetalert2/"
+    },
+    {
+      "library": "moment.js@2.30.1",
+      "destination": "wwwroot/lib/moment.js/"
+    },
+    {
+      "library": "printThis@1.15.0",
+      "destination": "wwwroot/lib/printThis/"
+    },
+    {
+      "library": "select2@4.0.13",
+      "destination": "wwwroot/lib/select2/"
+    },
+    {
+      "library": "select2-bootstrap-theme@0.1.0-beta.10",
+      "destination": "wwwroot/lib/select2-bootstrap-theme/"
+    },
+    {
+      "library": "toastr.js@2.1.4",
+      "destination": "wwwroot/lib/toastr.js/"
+    },
+    {
+      "library": "underscore.js@1.13.7",
+      "destination": "wwwroot/lib/underscore.js/"
+    }
+  ]
+}

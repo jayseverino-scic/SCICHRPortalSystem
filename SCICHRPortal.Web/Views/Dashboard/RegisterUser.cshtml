@@ -1,0 +1,131 @@
+﻿@model SCICHRPortal.Web.Models.ViewModels.Admin.LookupsViewModel
+@{
+    ViewData["Title"] = "Enrollment System";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-select-dt/select.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
+
+}
+    <div class="modal" id="register-user-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-xl" role="document" style="width: 1100px">
+            <form id="register-user-form">
+                <div class="modal-content">
+                    <div class="form-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="addModalLabel">User Form</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="row col-md-12 mx-auto" align="center">
+                                    <div class="col-md-12 mr-auto row">
+                                        <input name="userId" id="UserId" class="form-control" type="number" hidden value=0>
+                                        <div class="col-6 row m-0">
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="Email" class="col-form-label">Email</label>
+                                                <input type="text" asp-for="Email" class="form-control lowercase">
+                                                <span asp-validation-for="Email" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="LastName" class="col-form-label">Last Name</label>
+                                                <input type="text" asp-for="LastName" class="form-control">
+                                                <span asp-validation-for="LastName" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="FirstName" class="col-form-label">First Name</label>
+                                                <input type="text" asp-for="FirstName" class="form-control">
+                                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="MiddleName" class="col-form-label">Middle Name</label>
+                                                <input type="text" asp-for="MiddleName" class="form-control">
+                                                <span asp-validation-for="MiddleName" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="ContactNumber" class="col-form-label">Contact Number</label>
+                                                <input type="text" asp-for="ContactNumber" class="form-control">
+                                                <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 row m-0 ">
+                                            <div class="form-group col-md-12 row form-border">
+                                                <div class="col-md-12">
+                                                      <label class="col-form-label">Roles</label>
+                                                </div>
+                                                <div class="role-container row col-12" id="role-container"></div>
+                                                <span id="role-validation" class="text-danger d-none">select atleast one role</span>
+                                                @*    <select asp-for="RoleId" id="RoleId" class="form-control"></select>
+                                            <span asp-validation-for="RoleId" class="text-danger"></span>*@
+                                            </div>
+                                        </div>
+                                        
+                                      
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer register-footer">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-secondary cancel-button save-button">Cancel</button>
+                        <button type="submit" id="register-user-modal-btn" class="btn btn btn-primary save-button">Add</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+<div id="content-container" class="row">
+    <div class="container col-md-12">
+        <div class="left-header-container">
+            <img class="icon" src="/images/common/registeruserbig.png">
+                    <h1 class="title">Registered Users</h1>
+        </div>
+            <button class="btn btn-primary add-new-btn" id="add-button">Add new</button>
+            <table id="register-user-grid" class="display" cellspacing="0" width="100%">
+        </table>
+    </div>
+</div>
+
+    <script id="role-template" type="text/x-handlebars-template">
+
+         {{#each roles}}
+         <div class="form-group col-md-6">
+              <input id="{{roleId}}" type="checkbox" name="role" value="{{roleId}}" class="float-left">
+              <label class="float-left mx-2" style="color:#FFF" for="{{roleId}}">{{name}}</label>
+         </div>
+        {{/each}}
+
+    </script>
+
+@section Scripts {
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
+    <script src="~/lib/toastr.js/toastr.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/underscore.js/underscore.min.js"></script>
+    <script src="~/lib/printThis/printThis.min.js"></script>
+    <script src="~/lib/handlebars.js/handlebars.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
+    <script src="~/lib/datatables.net-select-dt/select.dataTables.js"></script>
+    <script src="~/lib/datatables.net-select-dt/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-buttons/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
+    <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/pages/dashboard/register-user.js"></script>
+}

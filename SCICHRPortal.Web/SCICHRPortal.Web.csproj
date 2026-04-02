@@ -7,14 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\ViewModels\" />
-    <Folder Include="wwwroot\css\pages\" />
     <Folder Include="wwwroot\files\pdf\" />
-    <Folder Include="wwwroot\html\templates\" />
-    <Folder Include="wwwroot\images\" />
-    <Folder Include="wwwroot\js\commondata\" />
-    <Folder Include="wwwroot\js\helpers\" />
-    <Folder Include="wwwroot\js\pages\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SCICHRPortal.Data\SCICHRPortal.Data.csproj" />
+    <ProjectReference Include="..\SCICHRPortal.Utility\SCICHRPortal.Utility.csproj" />
   </ItemGroup>
 
 </Project>
