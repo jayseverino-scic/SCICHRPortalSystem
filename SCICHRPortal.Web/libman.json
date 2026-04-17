@@ -53,6 +53,11 @@
     {
       "library": "underscore.js@1.13.7",
       "destination": "wwwroot/lib/underscore.js/"
+    },
+    {
+      "provider": "unpkg",
+      "library": "bootstrap@5.3.8",
+      "destination": "wwwroot/lib/bootstrap/"
     }
   ]
 }
