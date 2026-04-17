@@ -3,6 +3,9 @@
     <Project Path="SCICHRPortal.API/SCICHRPortal.API.csproj" />
     <Project Path="SCICHRPortal.Web/SCICHRPortal.Web.csproj" />
   </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="SCICHRPortal.Core/SCICHRPortal.Core.csproj" />
   <Project Path="SCICHRPortal.Data/SCICHRPortal.Data.csproj" />
   <Project Path="SCICHRPortal.Repository/SCICHRPortal.Repository.csproj" />
