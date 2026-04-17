@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace WebEnrolmentSystem.Web.Controllers
+namespace SCICHRPortal.Web.Controllers
 {
     public class DashboardController : Controller
     {

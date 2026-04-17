@@ -100,7 +100,7 @@ string mySqlConnectionStr = builder.Configuration.GetConnectionString("DefaultCo
 builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseNpgsql(mySqlConnectionStr,
     //ServerVersion.AutoDetect(mySqlConnectionStr),
-     options => options.MigrationsAssembly("WebEnrolmentSystem.Repository")));
+     options => options.MigrationsAssembly("SCICHRPortal.Repository")));
 
 
 builder.Services.AddCors(options =>
