@@ -233,15 +233,8 @@
                     $('#reset-password-form-container').removeClass('d-none');
                 }
                 else {
-                    const hasRegistrationApplication = checkRegistrationApplication(token.accessToken.jsonWebToken);
-                    
-                    if (hasRegistrationApplication) {
-                        //window.location = '/RegistrationApplications/Index';
-                        window.location = '/RegistrationApplications/Conform';
-                    }
-                    else {
+
                         window.location = '/Home/Index';
-                    }
                 }
             } else {
                 toastr.options = {
@@ -265,12 +258,6 @@
         }
 
     };
-
-    const checkRegistrationApplication = (jsonWebToken) => {
-        const obj = _cookieHelper.parseToken(jsonWebToken);
-        return obj.role.includes('Registration Application');
-    }
-
 
     let onWindowLoaded = () => {
         attachEvents();

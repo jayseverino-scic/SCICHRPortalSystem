@@ -53,23 +53,25 @@ namespace SCICHRPortal.Data.Mappings
             entityBuilder.Property(t => t.CreatedBy).HasMaxLength(120);
             entityBuilder.Property(t => t.UpdatedBy).HasMaxLength(120);
 
-            //entityBuilder.HasData(new User[]
-            //{
-            //    new User
-            //    {
-            //        UserId = 1,
-            //        FirstName = "Super",
-            //        LastName = "Admin",
-            //        Username = "superadmin",
-            //        Email = "superadmin@mail.com",
-            //        Salt = "ml4A7caIeJit28zFyeiXVA==",
-            //        Password = "4DRtkqzRrxUk9Px/+Zu7vzTIk5f0dHc4mPgicSMkQzI=",
-            //        IsPasswordChanged = false,
-            //        LoginAttempts = 0,
-            //        Locked = false,
-            //        IsApproved = true
-            //    },
-            //});
+            entityBuilder.HasData(new User[]
+            {
+                new User
+                {
+                    UserId = 1,
+                    FirstName = "Super",
+                    LastName = "Admin",
+                    Username = "superadmin",
+                    Email = "superadmin@mail.com",
+                    Salt = "ml4A7caIeJit28zFyeiXVA==",
+                    Password = "4DRtkqzRrxUk9Px/+Zu7vzTIk5f0dHc4mPgicSMkQzI=",
+                    IsPasswordChanged = false,
+                    LoginAttempts = 0,
+                    Locked = false,
+                    IsApproved = true,
+                    CreatedAt = new DateTime(2025, 4, 18, 10, 30, 0, DateTimeKind.Utc),
+                    CreatedBy = "jun rivas"
+                },
+            });
         }
     }
 }

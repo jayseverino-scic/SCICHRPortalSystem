@@ -6,6 +6,7 @@ using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
+using SCICHRPortal.Utility.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -86,8 +87,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok();
         }
         [HttpPost("Import")]
+        [Consumes("multipart/form-data")]
         [Authorize]
-        public async Task<ActionResult> UploadFileAsync([FromForm] IFormFile file)
+        public async Task<ActionResult> UploadFileAsync(IFormFile file)
         {
             if (file == null)
                 return BadRequest(ResponseMessage.BadRequest);
