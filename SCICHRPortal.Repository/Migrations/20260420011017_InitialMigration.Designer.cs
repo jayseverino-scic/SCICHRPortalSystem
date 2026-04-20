@@ -12,8 +12,8 @@ using SCICHRPortal.Repository;
 namespace SCICHRPortal.Repository.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20260418052132_AddedUserAccountOnUserTable")]
-    partial class AddedUserAccountOnUserTable
+    [Migration("20260420011017_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
