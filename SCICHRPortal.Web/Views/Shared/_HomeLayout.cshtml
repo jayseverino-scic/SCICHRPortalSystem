@@ -1,0 +1,56 @@
+﻿@using Microsoft.Extensions.Configuration
+@using SCICHRPortal.Utility.Securities
+@inject IConfiguration Configuration
+@inherits AuthorizePage<TModel>
+@{
+    bool isAuthorize = await IsAuthorize();
+    bool isAdmin = await HasRoleAsync("Administrator");
+    bool isAdmission = await HasRoleAsync("Admission");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebEnrolmentSystem.Web</title>
+    <link href="~/lib/font-awesome/css/all.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div id="busy-indicator-container" class="d-none">
+        <img class="indicator-img-position " src="/images/loading-indicator.gif">
+    </div>
+    <header>
+
+        <nav id="head-nav" class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="nav-first-container">
+                 <img class="" id="school-name" src="/images/LMSI-text 1.png">
+                  <img class="float-right " id="header-logo" src="/images/logo.png">
+            </div>
+        </nav>
+    </header>
+
+
+    <div class="">
+        <input id="base-api-url" type="hidden" value="@Configuration["BaseApiUrl"]" />
+        <div id="content-container" class="row">
+            <main role="main" class="pb-3 col-md-12 main-container">
+                @RenderBody()
+            </main>
+        </div>
+
+    </div>
+
+    @*    <footer class="border-top footer text-muted">
+        <div class="container">
+        &copy; 2022 - WebEnrolmentSystem.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+        </footer>*@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/font-awesome/js/all.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

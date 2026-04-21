@@ -1,0 +1,50 @@
+﻿@using Microsoft.Extensions.Configuration
+
+@inject IConfiguration Configuration
+@addTagHelper *, SmartBreadcrumbs
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/lib/font-awesome/css/all.css" rel="stylesheet" />
+    <link href="~/css/pages/admin-site.css" rel="stylesheet" />
+   
+    @await RenderSectionAsync("Styles", required: false)
+
+</head>
+<body>
+
+    <input id="base-api-url" type="hidden" value="@Configuration["BaseApiUrl"]" />
+    <div id="wrapper">
+        <div id="content-container" class="row">
+             <partial name="_AdminSidebar" />
+        </div>
+       
+        @*<div class="overlay"></div>*@
+        <div id="page-content-wrapper">
+
+            <div id="main-container">
+
+                <div class="container-fluid">
+
+                    @RenderBody()
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/font-awesome/js/all.js"></script>
+    <script src="~/lib/limonte-sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="~/lib/js-cookie/js.cookie.min.js"></script>
+
+    <script src="~/js/pages/admin-site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

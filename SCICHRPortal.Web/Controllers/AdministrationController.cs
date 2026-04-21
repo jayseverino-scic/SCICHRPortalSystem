@@ -10,6 +10,11 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View();
         }
+        public IActionResult Announcement()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
         public IActionResult Department()
         {
             ViewBag.SystemSelected = "Administration";

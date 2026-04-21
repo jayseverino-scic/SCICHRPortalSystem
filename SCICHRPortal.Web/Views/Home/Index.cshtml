@@ -1,8 +1,105 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration;
+@using SCICHRPortal.Utility.Securities;
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@inject IAuthorizationService AuthorizationService
+@inherits AuthorizePage<TModel>
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+}
+@{
+    bool isAuthorize = await IsAuthorize();
+    bool isAdmin = await HasRoleAsync("Administrator");
+    bool isRegistrar = await HasRoleAsync("Admission");
+    bool isParent = await HasRoleAsync("Parent");
+    bool isStudent = await HasRoleAsync("Student");
+    bool isPrincipal = await HasRoleAsync("Principal");
+    bool isTeacher = await HasRoleAsync("Teacher Elem");
+    //bool isTeacher = await HasRoleByArrayAsync(new string[] { "Teacher Elem", "Teacher Elem" });
+    bool isCoordinator = await HasRoleAsync("Coordinator");
+    bool isLibrarian = await HasRoleAsync("Librarian");
+    bool isSuppliesPersonnel = await HasRoleAsync("SuppliesPersonnel");
+}
+@section Styles {
+    <link href="~/css/pages/home/home.css" rel="stylesheet" />
+}
+    <div class="text-center" align="center">
+    <h1 style="font-family:Times New Roman; color:darkblue">SCIC HR Web Portal</h1>
+    </div>
+    <div class="text-center row p-5 " align="center" id="content-container" style="background:linear-gradient(45deg,darkblue,transparent); color:white" >
+@*     @if (isAdmin || isRegistrar || isParent)
+    {
+        <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
+            <a asp-controller="Dashboard" asp-area="" asp-action="Announcement">
+                <img id="deur-entries-logo" class="dashboard-icon" src="/images/features/register.png">
+            </a>
+            <span class="dashboard-icon-title">Enrolment</span>
+        </div>
+    }
+    @if (isAuthorize)
+    {
+        <div class="col-lg-4 mb-lg-3 dashboard-icon-container">
+            <a asp-controller="Grading" asp-area="" asp-action="Announcement">
+                <img id="deur-entries-logo" class="dashboard-icon" src="/images/features/exam.png">
+            </a>
+            <span class="dashboard-icon-title">Grading</span>
+        </div>
+    }
+ 
+    @if (isStudent || isPrincipal || isParent || isTeacher || isCoordinator || isAdmin || isRegistrar)
+    {
+        <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
+            <a asp-controller="Schedule" asp-area="" asp-action="Announcement">
+                <img id="deur-entries-logo" class="dashboard-icon" src="/images/features/timetable.png">
+            </a>
+            <span class="dashboard-icon-title">Schedule</span>
+        </div>
+    }
+    @if (isAuthorize)
+    {
+        <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
+            <a asp-controller="Supplies" asp-area="" asp-action="Announcement">
+                <img id="deur-entries-logo" class="dashboard-icon" src="/images/features/stationery.png">
+            </a>
+            <span class="dashboard-icon-title">Supplies</span>
+        </div>
+    }
+    @if (isAuthorize)
+    {
+        <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
+            <a asp-controller="Library" asp-area="" asp-action="Announcement">
+                <img id="deur-entries-logo" class="dashboard-icon" src="/images/features/books.png">
+            </a>
+            <span class="dashboard-icon-title">Library</span>
+        </div>
+
+    } *@
+    @if (isAuthorize)
+    {
+        <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
+            <a asp-controller="Administration" asp-area="" asp-action="Announcement">
+                <img id="deur-entries-logo" class="dashboard-icon" src="/images/features/administrator.png">
+            </a>
+            <span class="dashboard-icon-title">Timekeeping</span>
+        </div>
+
+    }
+
 </div>
+<div class="text-center d-flex flex-row justify-content-center align-items-center w-100" align="center" id="content-container">
+    <div class="mb-lg-3 dashboard-icon-container">
+        <a id="log-out">
+            <img id="deur-entries-logo" class="dashboard-icon" src="/images/common/logout.png">
+            <span class="dashboard-icon-title" style="color: blue; text-underline-position">Logout</span>
+        </a>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/helpers/cookie-helper.js"></script>
+    <script src="~/js/pages/home/home.js"></script>
+}

@@ -22,7 +22,7 @@ namespace SCICHRPortal.Repository
            : base(options, httpContextService) {
             _httpContextService = httpContextService;
         }
-
+        public DbSet<Announcement>? Announcement { get; set; }
         public DbSet<User>? User { get; set; }
         public DbSet<Role>? Role { get; set; }
         public DbSet<UserRole>? UserRole { get; set; }
@@ -44,6 +44,7 @@ namespace SCICHRPortal.Repository
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            new AnnouncementMap(modelBuilder.Entity<Announcement>());
             new UserMap(modelBuilder.Entity<User>());
             new RoleMap(modelBuilder.Entity<Role>());
             new UserRoleMap(modelBuilder.Entity<UserRole>());

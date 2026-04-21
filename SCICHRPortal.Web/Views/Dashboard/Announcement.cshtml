@@ -1,0 +1,136 @@
+@model SCICHRPortal.Web.Models.ViewModels.Admin.AnnouncementViewModel
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration;
+@using SCICHRPortal.Utility.Securities;
+
+@inject IAuthorizationService AuthorizationService
+@inherits AuthorizePage<TModel>
+@{
+    bool isAuthorize = await IsAuthorize();
+    bool hasAddPermission = await HasRoleByArrayAsync(new string[] { "Administrator", "Admission" });
+}
+@{
+    ViewData["Title"] = "Enrollment System";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-select-dt/select.dataTables.css" rel="stylesheet" />
+    <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
+
+}
+    <div class="modal" id="announcement-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-lg" role="document">
+            <form id="announcement-form">
+                <div class="modal-content">
+                    <div class="form-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="addModalLabel">Announcement Form</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="row col-md-12 mx-auto" align="center">
+                                    <input name="announcementId" id="AnnouncementId" hidden type="number" value=0 class="form-control">
+                                    <div class="col-md-12 mr-auto row">
+                                        <div id="announcement-form-section" class="col-12 row m-0">
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="CreatedAt" class="col-form-label">Date Created</label>
+                                                <input type="date" asp-for="CreatedAt" id="createdAt" class="form-control lowercase" disabled>
+                                                <span asp-validation-for="CreatedAt" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="Title" class="col-form-label">Title</label>
+                                                <input type="text" asp-for="Title" class="form-control" >
+                                                <span asp-validation-for="Title" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label for="RoleIds" class="text-white select2-label">Recipients</label>
+                                                <select id="RoleIds" class="form-control" style="width:100%;" multiple="multiple"></select>
+                                                <span id="role-validation" class="text-danger d-none">Select at least one recipient</span>
+                                            </div>
+                                            <div class="form-group col-md-12 d-none">
+                                                <label for="SectionIds" class="text-white select2-label">Section</label>
+                                                <select id="SectionIds" class="form-control" style="width:100%;" multiple="multiple"></select>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <label asp-for="AnnouncementForm" class="col-form-label">Announcement</label>
+                                                <textarea type="text" asp-for="AnnouncementForm" class="form-control" rows="15" cols="25" >
+                                                </textarea>
+                                                <span asp-validation-for="AnnouncementForm" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-12">
+                                                <div class="import-container">
+                                                    <div class="import-file announcement-import-file">
+                                                        @*<h4 class="d-block" for="upload-file">Import</h4>*@
+                                                        <div class="input-group">
+                                                            <div class="custom-file d-flex flex-row-reverse">
+                                                                <input type="file" class="custom-file-input" id="upload-file" lang="ar" dir="rtl">
+                                                                <label class="custom-file-label text-center" for="upload-file"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer register-footer">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-secondary cancel-button save-button">Cancel</button>
+                    @if (hasAddPermission)
+                    {
+                        <button type="submit" id="announcement-modal-btn" class="btn btn btn-primary save-button">Add</button>
+                    }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+<div id="content-container" class="row">
+    <div class="container col-md-12">
+        <div class="left-header-container">
+            <img class="icon" src="/images/common/announcementbig.png">
+                    <h1 class="title">Announcements</h1>
+        </div>
+     
+         @if (hasAddPermission)
+        {
+            <button class="btn btn-primary add-new-btn" id="add-button">Add new</button>
+        }
+       
+        <table id="announcement-grid" class="display" cellspacing="0" width="100%">
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
+    <script src="~/lib/toastr.js/toastr.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/printThis/printThis.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
+    <script src="~/lib/datatables.net-select-dt/select.dataTables.js"></script>
+    <script src="~/lib/datatables.net-select-dt/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-buttons/dataTables.buttons.min.js"></script>
+    <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
+    <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/pages/dashboard/announcement.js"></script>
+}

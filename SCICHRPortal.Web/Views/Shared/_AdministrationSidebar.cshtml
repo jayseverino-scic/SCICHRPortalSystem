@@ -1,0 +1,92 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Configuration;
+@using SCICHRPortal.Utility.Securities;
+
+@inject IAuthorizationService AuthorizationService
+@inherits AuthorizePage<TModel>
+@{
+    bool isAuthorize = await IsAuthorize();
+    bool isParent = await HasRoleAsync("Parent");
+    bool hasAdminPermission = await HasRoleByArrayAsync(new string[] { "Administrator", "Supply Custodian" });
+}
+@section Styles{
+<link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+}
+
+@*<input type="hidden" id="isAdmin" value="@isAdmin.ToString()">*@
+<div class="modal" id="preview-profile-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img id="profile-img" src="~/images/svg-images/login-logo.png" alt="avatar" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-profile-button" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" id="save-profile-button">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <nav id="admin-sidebar" class="col-sm-12 col-md-2 col-xl-2 sidebar nav-items">
+    <div class="user-side-panel">
+            <div id="close-sidebar-icon"><i class="fas fa-times"></i></div>
+        <div class="user-profile">
+            <input type="number" hidden class="d-none" id="userId">
+            <div class="user-image">
+                <img id="user-profile-img" class="teacher-photo" src="~/images/user.png" />
+            </div>
+            <input type="file" class="d-none" id="change-profile" accept="image/png, image/jpeg">
+
+            <h3 class="nickname" id="current-user">username</h3>
+        </div>
+        <div class="nav-panel mt-5">
+
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                @if (hasAdminPermission)
+                {
+                <a class="nav-link pl-4 announcement" asp-controller="Administration" asp-area="" asp-action="Announcement"><img id="profile-img" src="~/images/common/announcement.png" /> Announcements</a>
+                    
+                }
+                @if (!hasAdminPermission && !isParent)
+                {
+                    <a class="nav-link pl-4 user-detail" asp-controller="Library" asp-action="UserDetail">User Details</a>
+                    <a class="nav-link pl-4 change-password" asp-controller="Library" asp-action="Password">Change Password</a>
+                }
+
+                @if (hasAdminPermission || isAuthorize)
+                {
+                    <a class="nav-link pl-4 user" data-grid-id="user-data-grid" id="v-pills-user-tab" data-toggle="pill" href="#v-pills-user-data" role="tab" aria-controls="v-pills-user-data" aria-selected="false"><img id="profile-img" src="~/images/administration/available.png" />  Attendance  <img id="profile-img" src="~/images/common/dropdown.png" /></a>
+                    <div class="user-sub-menu d-none" id="user-data-menu">
+                        <a class="nav-link user booktype" asp-controller="Administration" asp-area="" asp-action="EmployeeTimeLog"><img id="profile-img" src="~/images/administration/attendance.png">  Employee Time Logs</a>
+                        <a class="nav-link user booktype" asp-controller="Administration" asp-area="" asp-action="BiometricsLog"><img id="profile-img" src="~/images/administration/biometrics.png">  Biometrics Logs</a>
+                        <a class="nav-link user booktype" asp-controller="Administration" asp-area="" asp-action="EmployeeAttendance"><img id="profile-img" src="~/images/administration/attendancecomputation.png">  Attendance Computation</a>
+                        <a class="nav-link user booktype" asp-controller="Administration" asp-area="" asp-action="EmployeeShift"><img id="profile-img" src="~/images/administration/shiftassignment.png" />  Shift Assignment</a>
+                        <a class="nav-link pl-4 report" asp-controller="Administration" asp-action="EmployeeAttendanceSummary"><img id="profile-img" src="~/images/administration/attendancesummary.png" />  Attendance Summary</a>
+                        <a class="nav-link pl-4 report" asp-controller="Administration" asp-action="Tardiness"><img id="profile-img" src="~/images/administration/tardiness.png" />  Tardiness Summary</a>
+                    </div>
+                }
+                @if (hasAdminPermission)
+                {
+                    <a class="nav-link pl-4 meta-data" data-grid-id="master-data-grid" id="v-pills-master-data-tab" data-toggle="pill" href="#v-pills-master-data" role="tab" aria-controls="v-pills-master-data" aria-selected="false"><img id="profile-img" src="~/images/common/masterdata.png" />  Master Data  <img id="profile-img" src="~/images/common/dropdown.png" /></a>
+                    <div class="master-data-sub-menu d-none" id="master-data-menu">
+                        <a class="nav-link meta-data booktype" asp-controller="Administration" asp-area="" asp-action="Employee"><img id="profile-img" src="~/images/administration/employee.png" />  Employees</a>
+                        <a class="nav-link meta-data booktype" asp-controller="Administration" asp-area="" asp-action="Shift"><img id="profile-img" src="~/images/administration/shift.png" />  Shifts</a>
+                        <a class="nav-link meta-data booktype" asp-controller="Administration" asp-area="" asp-action="Department"><img id="profile-img" src="~/images/administration/department.png" />  Departments</a>
+                        <a class="nav-link meta-data booktype" asp-controller="Administration" asp-area="" asp-action="CutOff"><img id="profile-img" src="~/images/administration/cutoff.png" />  Cut Offs</a>
+                        <a class="nav-link meta-data booktype" asp-controller="Administration" asp-area="" asp-action="LeaveType"><img id="profile-img" src="~/images/administration/leavetype.png" />  Leave Types</a>
+                        <a class="nav-link meta-data booktype" asp-controller="Administration" asp-area="" asp-action="Position"><img id="profile-img" src="~/images/administration/position.png" />  Employee Positions</a>
+                        <a class="nav-link meta-data booktype" asp-controller="Administration" asp-area="" asp-action="TimekeepingAdminSetup"><img id="profile-img" src="~/images/administration/timekeepingadminsetup.png" />  Timekeeping Admin Setup</a>
+                    </div>
+                }
+                <a class="nav-link pl-4 report" asp-controller="Administration" asp-action="Audit"><img id="profile-img" src="~/images/common//audittrail.png" />  Audit Trails</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-sign-out-menu nav-panel mt-5">
+        <span class="help">Need help?<a href="/files/pdf/enrolment-help.pdf" target="blank" class="help" style="text-decoration-line:underline">click here</a></span>
+        <a id="main-menu" class="content-sign-out-btn nav-link pl-4 announcement"><img class="icon" src="/images/common/home.png">  Home</a>
+        <a id="log-out" class="content-sign-out-btn nav-link pl-4 announcement"><img class="icon" src="/images/common/logout.png">  Logout</a>
+    </div>
+</nav>

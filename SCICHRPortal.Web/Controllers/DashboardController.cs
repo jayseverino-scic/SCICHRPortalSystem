@@ -35,7 +35,11 @@ namespace SCICHRPortal.Web.Controllers
             }
              return this.RedirectToAction("Index", "Home");
         }
-
+        public IActionResult Announcement()
+        {
+            ViewBag.SystemSelected = "Enrolment";
+            return View();
+        }
         public IActionResult UserRole()
         {
             ViewBag.SystemSelected = "Enrolment";
