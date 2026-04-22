@@ -527,9 +527,9 @@
             _apiHelper.get({
                 url: `Authenticated/Role`
             }),
-            _apiHelper.get({
-                url: `Authenticated/Section`
-            })
+            //_apiHelper.get({
+            //    url: `Authenticated/Section`
+            //})
         ]);
 
         let roleResponse = responses[0];
@@ -537,13 +537,13 @@
             _role = await roleResponse.json();
         }
 
-        let sectionResponse = responses[1];
-        if (sectionResponse.ok) {
-            _section = await sectionResponse.json();
-            _section = _section.sort((left, right) => {
-                return (left.description || '').localeCompare(right.description || '');
-            });
-        }
+        //let sectionResponse = responses[1];
+        //if (sectionResponse.ok) {
+        //    _section = await sectionResponse.json();
+        //    _section = _section.sort((left, right) => {
+        //        return (left.description || '').localeCompare(right.description || '');
+        //    });
+        //}
     }
 
     let initializeModals = e => {

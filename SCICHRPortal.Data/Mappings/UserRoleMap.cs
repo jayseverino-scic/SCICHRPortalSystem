@@ -14,14 +14,16 @@ namespace SCICHRPortal.Data.Mappings
             entityBuilder.Property(t => t.CreatedBy).HasMaxLength(120);
             entityBuilder.Property(t => t.UpdatedBy).HasMaxLength(120);
 
-            //entityBuilder.HasData(new UserRole[] {
-            //    new UserRole
-            //    {
-            //        UserRoleId = 1,
-            //        UserId = 1,
-            //        RoleId = 1
-            //    }
-            //});
+            entityBuilder.HasData(new UserRole[] {
+                new UserRole
+                {
+                    UserRoleId = 1,
+                    UserId = 1,
+                    RoleId = 1,
+                    CreatedAt = new DateTime(2025, 4, 18, 10, 30, 0, DateTimeKind.Utc),
+                    CreatedBy = "jun rivas"
+                }
+            });
         }
     }
 }

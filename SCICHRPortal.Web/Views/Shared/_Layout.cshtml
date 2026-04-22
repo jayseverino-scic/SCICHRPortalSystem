@@ -1,50 +1,112 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.Extensions.Configuration
+@using SCICHRPortal.Utility.Securities
+@inject IConfiguration Configuration
+@inherits AuthorizePage<TModel>
+@{
+    bool isAuthorize = await IsAuthorize();
+    bool isAdmin = await HasRoleAsync("Administrator");
+    bool hideSidebar = ViewBag.HideSidebar is bool hiddenSidebar && hiddenSidebar;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SCICHRPortal.Web</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/lib/font-awesome/css/all.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/limonte-sweetalert2/sweetalert2.min.css" asp-append-version="true" />
+
     <link rel="stylesheet" href="~/SCICHRPortal.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SCICHRPortal.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+    <div id="busy-indicator-container" class="d-none">
+        <img class="indicator-img-position " src="/images/loading-indicator.gif">
     </div>
+    <nav id="head-nav" class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 .d-sm-none .d-md-block">
+        @if (!hideSidebar)
+        {
+            <div class="hamburger-container">
+                <span class="p-1">Menu</span>
+                <button type="button" class="hamburger animated fadeInLeft is-closed" data-toggle="offcanvas" id="hamburger-menu">
+                    <span class="hamb-top"></span>
+                    <span class="hamb-middle"></span>
+                    <span class="hamb-bottom"></span>
+                </button>
+            </div>
+        }
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - SCICHRPortal.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+       
+        <div class="nav-first-container d-flex flex-row justify-content-center align-items-center w-100">
+           
+            <img class="" id="school-name" src="/images/LMSI-text 1.png">
+            <img class="float-right " id="header-logo" src="/images/logo.png">
         </div>
-    </footer>
+    </nav>
+
+
+    <div class="">
+        <input id="base-api-url" type="hidden" value="@Configuration["BaseApiUrl"]" />
+        <div id="content-container" class="row">
+            @if (!hideSidebar)
+            {
+                <div class="nav-container" id="sidebar-container" tabindex="0">
+@*                     if (ViewBag.SystemSelected == "Administration")
+                    { *@
+                        <partial name="_AdministrationSidebar" />
+@*                     }
+                    else
+                    {
+                        <partial name="_AdminSidebar" />
+                    } *@
+                    @*            @if (isAdmin || isAdmission)
+                    {
+                    <partial name="_AdminSidebar" />
+                    } else
+                    {
+
+                    <partial name="_RegisterSidebar" />
+                    }
+                    *@
+                </div>
+            }
+
+            <main role="main" class="pb-3 @(hideSidebar ? "col-md-12 px-4" : "pl-5 pr-5") main-wrapper" style="">
+                @RenderBody()
+            </main>
+            @*    <main role="main" class="pb-3 col-sm-12 col-md-10 col-xl-10 main-container">
+                @RenderBody()
+            </main>*@
+        </div>
+
+    </div>
+    <div>
+        <footer style="bottom:0;position:fixed; width:100%; background-color:midnightblue;padding-left:1%;padding-right:1%;border-top:solid;border-color:white">
+            <div style="color:white"><span style="float:left"> &copy; 2022 - LMSI-SMS</span><span style="float:right">  &nbsp; @ViewBag.SystemSelected System - @DateTime.Today.ToShortDateString()</span></div>
+        </footer>
+    </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/moment.js/moment.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="~/lib/font-awesome/js/all.js"></script>
+    <script src="~/lib/limonte-sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="~/js/helpers/cookie-helper.js"></script>
+    <script src="~/js/helpers/api-helper.js"></script>
+    <script src="~/js/helpers/number-helper.js"></script>
+    <script src="~/js/helpers/form-helper.js"></script>
+    <script src="~/js/helpers/date-helper.js"></script>
+    <script src="~/js/helpers/string-helper.js"></script>
+    <script src="~/lib/underscore.js/underscore-min.js"></script>
+    @if (!hideSidebar)
+    {
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="~/js/pages/admin/sidebar.js" asp-append-version="true"></script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,31 +1,423 @@
-html {
-  font-size: 14px;
+/*Busy Indicator*/
+#busy-indicator-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: white;
+    opacity: 0.4;
+    z-index: 10000;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.indicator-img-position {
+    height: 120px;
+    width: 120px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -93px;
+    margin-left: -93px;
+    opacity: 1;
+}
+.double-border {
+    border-bottom: 3px double #665f5f !important;
+}
+.font-800 {
+    font-weight: 800 !important;
+}
+.text-danger {
+    float: left;
+}
+.red-background {
+    color: red !important;
+}
+input:not(.lowercase) {
+    text-transform: capitalize;
+}
+input, select, textarea {
+    font-weight: bold !important;
+}
+.select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Some browsers will not display the caret when using calc, so we put the fallback first */
+    background: url("http://cdn1.iconfinder.com/data/icons/cc_mono_icon_set/blacks/16x16/br_down.png") white no-repeat 98.5% !important; /* !important used for overriding all other customisations */
+    background: url("http://cdn1.iconfinder.com/data/icons/cc_mono_icon_set/blacks/16x16/br_down.png") white no-repeat calc(100% - 10px) !important; /* Better placement regardless of input width */
+}
+    /*For IE*/
+    .select::-ms-expand {
+        display: none;
+    }
+#viewApprovalRegister.show {
+    opacity: 1 !important;
+}
+.h-88{
+    height: 88% !important;
+}
+.mr-auto{
+    margin-right: auto !important;
+}
+.ml-auto {
+    margin-left: auto !important;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.col-form-label {
+    float: left !important;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+.float-right {
+    float: right !important;
+}
+.float-left {
+    float: left !important;
+}
+#header-logo {
+    width: 80px;
+    margin-top: -3px;
+}
+.nav-first-container {
+    margin: 10px;
+    padding: 15px;
+    border-radius: 6px;
+    background: white;
+    height: 100px;
+    width: 100% !important;
+ 
+}
+.nav-second-container {
+    visibility: hidden;
+}
+.nav-second-container img{
+    width:  1%;
+}
+#school-name {
+    width: 50%;
+    height: 89%;
+    margin-top: 8px;
+}
+#head-nav {
+    justify-content: flex-end !important;
+    border: none;
+    margin: 0 !important;
+    padding-bottom: 0;
+    border-bottom: none !important;
+    /*background-image: linear-gradient(to right, #BEEFFF, #edf5f7);*/
+    background-color: #030374 !important;
 }
 
-body {
-  margin-bottom: 60px;
+.save-button {
+    width: 115px;
+    font-size: 18px !important;
+    font-weight: bold !important;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/*sidebar*/
+.nav-container {
+    /*position: absolute;*/
+    position:relative;
+    top: -1px;
+    display: inline-block;
+    max-width: 50px;
+    max-height: 50px;
+    overflow: visible;
+    outline: none;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+    .nav-container.is-active .nav-toggle:before, .nav-container.is-active .nav-toggle:after {
+        box-shadow: none;
+    }
+
+    .nav-container.is-active .nav-toggle:before {
+        transform: rotate(-45deg);
+    }
+
+    .nav-container.is-active .nav-toggle:after {
+        transform: rotate(45deg);
+    }
+
+    .nav-container.is-active .nav-items {
+        transform: translate(0, 0);
+    }
+
+    .nav-container .nav-toggle {
+        position: relative;
+        width: 28px;
+        height: 28px;
+        margin: 10px;
+        z-index: 4;
+        margin-bottom: 13px;
+    }
+
+        .nav-container .nav-toggle:hover {
+            cursor: pointer;
+        }
+
+        .nav-container .nav-toggle:before, .nav-container .nav-toggle:after {
+            content: "";
+            position: absolute;
+            top: 18px;
+            left: 0;
+            transform: translate(0, 0);
+            width: 100%;
+            height: 4px;
+            background: #000;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nav-container .nav-toggle:before {
+            box-shadow: 0 13.3333333333px 0 0 #000;
+            content: "";
+            top: 18px;
+        }
+
+        .nav-container .nav-toggle:after {
+            box-shadow: 0 -13.3333333333px 0 0 #000;
+            content: "";
+        }
+
+    .nav-container .nav-items {
+        position: absolute;
+        top: 0;
+        left: 0;
+        min-width: 232px;
+        max-width: 10vw;
+        width: 100vw;
+        height: 100vh;
+        z-index: 3;
+        padding: 63px 13px 20px 10px;
+        transition: transform 0.3s ease;
+        transform: translate(calc(-100% - 50px), 0);
+        background: #fff;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-gap: 5px 0;
+        align-content: start;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
+    }
+
+        .nav-container .nav-items .nav-item {
+            background: #e2e2e2;
+            padding: 10px;
+            transition: background-color 0.3s ease;
+            color: #4B5563;
+            text-decoration: none;
+        }
+
+            .nav-container .nav-items .nav-item:hover {
+                cursor: pointer;
+                background: #746e6e;
+                color: #fff;
+            }
+
+            .nav-container .nav-items .nav-item.active {
+                background: #746e6e;
+                color: #fff;
+            }
+
+header .container {
+    display: inline-block;
+    width: fit-content;
+    padding: 8px;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 41px;
+    top: 11px;
 }
+
+@media only screen and (max-width: 600px) {
+    .nav-first-container {
+        display: none;
+    }
+}
+
+/*body {
+    overflow: hidden;
+}
+
+.container {
+    overflow-y: auto;
+    max-height: 765px;
+}*/
+
+#close-sidebar-icon {
+    padding-left: 90%;
+    cursor: pointer;
+    font-size: 25px;
+    color: #ffffff;
+}
+
+.hamburger-container {
+    position: absolute;
+    top: 41px;
+    z-index: 999;
+    margin-left: 31px;
+    left: 0;
+}
+.hamburger {
+    position: absolute;
+    z-index: 999;
+    display: block;
+    width: 42px;
+    height: 32px;
+    background: transparent;
+    border: none;
+}
+
+    .hamburger:hover,
+    .hamburger:focus,
+    .hamburger:active {
+        outline: none;
+    }
+
+    .hamburger.is-closed:before {
+        content: '';
+        display: block;
+        width: 100px;
+        font-size: 14px;
+        color: #fff;
+        line-height: 32px;
+        text-align: center;
+        opacity: 0;
+        -webkit-transform: translate3d(0, 0, 0);
+        -webkit-transition: all .35s ease-in-out;
+    }
+
+    .hamburger.is-closed:hover:before {
+        opacity: 1;
+        display: block;
+        -webkit-transform: translate3d(-100px, 0, 0);
+        -webkit-transition: all .35s ease-in-out;
+    }
+
+    .hamburger.is-closed .hamb-top,
+    .hamburger.is-closed .hamb-middle,
+    .hamburger.is-closed .hamb-bottom,
+    .hamburger.is-open .hamb-top,
+    .hamburger.is-open .hamb-middle,
+    .hamburger.is-open .hamb-bottom {
+        position: absolute;
+        left: 0;
+        height: 4px;
+        width: 100%;
+    }
+
+    .hamburger.is-closed .hamb-top,
+    .hamburger.is-closed .hamb-middle,
+    .hamburger.is-closed .hamb-bottom {
+        background-color: #000;
+    }
+
+    .hamburger.is-closed .hamb-top {
+        top: 5px;
+        -webkit-transition: all .35s ease-in-out;
+    }
+
+    .hamburger.is-closed .hamb-middle {
+        top: 50%;
+        margin-top: -2px;
+    }
+
+    .hamburger.is-closed .hamb-bottom {
+        bottom: 5px;
+        -webkit-transition: all .35s ease-in-out;
+    }
+
+    .hamburger.is-closed:hover .hamb-top {
+        top: 0;
+        -webkit-transition: all .35s ease-in-out;
+    }
+
+    .hamburger.is-closed:hover .hamb-bottom {
+        bottom: 0;
+        -webkit-transition: all .35s ease-in-out;
+    }
+
+    .hamburger.is-open .hamb-top,
+    .hamburger.is-open .hamb-middle,
+    .hamburger.is-open .hamb-bottom {
+        background-color: #1a1a1a;
+    }
+
+    .hamburger.is-open .hamb-top,
+    .hamburger.is-open .hamb-bottom {
+        top: 50%;
+        margin-top: -2px;
+    }
+
+    .hamburger.is-open .hamb-top {
+        -webkit-transform: rotate(45deg);
+        -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.73, 1, 0.28, 0.08);
+    }
+
+    .hamburger.is-open .hamb-middle {
+        display: none;
+    }
+
+    .hamburger.is-open .hamb-bottom {
+        -webkit-transform: rotate(-45deg);
+        -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.73, 1, 0.28, 0.08);
+    }
+
+    .hamburger.is-open:before {
+        content: '';
+        display: block;
+        width: 100px;
+        font-size: 14px;
+        color: #fff;
+        line-height: 32px;
+        text-align: center;
+        opacity: 0;
+        -webkit-transform: translate3d(0, 0, 0);
+        -webkit-transition: all .35s ease-in-out;
+    }
+
+    .hamburger.is-open:hover:before {
+        opacity: 1;
+        display: block;
+        -webkit-transform: translate3d(-100px, 0, 0);
+        -webkit-transition: all .35s ease-in-out;
+    }
+.print-textarea {
+    resize:none;
+}
+#printable-payment {
+    margin-top:120px !important;
+}
+#studentNumberPrint {
+    margin-left:20px !important;
+    padding-top:3px !important;
+}
+#fullNamePrint {
+    margin-left:50px !important;
+    padding-top:1px !important;
+}
+#amount-in-words-print {
+    margin-left: 80px !important;
+    padding-top: 5px !important;
+}
+#paymentDatePrint {
+    margin-left:70px !important;
+    padding-top: 3px !important;
+    font-size: large;
+}
+/*#IsCashPrint {
+    margin-left:50px !important;
+}
+#IsChequePrint {
+    margin-left:0px !important;
+}*/
+#PaymentAmountPrint {
+    margin-left: 150px !important;
+    /*padding-top: 5px !important;*/
+    margin-top: -20px !important;
+    font-size:large;
+}
+#ParticularsPrint {
+    /*padding-top: 5px !important;*/
+    margin-left:50px !important;
+    margin-top:-20px !important;
+}
+
