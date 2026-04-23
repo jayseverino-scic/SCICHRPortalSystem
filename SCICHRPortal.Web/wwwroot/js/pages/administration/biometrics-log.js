@@ -269,18 +269,24 @@
                 data: "date",
                 className: 'noVis dt-center',
                 orderable: true,
-                defaultContent: ""
+                defaultContent: "",
+                render: function (data, type, row) {
+                    return data ? _dateHelper.formatShortDate(data) : '';
+                }
             },
             {
                 title: "Time",
                 data: "time",
                 className: 'noVis dt-center',
                 orderable: false,
-                defaultContent: ""
+                defaultContent: "",
+                render: function (data, type, row) {
+                    return data ? _dateHelper.formatLocalShortTime(data) : '';
+                }
             },
             {
                 title: "Log Type",
-                data: "lotType",
+                data: "logType",
                 className: 'noVis dt-center',
                 orderable: false,
                 defaultContent: ""

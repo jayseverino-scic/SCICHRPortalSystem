@@ -9,6 +9,7 @@ using SCICHRPortal.Utility.Constants;
 using SCICHRPortal.Utility.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -93,7 +94,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 return BadRequest(ResponseMessage.BadRequest);
 
             var extension = Path.GetExtension(file.FileName);
-            if (extension != ".xlsx")
+            if (extension != ".xls")
             {
                 return StatusCode(415, ResponseMessage.FileNotSupported);
             }
@@ -115,22 +116,39 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         var time = workSheet.Cells[row, 5].Value?.ToString()?.Trim() ?? "";
                         var logType = workSheet.Cells[row, 6].Value?.ToString()?.Trim() ?? "";
                         var deviceName = workSheet.Cells[row, 7].Value?.ToString()?.Trim() ?? "";
-                        var proxyWork = workSheet.Cells[row, 8].Value?.ToString()?.Trim() ?? "";
-                        var dateTimeLog = workSheet.Cells[row, 9].Value?.ToString()?.Trim() ?? "";
+
 
                         //if (string.IsNullOrWhiteSpace(employeeNo) || string.IsNullOrWhiteSpace(employeeName) || string.IsNullOrWhiteSpace(inOut)
                         //    || string.IsNullOrWhiteSpace(dateTimeLog))
                         //    return StatusCode(422, $"One or more fields invalid at row {row}");
 
+                        if (string.IsNullOrWhiteSpace(date) || string.IsNullOrWhiteSpace(time))
+                        {
+                            return StatusCode(422, $"Date or time missing at row {row}");
+                        }
+
+                        DateTime parsedDate = DateTime.ParseExact(
+                            date,
+                            "MM-dd-yyyy",
+                            CultureInfo.InvariantCulture
+                        );
+
+                        DateTime parsedTime = DateTime.ParseExact(
+                            time,
+                            "HH:mm:ss tt",
+                            CultureInfo.InvariantCulture
+                        );
                         BiometricsLog biometricsLog = new()
                         {
                             PersonnelId = personnelId,
                             LastName = lastName,
                             FirstName = firstNameName,
-                            Date = Convert.ToDateTime(date),
-                            Time = Convert.ToDateTime(time),
-                            LogType = logType,
+                            Date = parsedDate,
+                            Time = parsedTime,
+                            LogType = logType.ToString(),
                             DeviceName = deviceName,
+                            CreatedAt = DateTime.Now,
+                            CreatedBy = "Manuel"
                         };
                         biometricsLogs.Add(biometricsLog);
                         await BiometricsLogService.InsertAsync(biometricsLog);

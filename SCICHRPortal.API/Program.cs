@@ -39,9 +39,8 @@ using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 
-
 var builder = WebApplication.CreateBuilder(args);
-
+OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("Manuel A. Rivas Jr.");
 // Add services to the container.
 builder.Services.AddDerivedClassesServices();
 
