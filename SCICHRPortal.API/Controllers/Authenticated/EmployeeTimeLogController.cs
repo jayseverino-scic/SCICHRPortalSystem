@@ -80,15 +80,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var data = tuple.Item1.Select(d => new
             {
                 d.BiometricsLogId,
-                d.TMNo,
-                d.EmployeeNo,
-                d.EmployeeName,
-                d.GMNo,
-                d.Mode,
-                d.InOut,
-                d.AntiPass,
-                d.ProxyWork,
-                d.DateTimeLog
+                d.PersonnelId,
+                d.LastName,
+                d.FirstName,
+                d.Date,
+                d.Time,
+                d.LogType,
+                d.DeviceName
             });
 
             var dto = new
@@ -98,9 +96,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             };
 
             List<string?> bioEmployees = new List<string?>();
-            List<string> bioDates = new List<string>();
-            bioDates = tuple.Item1.Select(d => d.DateTimeLog.ToShortDateString()).Distinct().ToList();
-            bioEmployees = tuple.Item1.Select(static d => d.EmployeeNo).Distinct().ToList();
+            List<string?> bioDates = new List<string?>();
+            bioDates = tuple.Item1.Select(d => d.Date.ToString()).Distinct().ToList();
+            bioEmployees = tuple.Item1.Select(static d => d.PersonnelId).Distinct().ToList();
             IEnumerable<Employee> employees = await EmployeeService.GetAllAsync();
             IEnumerable<EmployeeShift> shifts = await EmployeeShiftService.GetAllAsync();
             var filteredEmployees = from e in employees join b in bioEmployees on e.EmployeeNo equals b select e;
@@ -116,23 +114,23 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     employeeTimeLog.DateOut = Convert.ToDateTime(date);
                     employeeTimeLog.DateBreakOut  = Convert.ToDateTime(date);
                     employeeTimeLog.DateBreakIn = Convert.ToDateTime(date);
-                    employeeTimeLog.TimeIn = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).FirstOrDefault();
+                    employeeTimeLog.TimeIn = tuple.Item1.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).FirstOrDefault();
                     if (shift!.ShiftEnd < shift.ShiftStart)
                     {
-                        employeeTimeLog.TimeOut = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.ShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).LastOrDefault();
+                        employeeTimeLog.TimeOut = tuple.Item1.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.ShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).Select(e => e.Time).LastOrDefault();
                     }
                     else
                     {
-                        employeeTimeLog.TimeOut = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).LastOrDefault();
+                        employeeTimeLog.TimeOut = tuple.Item1.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).LastOrDefault();
                     }
-                    employeeTimeLog.BreakOut = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).Skip(1).FirstOrDefault();
+                    employeeTimeLog.BreakOut = tuple.Item1.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).FirstOrDefault();
                     if (shift.BreakEnd < shift.BreakStart)
                     {
-                        employeeTimeLog.BreakIn = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.BreakStart!.Value.ToShortTimeString())).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).Skip(1).LastOrDefault();
+                        employeeTimeLog.BreakIn = tuple.Item1.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.BreakStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).LastOrDefault();
                     }
                     else
                     {
-                        employeeTimeLog.BreakIn = tuple.Item1.Where(i => i.EmployeeNo == employee.EmployeeNo && i.DateTimeLog.ToShortDateString() == date.ToString()).OrderBy(e => e.DateTimeLog).Select(e => e.DateTimeLog).Skip(1).LastOrDefault();
+                        employeeTimeLog.BreakIn = tuple.Item1.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).LastOrDefault();
                     }
                     employeeTimeLog.ShiftStart = Convert.ToDateTime(date + " " + shift.ShiftStart!.Value.ToShortTimeString());
                     employeeTimeLog.ShiftEnd = shift.ShiftEnd > shift.ShiftStart ? Convert.ToDateTime(date + " " + shift.ShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.ShiftEnd!.Value.ToShortTimeString());

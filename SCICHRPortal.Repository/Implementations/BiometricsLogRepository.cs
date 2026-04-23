@@ -18,7 +18,7 @@ namespace SCICHRPortal.Repository.Implementations
         {
             var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false);
             if (startDate.HasValue && endDate.HasValue)
-                biometricsLogs = biometricsLogs.Where(b => b.DateTimeLog >= startDate && b.DateTimeLog <= endDate).AsNoTracking();
+                biometricsLogs = biometricsLogs.Where(b => b.Date >= startDate && b.Date <= endDate).AsNoTracking();
 
             if (!String.IsNullOrWhiteSpace(searchKeyword))
             {
@@ -40,7 +40,7 @@ namespace SCICHRPortal.Repository.Implementations
             IEnumerable<BiometricsLog> biometricsLogs;
 
             biometricsLogs = await Context.BiometricsLog!
-                .Where(e => e.Deleted == false && e.DateTimeLog == logDate).ToListAsync();
+                .Where(e => e.Deleted == false && e.Date == logDate).ToListAsync();
 
             return biometricsLogs;
         }

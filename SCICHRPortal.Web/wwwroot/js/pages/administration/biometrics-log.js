@@ -244,73 +244,53 @@
                 }
             },
             {
-                title: 'TM No',
-                data: "tmNo",
+                title: 'Personnel Id',
+                data: "personnelId",
                 className: 'noVis dt-center',
                 orderable: true,
                 defaultContent: "" // Provide default content
             },
             {
-                title: 'Emp. No.',
-                data: "employeeNo",
+                title: 'Last Name',
+                data: "lastName",
                 className: 'noVis dt-center',
                 orderable: true,
                 defaultContent: ""
             },
             {
-                title: "Employee Name",
-                data: "employeeName", // Fixed: changed from "dateIn" to "employeeName"
-                className: 'noVis dt-center',
-                orderable: true,
-                defaultContent: "",
-                render: function (data, type, row) {
-                    return data || '';
-                }
-            },
-            {
-                title: "GM No.",
-                data: "gmNo",
-                className: 'noVis dt-center',
-                orderable: true,
-                defaultContent: ""
-            },
-            {
-                title: "Mode",
-                data: "mode",
-                className: 'noVis dt-center',
-                orderable: false,
-                defaultContent: ""
-            },
-            {
-                title: "In/Out",
-                data: "inOut",
-                className: 'noVis dt-center',
-                orderable: false,
-                defaultContent: ""
-            },
-            {
-                title: "Anti Pass",
-                data: "antiPass",
-                className: 'noVis dt-center',
-                orderable: false,
-                defaultContent: ""
-            },
-            {
-                title: "Proxy Work",
-                data: "proxyWork",
-                className: 'noVis dt-center',
-                orderable: false,
-                defaultContent: ""
-            },
-            {
-                title: "Date and Time Logged",
-                data: "dateTimeLog",
+                title: "First Name",
+                data: "firstName", // Fixed: changed from "dateIn" to "employeeName"
                 className: 'noVis dt-center',
                 orderable: true,
                 defaultContent: "",
-                render: function (data, type, row) {
-                    return data ? _dateHelper.formatLocalDateTime(data) : '';
-                }
+            },
+            {
+                title: "Date",
+                data: "date",
+                className: 'noVis dt-center',
+                orderable: true,
+                defaultContent: ""
+            },
+            {
+                title: "Time",
+                data: "time",
+                className: 'noVis dt-center',
+                orderable: false,
+                defaultContent: ""
+            },
+            {
+                title: "Log Type",
+                data: "lotType",
+                className: 'noVis dt-center',
+                orderable: false,
+                defaultContent: ""
+            },
+            {
+                title: "Device Name",
+                data: "deviceName",
+                className: 'noVis dt-center',
+                orderable: false,
+                defaultContent: ""
             }
         ];
         return columns;

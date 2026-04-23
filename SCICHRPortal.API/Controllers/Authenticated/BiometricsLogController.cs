@@ -43,15 +43,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var data = tuple.Item1.Select(d => new
             {
                 d.BiometricsLogId,
-                d.TMNo,
-                d.EmployeeNo,
-                d.EmployeeName,
-                d.GMNo,
-                d.Mode,
-                d.InOut,
-                d.AntiPass,
-                d.ProxyWork,
-                d.DateTimeLog,
+                d.PersonnelId,
+                d.LastName,
+                d.FirstName,
+                d.Date,
+                d.Time,
+                d.LogType,
+                d.DeviceName,
                 d.CreatedAt,
                 OrderNumber = orderNumber++
             });
@@ -110,13 +108,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 {
                     try
                     {
-                        var tmNo = workSheet.Cells[row, 1].Value?.ToString()?.Trim() ?? "";
-                        var employeeNo = workSheet.Cells[row, 2].Value?.ToString()?.Trim() ?? "";
-                        var employeeName = workSheet.Cells[row, 3].Value?.ToString()?.Trim() ?? "";
-                        var gmNo = workSheet.Cells[row, 4].Value?.ToString()?.Trim() ?? "";
-                        var mode = workSheet.Cells[row, 5].Value?.ToString()?.Trim() ?? "";
-                        var inOut = workSheet.Cells[row, 6].Value?.ToString()?.Trim() ?? "";
-                        var antiPass = workSheet.Cells[row, 7].Value?.ToString()?.Trim() ?? "";
+                        var personnelId = workSheet.Cells[row, 1].Value?.ToString()?.Trim() ?? "";
+                        var lastName = workSheet.Cells[row, 2].Value?.ToString()?.Trim() ?? "";
+                        var firstNameName = workSheet.Cells[row, 3].Value?.ToString()?.Trim() ?? "";
+                        var date = workSheet.Cells[row, 4].Value?.ToString()?.Trim() ?? "";
+                        var time = workSheet.Cells[row, 5].Value?.ToString()?.Trim() ?? "";
+                        var logType = workSheet.Cells[row, 6].Value?.ToString()?.Trim() ?? "";
+                        var deviceName = workSheet.Cells[row, 7].Value?.ToString()?.Trim() ?? "";
                         var proxyWork = workSheet.Cells[row, 8].Value?.ToString()?.Trim() ?? "";
                         var dateTimeLog = workSheet.Cells[row, 9].Value?.ToString()?.Trim() ?? "";
 
@@ -126,15 +124,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
                         BiometricsLog biometricsLog = new()
                         {
-                            TMNo = Convert.ToInt32(tmNo),
-                            EmployeeNo = employeeNo,
-                            EmployeeName = employeeName,
-                            GMNo = Convert.ToInt32(gmNo),
-                            Mode = mode,
-                            InOut = inOut,
-                            AntiPass = Convert.ToInt32(antiPass),
-                            ProxyWork = Convert.ToInt32(proxyWork),
-                            DateTimeLog = Convert.ToDateTime(dateTimeLog)
+                            PersonnelId = personnelId,
+                            LastName = lastName,
+                            FirstName = firstNameName,
+                            Date = Convert.ToDateTime(date),
+                            Time = Convert.ToDateTime(time),
+                            LogType = logType,
+                            DeviceName = deviceName,
                         };
                         biometricsLogs.Add(biometricsLog);
                         await BiometricsLogService.InsertAsync(biometricsLog);
