@@ -60,6 +60,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await CutOffService.HasDuplicateName(cutOff);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
+            cutOff.CreatedAt = DateTime.Now;
+            cutOff.CreatedBy = "manuel";
 
             await CutOffService.InsertAsync(cutOff);
 
@@ -72,6 +74,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
+
+            cutOff.UpdatedAt = DateTime.Now;
+            cutOff.UpdatedBy = "manuel";
 
             var updated = await CutOffService.UpdateAsync(cutOff);
             if (!updated)

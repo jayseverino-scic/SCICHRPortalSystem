@@ -276,6 +276,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         IsFlexibleShift = item.IsFlexibleShift,
                         IsNoBreak = item.IsNoBreak,
                         IsNoShift = item.IsNoShift,
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = "manuel"
                     };
                     await EmployeeShiftService.UpdateAsync(shiftAssignment);
                 }
@@ -296,6 +298,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         IsFlexibleBreak = item.IsFlexibleBreak,
                         IsNoBreak = item.IsNoBreak,
                         IsNoShift = item.IsNoShift,
+                        CreatedBy = "manuel",
+                        CreatedAt = DateTime.UtcNow
                     };
                     await EmployeeShiftService.InsertAsync(shiftAssignment);
                 }
@@ -314,7 +318,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            employeeShift.UpdatedAt = DateTime.UtcNow;
+            employeeShift.UpdatedBy = "manuel";
             await EmployeeShiftService.UpdateAsync(employeeShift);
 
             return Ok();

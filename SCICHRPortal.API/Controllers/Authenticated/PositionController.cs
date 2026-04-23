@@ -64,7 +64,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await PositionService.HasDuplicateName(position);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
-
+            position.CreatedBy = "manuel";
+            position.CreatedAt = DateTime.Now;
             await PositionService.InsertAsync(position);
 
             return StatusCode(201, position.PositionId);
@@ -76,7 +77,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            position.UpdatedAt = DateTime.Now;
+            position.UpdatedBy = "manuel";
             var updated = await PositionService.UpdateAsync(position);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);

@@ -65,7 +65,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await DepartmentService.HasDuplicateName(department);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
-
+            department.CreatedAt = DateTime.Now;
+            department.CreatedBy = "manuel";
             await DepartmentService.InsertAsync(department);
 
             return StatusCode(201, department.DepartmentId);
@@ -78,6 +79,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
 
+            department.UpdatedBy = "manuel";
+            department.UpdatedAt = DateTime.Now;
             var updated = await DepartmentService.UpdateAsync(department);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);

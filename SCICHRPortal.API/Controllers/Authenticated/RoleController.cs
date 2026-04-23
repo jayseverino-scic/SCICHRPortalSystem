@@ -60,7 +60,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await RoleService.HasDuplicateName(role);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
-
+            role.CreatedAt = DateTime.Now;
+            role.CreatedBy = "manuel";
             await RoleService.InsertAsync(role);
 
             return StatusCode(201, role.RoleId);
@@ -72,7 +73,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            role.UpdatedAt = DateTime.Now;
+            role.UpdatedBy = "manuel";
             var updated = await RoleService.UpdateAsync(role);
             if(!updated)
                 return NotFound(ResponseMessage.NotFound);

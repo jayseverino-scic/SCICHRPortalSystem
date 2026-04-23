@@ -140,6 +140,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     employeeTimeLog.IsNoBreak = shift.IsNoBreak;
                     employeeTimeLog.IsFlexibleBreak  = shift.IsFlexibleBreak;
                     employeeTimeLog.IsFlexibleShift = shift.IsFlexibleShift;
+                    employeeTimeLog.CreatedAt = DateTime.UtcNow;
+                    employeeTimeLog.CreatedBy = "manuel";
                     timeLogs.Add(employeeTimeLog);
                     await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
                 }
@@ -201,6 +203,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 employeeTimeLog.BreakEnd = employeeTimeLog.BreakEnd.Value.AddDays(1);
             }
+            employeeTimeLog.CreatedAt = DateTime.UtcNow;
+            employeeTimeLog.CreatedBy = "manuel";
             await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
 
             return StatusCode(201, employeeTimeLog.TimeLogId);
@@ -229,6 +233,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 employeeTimeLog.BreakEnd = employeeTimeLog.BreakEnd.Value.AddDays(1);
             }
+            employeeTimeLog.UpdatedAt = DateTime.Now;
+            employeeTimeLog.UpdatedBy = "manuel";
             var updated = await EmployeeTimeLogService.UpdateAsync(employeeTimeLog);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);

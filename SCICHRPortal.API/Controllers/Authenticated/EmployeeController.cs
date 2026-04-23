@@ -121,7 +121,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 Password = Hash.Create(randomPassword, salt),
                 ContactNumber = employee.ContactNumber,
                 IsPasswordChanged = false,
-                IsApproved = true,
+                IsApproved = true
             };
 
 
@@ -133,6 +133,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             await UserService.InsertAsync(user);
 
             employee.UserId = user.UserId;
+            employee.CreatedAt = DateTime.UtcNow;
+            employee.CreatedBy = "manuel";
             await EmployeeService.InsertAsync(employee);
             UserRole userRole = new()
             {
@@ -159,7 +161,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            employee.UpdatedAt = DateTime.UtcNow;
+            employee.UpdatedBy = "manuel";
             var updated = await EmployeeService.UpdateAsync(employee);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);

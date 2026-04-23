@@ -66,7 +66,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await HolidayService.HasDuplicateName(holiday);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
-
+            holiday.CreatedBy = "manuel";
+            holiday.CreatedAt = DateTime.Now;
             await HolidayService.InsertAsync(holiday);
 
             return StatusCode(201, holiday.HolidayId);
@@ -78,7 +79,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            holiday.UpdatedBy = "manuel";
+            holiday.UpdatedAt = DateTime.Now;
             var updated = await HolidayService.UpdateAsync(holiday);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);

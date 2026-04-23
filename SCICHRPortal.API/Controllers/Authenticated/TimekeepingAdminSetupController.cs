@@ -41,6 +41,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 settingOnDB.BreakLateTotalMinuteLimit = setting.BreakLateTotalMinuteLimit;
                 settingOnDB.NoTimeLogCountLimit = setting.NoTimeLogCountLimit;
                 settingOnDB.NoLeaveAbsentCountLimit = setting.NoLeaveAbsentCountLimit;
+                settingOnDB.CreatedAt = DateTime.UtcNow;
+                settingOnDB.CreatedBy = "manuel"; 
                 await TimekeepingAdminSetupService.UpdateAsync(settingOnDB);
             }
             return Ok();

@@ -96,7 +96,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await AnnouncementService.HasDuplicateName(announcement);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
-
+            announcement.CreatedAt = DateTime.Now;
+            announcement.CreatedBy = "manuel";
             await AnnouncementService.InsertAsync(announcement);
 
 
@@ -127,7 +128,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            announcement.UpdatedAt = DateTime.Now;
+            announcement.UpdatedBy = "manuel";
             var updated = await AnnouncementService.UpdateAsync(announcement);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);

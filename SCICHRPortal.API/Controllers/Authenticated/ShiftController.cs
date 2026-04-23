@@ -68,7 +68,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await ShiftService.HasDuplicateName(shift);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
-
+            shift.CreatedAt = DateTime.UtcNow;
+            shift.CreatedBy = "manuel";
             await ShiftService.InsertAsync(shift);
 
             return StatusCode(201, shift.ShiftId);
@@ -80,7 +81,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            shift.UpdatedBy = "manuel";
+            shift.UpdatedAt = DateTime.UtcNow;
             var updated = await ShiftService.UpdateAsync(shift);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);

@@ -65,7 +65,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var hasDuplicate = await LeaveTypeService.HasDuplicateName(leaveType);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
-
+            leaveType.CreatedAt = DateTime.Now;
+            leaveType.CreatedBy = "manuel";
             await LeaveTypeService.InsertAsync(leaveType);
 
             return StatusCode(201, leaveType.LeaveTypeId);
@@ -76,7 +77,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
-
+            leaveType.UpdatedAt = DateTime.Now;
+            leaveType.UpdatedBy = "manuel";
             var updated = await LeaveTypeService.UpdateAsync(leaveType);
             if (!updated)
                 return NotFound(ResponseMessage.NotFound);
