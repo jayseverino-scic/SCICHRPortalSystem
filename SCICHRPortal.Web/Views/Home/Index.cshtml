@@ -11,15 +11,15 @@
 @{
     bool isAuthorize = await IsAuthorize();
     bool isAdmin = await HasRoleAsync("Administrator");
-    bool isRegistrar = await HasRoleAsync("Admission");
-    bool isParent = await HasRoleAsync("Parent");
-    bool isStudent = await HasRoleAsync("Student");
-    bool isPrincipal = await HasRoleAsync("Principal");
-    bool isTeacher = await HasRoleAsync("Teacher Elem");
+    // bool isRegistrar = await HasRoleAsync("Admission");
+    // bool isParent = await HasRoleAsync("Parent");
+    // bool isStudent = await HasRoleAsync("Student");
+    // bool isPrincipal = await HasRoleAsync("Principal");
+    // bool isTeacher = await HasRoleAsync("Teacher Elem");
     //bool isTeacher = await HasRoleByArrayAsync(new string[] { "Teacher Elem", "Teacher Elem" });
-    bool isCoordinator = await HasRoleAsync("Coordinator");
-    bool isLibrarian = await HasRoleAsync("Librarian");
-    bool isSuppliesPersonnel = await HasRoleAsync("SuppliesPersonnel");
+    // bool isCoordinator = await HasRoleAsync("Coordinator");
+    // bool isLibrarian = await HasRoleAsync("Librarian");
+    // bool isSuppliesPersonnel = await HasRoleAsync("SuppliesPersonnel");
 }
 @section Styles {
     <link href="~/css/pages/home/home.css" rel="stylesheet" />
