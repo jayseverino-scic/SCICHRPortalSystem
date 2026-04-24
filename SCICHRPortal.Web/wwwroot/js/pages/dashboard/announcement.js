@@ -11,12 +11,8 @@
     const _cookieHelper = new CookieHelper();
     const SYSTEM = 'enrolment';
     const ROLE_DROPDOWN_SELECTOR = '#announcement-form #RoleIds';
-    const SECTION_DROPDOWN_SELECTOR = '#announcement-form #SectionIds';
-    const STUDENT_RECIPIENT_VALUE = 'student';
-    const SELECT_ALL_SECTION_VALUE = 'all';
     let _currentUser = undefined;
     let _role = [];
-    let _section = [];
     let _isSyncingSectionSelection = false;
     let _previousSectionValues = [];
     let attachEvents = () => {
@@ -25,43 +21,10 @@
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#upload-file').on('change', onChangeFile);
         $('#announcement-form').on('change', '#RoleIds', onRoleChange);
-        $('#announcement-form').on('change', '#SectionIds', onSectionChange);
-    };
-
-    let isRecipientSelected = () => {
-        return getSelectedRecipientValues().length > 0;
-    };
-
-    let getSelectedRecipientValues = () => {
-        return $(ROLE_DROPDOWN_SELECTOR).val() || [];
     };
 
     let getSelectedRoleIds = () => {
         return getSelectedRecipientValues()
-            .map(value => Number(value))
-            .filter(value => !Number.isNaN(value) && value > 0);
-    };
-
-    let shouldNotifyStudents = () => {
-        return getSelectedRecipientValues().includes(STUDENT_RECIPIENT_VALUE);
-    };
-
-    let getSelectedSectionValues = () => {
-        return $(SECTION_DROPDOWN_SELECTOR).val() || [];
-    };
-
-    let isAllSectionsSelected = () => {
-        return getSelectedSectionValues().includes(SELECT_ALL_SECTION_VALUE);
-    };
-
-    let getSelectedSectionIds = () => {
-        if (isAllSectionsSelected()) {
-            return _section
-                .map(section => Number(section.sectionId))
-                .filter(sectionId => !Number.isNaN(sectionId) && sectionId > 0);
-        }
-
-        return getSelectedSectionValues()
             .map(value => Number(value))
             .filter(value => !Number.isNaN(value) && value > 0);
     };
@@ -72,18 +35,6 @@
             return;
         }
 
-        dropdown.prop('disabled', !!isDisabled);
-        dropdown.val(null).trigger('change');
-        dropdown.trigger('change.select2');
-    };
-
-    let resetSectionSelection = isDisabled => {
-        let dropdown = $(SECTION_DROPDOWN_SELECTOR);
-        if (!dropdown.length) {
-            return;
-        }
-
-        _previousSectionValues = [];
         dropdown.prop('disabled', !!isDisabled);
         dropdown.val(null).trigger('change');
         dropdown.trigger('change.select2');
@@ -107,22 +58,6 @@
             roleSection.removeClass('d-none');
         } else {
             roleSection.addClass('d-none');
-        }
-    }
-
-    let toggleSectionSelection = isVisible => {
-        let sectionSelection = $(SECTION_DROPDOWN_SELECTOR).closest('.form-group');
-        let dropdown = $(SECTION_DROPDOWN_SELECTOR);
-        if (!sectionSelection.length || !dropdown.length) {
-            return;
-        }
-
-        dropdown.prop('disabled', !isVisible);
-
-        if (isVisible) {
-            sectionSelection.removeClass('d-none');
-        } else {
-            sectionSelection.addClass('d-none');
         }
     }
 
@@ -157,14 +92,6 @@
         syncSectionSelectionVisibility();
     }
 
-    let onSectionChange = function () {
-        if (_isSyncingSectionSelection) {
-            return;
-        }
-
-        normalizeSectionSelection();
-    }
-
     let toggleRoleValidation = () => {
         if (isRecipientSelected()) {
             $('#role-validation').addClass('d-none');
@@ -173,44 +100,6 @@
         }
     }
 
-    let syncSectionSelectionVisibility = () => {
-        if (!shouldNotifyStudents()) {
-            toggleSectionSelection(false);
-            resetSectionSelection(true);
-            return;
-        }
-
-        toggleSectionSelection(true);
-        $(SECTION_DROPDOWN_SELECTOR).prop('disabled', false);
-    }
-
-    let normalizeSectionSelection = () => {
-        let dropdown = $(SECTION_DROPDOWN_SELECTOR);
-        if (!dropdown.length) {
-            return;
-        }
-
-        let selectedValues = getSelectedSectionValues();
-        if (!selectedValues.includes(SELECT_ALL_SECTION_VALUE)) {
-            _previousSectionValues = selectedValues;
-            return;
-        }
-
-        if (selectedValues.length === 1) {
-            _previousSectionValues = selectedValues;
-            return;
-        }
-
-        let previousHadSelectAll = _previousSectionValues.includes(SELECT_ALL_SECTION_VALUE);
-        let normalizedValues = previousHadSelectAll
-            ? selectedValues.filter(value => value !== SELECT_ALL_SECTION_VALUE)
-            : [SELECT_ALL_SECTION_VALUE];
-
-        _isSyncingSectionSelection = true;
-        dropdown.val(normalizedValues).trigger('change');
-        _isSyncingSectionSelection = false;
-        _previousSectionValues = normalizedValues;
-    }
 
     let onFormSubmit = async event => {
         event.preventDefault();
@@ -470,8 +359,6 @@
 
         dropdown.empty();
 
-        dropdown.append($('<option />').val(STUDENT_RECIPIENT_VALUE).text('Student'));
-
         _role.forEach(function (role) {
             dropdown.append($('<option />').val(role.roleId).text(role.name));
         });
@@ -486,40 +373,9 @@
         });
     };
 
-    let renderSectionDropdown = () => {
-        let dropdown = $(SECTION_DROPDOWN_SELECTOR);
-        if (!dropdown.length) {
-            return;
-        }
-
-        if (dropdown.data('select2')) {
-            dropdown.select2('destroy');
-        }
-
-        dropdown.empty();
-
-        dropdown.append($('<option />').val(SELECT_ALL_SECTION_VALUE).text('Select All Section'));
-
-        _section.forEach(function (section) {
-            dropdown.append($('<option />').val(section.sectionId).text(`${section.gradeLevel.description} - ${section.description}`));
-        });
-
-        dropdown.select2({
-            theme: 'bootstrap',
-            width: '100%',
-            multiple: true,
-            closeOnSelect: false,
-            dropdownParent: $('#announcement-modal'),
-            placeholder: 'Select section(s)'
-        });
-    };
-
     let renderDropDowns = async () => {
         await getDropdownData();
         renderRoleDropdown();
-        renderSectionDropdown();
-        toggleSectionSelection(false);
-        resetSectionSelection(true);
     };
 
     let getDropdownData = async () => {
@@ -527,23 +383,12 @@
             _apiHelper.get({
                 url: `Authenticated/Role`
             }),
-            //_apiHelper.get({
-            //    url: `Authenticated/Section`
-            //})
         ]);
 
         let roleResponse = responses[0];
         if (roleResponse.ok) {
             _role = await roleResponse.json();
         }
-
-        //let sectionResponse = responses[1];
-        //if (sectionResponse.ok) {
-        //    _section = await sectionResponse.json();
-        //    _section = _section.sort((left, right) => {
-        //        return (left.description || '').localeCompare(right.description || '');
-        //    });
-        //}
     }
 
     let initializeModals = e => {

@@ -29,7 +29,7 @@
 
         $('#print-collection').on('click', onClickPrintCollection);
     };
-
+      
     let onClickPrintCollection = function () {
         $('#paymentCollectionBreakdown').printThis({
             // import page CSS
@@ -239,19 +239,17 @@
         $(event.target).siblings(':submit').prop("disabled", false).text('Add');
         removeValidation();
         hideViewPaymentSchemeInputs();
-        populateSchoolYear('#payment-scheme-form #SchoolYearId');
-        populateSchoolYear('#reservation-student-form #SchoolYearId');
-        setDefaultSchoolYear();
+        //populateSchoolYear('#payment-scheme-form #SchoolYearId');
+        //populateSchoolYear('#reservation-student-form #SchoolYearId');
+        //setDefaultSchoolYear();
         $('.action-container').removeClass('d-none');
         $('.action-btn').removeClass('d-none');
         $('.add-new-btn').addClass('d-none');
         $('.add-new-btn').addClass('d-none');
         $('#void-payment-btn').addClass('d-none');
-        $('#payment-form #reprint-btn').addClass('d-none');
         $('.user-disabled').prop('disabled', false);
         $('.toggle-active-container').addClass('d-none');
         $('.expired-container').addClass('d-none');
-        $('#reservation-student-form .reserved-auto').prop("disabled", false);
         onCancelPaymentForm();
         onCancelPaymentSchemeForm();
     };
@@ -269,22 +267,22 @@
     };
 
 
-    let populateActive = data => {
-        let isActive = data.isActive ? 1 : 0;
-        $("input[name=active-status][value=" + isActive + "]").prop('checked', true);
-        $('.active-date').addClass('d-none');
-        if (isActive) {
-            $('.date-active').removeClass('d-none')
-        } else {
-            $('.date-inactive').removeClass('d-none')
-        }
+    //let populateActive = data => {
+    //    let isActive = data.isActive ? 1 : 0;
+    //    $("input[name=active-status][value=" + isActive + "]").prop('checked', true);
+    //    $('.active-date').addClass('d-none');
+    //    if (isActive) {
+    //        $('.date-active').removeClass('d-none')
+    //    } else {
+    //        $('.date-inactive').removeClass('d-none')
+    //    }
 
-        if (data.isApproved) {
-            $('.approved-student').removeClass('d-none');
-        } else {
-            $('.approved-student').addClass('d-none');
-        }
-    }
+    //    if (data.isApproved) {
+    //        $('.approved-student').removeClass('d-none');
+    //    } else {
+    //        $('.approved-student').addClass('d-none');
+    //    }
+    //}
 
     //let onClickPrint = function () {
     //    let _form = document.getElementById('payment-form');
@@ -377,34 +375,34 @@
         $(event.currentTarget).addClass('active');
         $('.cancel-form').trigger('click');
         removeValidation();
-        if (!isCurrentSchoolYearConfigure) {
-            evaluateNotConfigureSchoolYear(gridId);
-        }
+        //if (!isCurrentSchoolYearConfigure) {
+        //    evaluateNotConfigureSchoolYear(gridId);
+        //}
 
         if ($(event.currentTarget).hasClass('report')) {
             
             setTimeout(function () { //Add delay for rendering complete ui.
-                if ($(event.currentTarget).hasClass('payment-collection-tab'))
-                    getPaymentCollectionByDate();
-                else if ($(event.currentTarget).hasClass('enrolled-student-report')) {
-                    getEnrolledStudentReportData(0, 0, 0);
-                }
-                else if ($(event.currentTarget).hasClass('reserved-student-report')) {
-                    getReservedStudentReportData(0, 0, 0);
-                }
-                else {
+                //if ($(event.currentTarget).hasClass('payment-collection-tab'))
+                //    getPaymentCollectionByDate();
+                //else if ($(event.currentTarget).hasClass('enrolled-student-report')) {
+                //    getEnrolledStudentReportData(0, 0, 0);
+                //}
+                //else if ($(event.currentTarget).hasClass('reserved-student-report')) {
+                //    getReservedStudentReportData(0, 0, 0);
+                //}
+                //else {
                     if ($.fn.DataTable.isDataTable('#' + gridId)) {
                         $('#' + gridId).DataTable().search('').draw();
                     }
-                }
+               /* }*/
             }, 200);
             
         } else {
             if (!$(event.currentTarget).hasClass('meta-data')) {
                 $('#master-data-menu').addClass('d-none');
-                $('#register-student-form')[0].reset();
+/*                $('#register-student-form')[0].reset();*/
                 resetFormToggle();
-                $('#paymentDate').attr('value', moment().format('yyyy-MM-DD'));
+/*                $('#paymentDate').attr('value', moment().format('yyyy-MM-DD'));*/
                 $('#announcement-form #createdAt').attr('value', moment().format('yyyy-MM-DD'));
             }
             setTimeout(function () { //Add delay for rendering complete ui.
@@ -421,8 +419,8 @@
         $('.registration-form-body').addClass('d-none');
         $('.registration-body').removeClass('d-none');
         $('.registration-body-form').removeClass('d-none');
-        $('.student-info-toggle').addClass('active');
-        $('.balance-details').addClass('d-none');
+        //$('.student-info-toggle').addClass('active');
+        //$('.balance-details').addClass('d-none');
     }
 
     let initializeUserRoleGrid = async () => {
@@ -1384,64 +1382,64 @@
         });
     }
 
-    let getDropdownData = async () => {
-        let [enrollStudentResp, registrationDataListResp, parentUserResp,
-            schoolYearResp, sectionResp, paymentSchemeResp, gradeLevelResp,
-            reservationResp] = await Promise.all([
-            _apiHelper.get({
-                url: `Authenticated/Enrollment/Balance`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/Registration/DataList`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/User/Role/3`
-            }),
-            _apiHelper.get({
-                url: `Lookups/SchoolYear`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/Section`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/PaymentScheme`
-            }),
-            _apiHelper.get({
-                url: `Lookups/GradeLevel`
-            }),
-             _apiHelper.get({
-                 url: `Authenticated/Reservation`
-            }),
+    //let getDropdownData = async () => {
+    //    let [enrollStudentResp, registrationDataListResp, parentUserResp,
+    //        schoolYearResp, sectionResp, paymentSchemeResp, gradeLevelResp,
+    //        reservationResp] = await Promise.all([
+    //        _apiHelper.get({
+    //            url: `Authenticated/Enrollment/Balance`
+    //        }),
+    //        _apiHelper.get({
+    //            url: `Authenticated/Registration/DataList`
+    //        }),
+    //        _apiHelper.get({
+    //            url: `Authenticated/User/Role/3`
+    //        }),
+    //        _apiHelper.get({
+    //            url: `Lookups/SchoolYear`
+    //        }),
+    //        _apiHelper.get({
+    //            url: `Authenticated/Section`
+    //        }),
+    //        _apiHelper.get({
+    //            url: `Authenticated/PaymentScheme`
+    //        }),
+    //        _apiHelper.get({
+    //            url: `Lookups/GradeLevel`
+    //        }),
+    //         _apiHelper.get({
+    //             url: `Authenticated/Reservation`
+    //        }),
 
-        ]);
+    //    ]);
 
-        let [enrollStudents, registrationDataList, parentUserList, schoolYearList,
-            sectionList, paymentSchemeList, gradeLevelList, reservationList] = await Promise.all(
-            [
-                enrollStudentResp.json(),
-                registrationDataListResp.json(),
-                parentUserResp.json(),
-                schoolYearResp.json(),
-                sectionResp.json(),
-                paymentSchemeResp.json(),
-                gradeLevelResp.json(),
-                reservationResp.json(),
-            ]
-        );
-        _enrollStudents = enrollStudents;
-        _dataList = registrationDataList;
-        _parentUsers = parentUserList;
-        _schoolYears = schoolYearList;
-        _sections = sectionList;
-        _gradeLevels = gradeLevelList;
-        _paymentSchemes = paymentSchemeList;
-        _reservations = reservationList;
-    }
+    //    let [enrollStudents, registrationDataList, parentUserList, schoolYearList,
+    //        sectionList, paymentSchemeList, gradeLevelList, reservationList] = await Promise.all(
+    //        [
+    //            enrollStudentResp.json(),
+    //            registrationDataListResp.json(),
+    //            parentUserResp.json(),
+    //            schoolYearResp.json(),
+    //            sectionResp.json(),
+    //            paymentSchemeResp.json(),
+    //            gradeLevelResp.json(),
+    //            reservationResp.json(),
+    //        ]
+    //    );
+    //    _enrollStudents = enrollStudents;
+    //    _dataList = registrationDataList;
+    //    _parentUsers = parentUserList;
+    //    _schoolYears = schoolYearList;
+    //    _sections = sectionList;
+    //    _gradeLevels = gradeLevelList;
+    //    _paymentSchemes = paymentSchemeList;
+    //    _reservations = reservationList;
+    //}
 
-    let renderDropDowns = async () => {
-        await getDropdownData();
+    //let renderDropDowns = async () => {
+    //    await getDropdownData();
       
-    };
+    //};
 
     let initializeModals = e => {
         $('#enrollment-modal').modal({ backdrop: 'static', keyboard: false });
@@ -1470,7 +1468,7 @@
             _formHelper.populateForm(form, user);
             isRegistrar = user.roleName == "Administrator";
             _userId = user.userId;
-            await renderDropDowns();
+            //await renderDropDowns();
         }
 
         $('#busy-indicator-container').addClass('d-none');

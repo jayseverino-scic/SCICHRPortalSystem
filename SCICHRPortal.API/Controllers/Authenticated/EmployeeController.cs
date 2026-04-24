@@ -121,7 +121,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 Password = Hash.Create(randomPassword, salt),
                 ContactNumber = employee.ContactNumber,
                 IsPasswordChanged = false,
-                IsApproved = true
+                IsApproved = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = employee.CreatedBy,
             };
 
 
@@ -139,19 +141,21 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             UserRole userRole = new()
             {
                 UserId = user.UserId,
-                RoleId = 6
+                RoleId = 1,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = "manuel"
             };
 
             await UserRoleService.InsertAsync(userRole);
-            try
-            {
-                var emailTemplate = await GetEmailTemplate(AppSettings.WebUrl + "html/templates/NewUserTemplate.html");
-                await MailService.SendForgotPasswordEmailAsync(user.Email!, $"{user.LastName}, {user.FirstName}", randomPassword, emailTemplate);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            //try
+            //{
+            //    var emailTemplate = await GetEmailTemplate(AppSettings.WebUrl + "html/templates/NewUserTemplate.html");
+            //    await MailService.SendForgotPasswordEmailAsync(user.Email!, $"{user.LastName}, {user.FirstName}", randomPassword, emailTemplate);
+            //}
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex.Message);
+            //}
 
             return StatusCode(201, employee.EmployeeId);
         }

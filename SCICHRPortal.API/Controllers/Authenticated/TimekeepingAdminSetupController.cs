@@ -21,7 +21,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [HttpGet]
         public async Task<IActionResult> GetSettingsAsync()
         {
-            var setting = await TimekeepingAdminSetupService.GetAsync(1);
+            var setting = await TimekeepingAdminSetupService.GetAsync(2);
             return Ok(setting);
         }
 
