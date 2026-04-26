@@ -9,5 +9,6 @@ namespace SCICHRPortal.Service.Interfaces
         IRetriever<TimekeepingAdminSetup, int>
     {
         Task<bool> UpdateAsync(TimekeepingAdminSetup timekeepingAdminSetup);
+        Task<TimekeepingAdminSetup> GetFirstOrDefault();
     }
 }

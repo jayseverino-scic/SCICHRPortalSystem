@@ -20,5 +20,9 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await TimekeepingAdminSetupRepository.GetAsync(id);
         }
+        public async Task<TimekeepingAdminSetup> GetFirstOrDefault()
+        {
+            return await TimekeepingAdminSetupRepository.GetFirstOrDefault();
+        }
     }
 }

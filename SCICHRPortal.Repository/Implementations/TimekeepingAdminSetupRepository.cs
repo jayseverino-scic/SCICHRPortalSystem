@@ -19,6 +19,11 @@ namespace SCICHRPortal.Repository.Implementations
             return TimekeepingAdminSetup!;
         }
 
+        public async Task<TimekeepingAdminSetup> GetFirstOrDefault()
+        {
+            var TimeKeepingAdminSetup = await Context.TimekeepingAdminSetup!.FirstOrDefaultAsync(s => !s.Deleted);
+            return TimeKeepingAdminSetup!;
+        }
         public async Task<bool> UpdateAsync(TimekeepingAdminSetup TimekeepingAdminSetup)
         {
             var record = Context.Update(TimekeepingAdminSetup);

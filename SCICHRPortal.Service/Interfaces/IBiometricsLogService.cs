@@ -14,5 +14,6 @@ namespace SCICHRPortal.Service.Interfaces
         Task<bool> UpdateAsync(BiometricsLog biometricsLog);
         Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate);
         Task<IEnumerable<BiometricsLog>> GetDailyLogAsync(DateTime logDate);
+        Task<IEnumerable<BiometricsLog>> FilterByDateRange(DateTime? startDate, DateTime? endDate);
     }
 }

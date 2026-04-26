@@ -144,7 +144,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             LastName = lastName,
                             FirstName = firstNameName,
                             Date = parsedDate,
-                            Time = parsedTime,
+                            Time = Convert.ToDateTime(parsedDate.ToShortDateString() + " " + parsedTime.ToShortTimeString()),
                             LogType = logType.ToString(),
                             DeviceName = deviceName,
                             CreatedAt = DateTime.Now,

@@ -357,7 +357,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             if (employeeAttendance.Count() == 0 || employeeAttendance == null)
                 return BadRequest();
 
-            TimekeepingAdminSetup timekeepingAdminSetup = await TimekeepingAdminSetupService.GetAsync(1);
+            //TimekeepingAdminSetup timekeepingAdminSetup = await TimekeepingAdminSetupService.GetAsync(2);
+            TimekeepingAdminSetup timekeepingAdminSetup = await TimekeepingAdminSetupService.GetFirstOrDefault();
 
             foreach (var item in employeeAttendance)
             {
@@ -428,6 +429,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     ApprovedRestDay = item.ApprovedRestDay,
                     ApprovedRestDayOT = item.ApprovedRestDayOT,
                     Employee = item.Employee,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = "manuel"
                 };
                 if (item.EmployeeAttendanceId == 0)
                     await EmployeeAttendanceService.InsertAsync(attendance);

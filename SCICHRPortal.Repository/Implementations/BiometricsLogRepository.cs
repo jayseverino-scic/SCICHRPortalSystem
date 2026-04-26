@@ -35,6 +35,16 @@ namespace SCICHRPortal.Repository.Implementations
 
             return new Tuple<IEnumerable<BiometricsLog>, int>(await biometricsLogs.ToListAsync(), total);
         }
+        public async Task<IEnumerable<BiometricsLog>> FilterByDateRange(DateTime? startDate, DateTime? endDate)
+        {
+            IEnumerable<BiometricsLog> biometricsLogs;
+            biometricsLogs = await Context.BiometricsLog!.Where(b => !b.Deleted).ToListAsync();
+            if (startDate.HasValue && endDate.HasValue)
+                biometricsLogs = biometricsLogs.Where(b => b.Date >= startDate && b.Date <= endDate);
+
+
+            return biometricsLogs;
+        }
         public async Task<IEnumerable<BiometricsLog>> GetDailyLogAsync(DateTime logDate)
         {
             IEnumerable<BiometricsLog> biometricsLogs;
