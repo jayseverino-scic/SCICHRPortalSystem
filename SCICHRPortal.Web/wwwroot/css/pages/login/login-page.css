@@ -46,12 +46,12 @@
 .forgot-password-link {
     margin-left: 3rem;
     text-decoration: none;
-    color: #726f6f;
+    color: #f9f9f9;
 }
 .enrollment-tool-word-style {
-    font-size: 43px;
+    font-size: 85px;
     color: #212529;
-    margin-left: 35px;
+    margin-left: 120px;
     font-family: "Times New Roman", Times, serif;
 }
 /*input:-webkit-autofill,
@@ -122,17 +122,25 @@ input:-webkit-autofill {
 
 
 .log-in-main-container {
-    position: fixed;
+    position: absolute;
     left: 0;
     top: 0;
     right: 15px;
     bottom: 0;
-    background-image: linear-gradient(#0089ff, #f4f7f7)
+    background-image: url("/images/SCIC-bground2.jpg");
+    opacity: 2.9;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh; /* Full viewport height */
+    /*background-color: #3774ac;*/
+    /*background-image: linear-gradient(#01aa27, white)*/
+    /*background-image*/
 }
 
 .log-in-container {
     border-left: 5px solid #808580;
-    background: #FFFF;
+    background: #ffffff17;
 }
 
 .user-login-text {
@@ -149,9 +157,8 @@ hr.solid {
     margin-top: 7px;
 }
 .sign-up-span, .sign-in-span {
-    color: #137CDE;
+    color: #ffffff;
     text-decoration: underline;
-    
 }
     .sign-up-span:hover, .sign-in-span:hover {
         cursor: pointer;
@@ -284,7 +291,7 @@ hr.solid {
     .enrollment-tool-word-style {
         font-size: 17px;
         color: #212529;
-        margin-left: 149px;
+        margin-left: 35px;
         font-family: "Times New Roman", Times, serif;
     }
 

@@ -28,7 +28,7 @@
 }
 .btn-primary {
     color: #fff !important;
-    background-color: #337ab7 !important;
+    background-color: #139d1f !important;
     border-color: #2e6da4 !important;
 }
 .ml-3 {
@@ -89,7 +89,7 @@
     }
 .left-header-container {
     color: white;
-    background-color: steelblue;
+    /*background-color: steelblue;*/
     display: block;
     margin-bottom: 15px;
     margin-top: 20px;
@@ -128,7 +128,7 @@
     margin-bottom: 20px;
 }
     .dataTables_wrapper table.dataTable thead th {
-        border-bottom: 2px solid #309ffd;
+        border-bottom: 2px solid #000000;
     }
     .dataTables_wrapper table.dataTable tbody tr td {
         /*border-bottom: 2px solid #309ffd;*/
@@ -137,8 +137,8 @@
         /* background: #FCFBFB;*/
     }
     .dataTables_wrapper table.dataTable thead {
-        /*background: #7e0505;*/
-        background: #2e6da4;
+        background: #139d1f;
+        /*background: #139d1f;*/
         color: #FFF;
     }
 .dataTables_length {
@@ -189,12 +189,13 @@
 
 .main-container {
     /*background-image: linear-gradient(to right, #BEEFFF, #edf5f7);*/
-    background-color: #030374 !important;
+    background-color: #1c5d00 !important;
 }
 .modal-body {
     background: #0f4a84;
 }
-.modal-header, .modal-footer {
+.modal-header, .modal-
+{
     background: #051a5e;
     color: #FFF;
     font-weight: bold;
@@ -206,13 +207,13 @@
 
 .container {
     /*background: #FFF;*/
-    background-color: midnightblue;
-    color:white;
+    background: linear-gradient(to left, #007f11, #63cb3a);
+    color: white;
     border-radius: 5px;
     margin-top: 5px;
 }
 .add-new-btn {
-    background-color: #1677c9 !important;
+    background-color: #139d1f !important;
     width: 150px;
     color: #FFF !important;
     border-color: #FFF !important;

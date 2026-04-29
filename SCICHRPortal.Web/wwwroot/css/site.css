@@ -81,10 +81,9 @@ input, select, textarea {
     margin: 10px;
     padding: 15px;
     border-radius: 6px;
-    background: white;
+    background: linear-gradient(to left, #007f11, #63cb3a);
     height: 100px;
     width: 100% !important;
- 
 }
 .nav-second-container {
     visibility: hidden;
@@ -93,9 +92,11 @@ input, select, textarea {
     width:  1%;
 }
 #school-name {
-    width: 50%;
-    height: 89%;
-    margin-top: 8px;
+    width: 20%;
+    height: 100%;
+    margin-top: 1px;
+margin-left: 10%;
+    margin-right: 0%;
 }
 #head-nav {
     justify-content: flex-end !important;
@@ -103,8 +104,8 @@ input, select, textarea {
     margin: 0 !important;
     padding-bottom: 0;
     border-bottom: none !important;
-    /*background-image: linear-gradient(to right, #BEEFFF, #edf5f7);*/
-    background-color: #030374 !important;
+    background-image: linear-gradient(to right, #BEEFFF, #edf5f7);
+    /*background-color: #00d402 !important;*/
 }
 
 .save-button {
