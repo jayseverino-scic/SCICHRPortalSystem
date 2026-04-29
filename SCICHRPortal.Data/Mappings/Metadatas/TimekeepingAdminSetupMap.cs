@@ -17,6 +17,8 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
             entityBuilder.Property(e => e.BreakLateTotalMinuteLimit).IsRequired();
             entityBuilder.Property(e => e.NoTimeLogCountLimit).IsRequired();
             entityBuilder.Property(e => e.NoLeaveAbsentCountLimit).IsRequired();
+            entityBuilder.Property(e => e.RestDays).IsRequired().HasMaxLength(50);
+
 
             //entityBuilder.HasData(new TimekeepingAdminSetup[]
             //{

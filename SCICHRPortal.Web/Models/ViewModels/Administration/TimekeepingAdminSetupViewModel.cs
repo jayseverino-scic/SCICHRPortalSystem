@@ -17,5 +17,7 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
         public int NoTimeLogCountLimit { get; set; }
         [Required(ErrorMessage ="No Leave Limit Count is required.")]
         public int NoLeaveAbsentCountLimit { get; set; }
+        [Required(ErrorMessage = "Rest Day is required.")]
+        public string? RestDays { get; set;  }
     }
 }

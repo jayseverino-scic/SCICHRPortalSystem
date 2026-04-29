@@ -32,7 +32,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
 
-            var settingOnDB = await TimekeepingAdminSetupService.GetAsync(1);
+            var settingOnDB = await TimekeepingAdminSetupService.GetFirstOrDefault();
 
             if (settingOnDB is not null)
             {
@@ -42,6 +42,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 settingOnDB.BreakLateTotalMinuteLimit = setting.BreakLateTotalMinuteLimit;
                 settingOnDB.NoTimeLogCountLimit = setting.NoTimeLogCountLimit;
                 settingOnDB.NoLeaveAbsentCountLimit = setting.NoLeaveAbsentCountLimit;
+                settingOnDB.RestDays = setting.RestDays;
                 settingOnDB.CreatedAt = DateTime.UtcNow;
                 settingOnDB.CreatedBy = "manuel"; 
                 await TimekeepingAdminSetupService.UpdateAsync(settingOnDB);

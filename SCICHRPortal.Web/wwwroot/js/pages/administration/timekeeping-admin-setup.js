@@ -9,22 +9,69 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    const _daysOfWeekLookup = {
+        '1': 'Monday',
+        '2': 'Tuesday',
+        '3': 'Wednesday',
+        '4': 'Thursday',
+        '5': 'Friday',
+        '6': 'Saturday',
+        '7': 'Sunday'
+    };
     const SYSTEM = 'enrolment';
+    let getDayNames = function (days) {
+        return _.map(normalizeDays(days), function (day) {
+            return _daysOfWeekLookup[day] || day;
+        });
+    }
+    let normalizeDays = function (days) {
+        if (!days) {
+            return [];
+        }
+
+        let normalizedDays = _.chain($.isArray(days) ? days : [days])
+            .map(function (day) {
+                return day != null ? day.toString().split(/[;,]/) : [];
+            })
+            .flatten()
+            .value();
+
+        return _.chain(normalizedDays)
+            .map(function (day) {
+                return day != null ? day.toString().trim() : '';
+            })
+            .filter(function (day) {
+                return day !== '';
+            })
+            .uniq()
+            .value();
+    }
     let attachEvents = () => {
         $('#setting-form').on('submit', onFormSubmit);
+        $('#setting-form #RestDays').val(null).trigger('change');
 
     };
 
+    let daysofWeekSelect2 = function (isMultiple) {
+        $('#setting-form #RestDays').select2({
+            multiple: isMultiple,
+            theme: "bootstrap",
+            width: 'element',
+            width: 'resolve',
+            //closeOnSelect: !params.autoClose,
+        });
+    }
     let onFormSubmit = async event => {
         event.preventDefault();
-
+        let selectedAssignmentDays = $('#RestDays').val() || [];
         let form = $(event.target);
         $(event.target).validate();
         if ($(event.target).valid()) {
             $('#busy-indicator-container').removeClass('d-none');
             let response = '';
-
+            let daysOfWeek = selectedAssignmentDays;
             let data = _formHelper.toJsonString(event.target);
+            data.RestDays = daysOfWeek.join(';');
             let currentTabTitle = 'Setting';
             response = await _apiHelper.put({
                 url: 'Authenticated/TimekeepingAdminSetup',
@@ -73,9 +120,12 @@
         if (response.ok) {
             let json = await response.json();
             console.log(json);
-
+            let data = json;
+            //console.log(data);
             $('#busy-indicator-container').addClass('d-none');
             let form = $('#setting-form');
+            data.restDays = normalizeDays(data.restDays);
+            daysofWeekSelect2(true);
             populateForm(form, json);
         }
     };
