@@ -15,5 +15,6 @@ namespace SCICHRPortal.Data.Entities.Metadatas
         public int BreakLateTotalMinuteLimit { get; set; }
         public int NoTimeLogCountLimit { get; set; }
         public int NoLeaveAbsentCountLimit { get; set; }
+        public string? RestDays { get; set; }
     }
 }

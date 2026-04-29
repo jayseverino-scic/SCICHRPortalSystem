@@ -65,7 +65,22 @@
                             </div>
                      
                         </div>
-                       
+                        <div class="border border-white" style="padding-top: 40px; position: relative; z-index: 1;">
+                            <label asp-for="RestDays" class="col-form-label">Rest Day(s)</label>
+                            @* <label asp-for="RestDays" class="col-form-label" style="display: block; margin-bottom: 10px; background: black; position: relative; z-index: 3;">Rest Day(s)</label> *@
+                            <div class="form-group col-md-4" style="position: relative; z-index: 2;">
+                                <select asp-for="RestDays" id="RestDays" class="form-control">
+                                    <option value="1">Monday</option>
+                                    <option value="2">Tuesday</option>
+                                    <option value="3">Wednesday</option>
+                                    <option value="4">Thursday</option>
+                                    <option value="5">Friday</option>
+                                    <option value="6">Saturday</option>
+                                    <option value="7">Sunday</option>
+                                </select>
+                                <span asp-validation-for="RestDays" class="text-danger"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

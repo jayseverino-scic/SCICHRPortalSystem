@@ -113,8 +113,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     employeeTimeLog.EmployeeId = employee.EmployeeId;
                     employeeTimeLog.DateIn = Convert.ToDateTime(date);
                     employeeTimeLog.DateOut = Convert.ToDateTime(date);
-                    employeeTimeLog.DateBreakOut  = Convert.ToDateTime(date);
-                    employeeTimeLog.DateBreakIn = Convert.ToDateTime(date);
+                    employeeTimeLog.DateBreakOut  = shift!.IsNoBreak ? null : Convert.ToDateTime(date);
+                    employeeTimeLog.DateBreakIn = shift!.IsNoBreak ? null : Convert.ToDateTime(date);
                     employeeTimeLog.TimeIn = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date?.ToShortDateString() == Convert.ToDateTime(date).ToShortDateString()).OrderBy(e => e.Date).Select(e => e.Time).FirstOrDefault();
                     if (shift!.ShiftEnd < shift.ShiftStart)
                     {
@@ -124,19 +124,22 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         employeeTimeLog.TimeOut = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).LastOrDefault();
                     }
-                    employeeTimeLog.BreakOut = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).FirstOrDefault();
-                    if (shift.BreakEnd < shift.BreakStart)
+                    employeeTimeLog.BreakOut = shift.IsNoBreak ? null : biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).FirstOrDefault();
+                    if (!shift.IsNoBreak)
                     {
-                        employeeTimeLog.BreakIn = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.BreakStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).LastOrDefault();
-                    }
-                    else
-                    {
-                        employeeTimeLog.BreakIn = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).LastOrDefault();
+                        if (shift.BreakEnd < shift.BreakStart)
+                        {
+                            employeeTimeLog.BreakIn = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.BreakStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).LastOrDefault();
+                        }
+                        else
+                        {
+                            employeeTimeLog.BreakIn = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo && i.Date.ToString() == date).OrderBy(e => e.Date).Select(e => e.Time).Skip(1).LastOrDefault();
+                        }
                     }
                     employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.ShiftStart!.Value.ToShortTimeString());
                     employeeTimeLog.ShiftEnd = shift.ShiftEnd > shift.ShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.ShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.ShiftEnd!.Value.ToShortTimeString());
-                    employeeTimeLog.BreakStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + Convert.ToDateTime(shift.BreakStart.ToString()).ToShortTimeString());
-                    employeeTimeLog.BreakEnd = shift.BreakEnd > shift.BreakStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.BreakEnd.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.BreakEnd!.Value.ToShortTimeString());
+                    employeeTimeLog.BreakStart = shift.IsNoBreak ? null : Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + Convert.ToDateTime(shift.BreakStart.ToString()).ToShortTimeString());
+                    employeeTimeLog.BreakEnd =  shift.IsNoBreak ? null : shift.BreakEnd > shift.BreakStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.BreakEnd.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.BreakEnd!.Value.ToShortTimeString());
                     employeeTimeLog.IsNoShift = shift.IsNoShift;
                     employeeTimeLog.IsNoBreak = shift.IsNoBreak;
                     employeeTimeLog.IsFlexibleBreak  = shift.IsFlexibleBreak;
