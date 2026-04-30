@@ -176,7 +176,7 @@
                 orderable: false
             },
             {
-                title: "Shift Hours",
+                title: "ShHrs",
                 data: "shiftHours",
                 className: 'dt-center',
                 orderable: false,
@@ -188,7 +188,7 @@
                 }
             },
             {
-                title: "Regular Hours",
+                title: "RH",
                 data: "regularHour",
                 className: 'dt-center',
                 orderable: false,
@@ -200,7 +200,7 @@
                 }
             },
             {
-                title: "Total Worked Hours",
+                title: "THrs",
                 data: "totalLoggedHours",
                 className: 'dt-center',
                 orderable: false,
@@ -212,7 +212,7 @@
                 }
             },
             {
-                title: "Late",
+                title: "SLate",
                 data: "shiftLate",
                 className: 'dt-center',
                 orderable: false,
@@ -224,7 +224,7 @@
                 }
             },
             {
-                title: "Undertime",
+                title: "Shift UT",
                 data: "shiftUndertime",
                 className: 'dt-center',
                 orderable: false,
@@ -236,7 +236,7 @@
                 }
             },
             {
-                title: "Break Undertime",
+                title: "Break UT",
                 data: "breakUndertime",
                 className: 'dt-center',
                 orderable: false,
@@ -248,7 +248,7 @@
                 }
             },
             {
-                title: "Break Late",
+                title: "BLate",
                 data: "breakLate",
                 className: 'dt-center',
                 orderable: false,
@@ -260,7 +260,7 @@
                 }
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedOT" type="checkbox"> Overtime',
+                title: '<input name="select_all" value="1" class="select-all" data-column="approvedOT" type="checkbox"> OT',
                 data: "approvedOT",
                 width: "50px",
                 className: 'dt-center',
@@ -270,7 +270,7 @@
                 orderable: false
             },
             {
-                title: "Overtime Hours",
+                title: "OTH",
                 data: "otHours",
                 className: 'dt-center',
                 orderable: false,
@@ -282,7 +282,7 @@
                 }
             },
             {
-                title: "Night Differential Hours",
+                title: "NDH",
                 data: "ndHours",
                 className: 'dt-center',
                 orderable: false,
@@ -294,7 +294,7 @@
                 }
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedHoliday" type="checkbox"> Holiday',
+                title: '<input name="select_all" value="1" class="select-all" data-column="approvedHoliday" type="checkbox"> H',
                 data: "approvedHoliday",
                 width: "50px",
                 className: 'dt-center',
@@ -304,7 +304,7 @@
                 orderable: false
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedHolidayOT" type="checkbox"> Holiday Overtime',
+                title: '<input name="select_all" value="1" class="select-all" data-column="approvedHolidayOT" type="checkbox"> HOT',
                 data: "approvedHolidayOT",
                 width: "50px",
                 className: 'dt-center',
@@ -314,7 +314,7 @@
                 orderable: false
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedSPHoliday" type="checkbox"> Special Holiday',
+                title: '<input name="select_all" value="1" class="select-all" data-column="approvedSPHoliday" type="checkbox"> SH',
                 data: "approvedSPHoliday",
                 width: "50px",
                 className: 'dt-center',
@@ -324,7 +324,7 @@
                 orderable: false
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedSPHolidayOT" type="checkbox"> Special Holiday Overtime',
+                title: '<input name="select_all" value="1" class="select-all" data-column="approvedSPHolidayOT" type="checkbox"> SHOT',
                 data: "approvedSPHolidayOT",
                 width: "50px",
                 className: 'dt-center',
@@ -334,7 +334,7 @@
                 orderable: false
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedRestDay" type="checkbox"> Rest Day',
+                title: '<input name="select_all" value="1" class="select-all" data-column="approvedRestDay" type="checkbox"> RD',
                 data: "approvedRestDay",
                 width: "50px",
                 className: 'dt-center',
@@ -344,7 +344,7 @@
                 orderable: false
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedRestDayOT" type="checkbox"> Rest Day Overtime',
+                title: '<input name="select_all" value="1" class="select-all" data-column="approvedRestDayOT" type="checkbox"> RDOT',
                 data: "approvedRestDayOT",
                 width: "50px",
                 className: 'dt-center',

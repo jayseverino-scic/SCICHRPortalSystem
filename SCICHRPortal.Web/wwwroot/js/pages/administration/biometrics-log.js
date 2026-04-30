@@ -265,7 +265,7 @@
                 defaultContent: "",
             },
             {
-                title: "Date Logged",
+                title: "Date",
                 data: "date",
                 className: 'noVis dt-center',
                 orderable: true,
@@ -275,7 +275,7 @@
                 }
             },
             {
-                title: "Time Logged",
+                title: "Time",
                 data: "time",
                 className: 'noVis dt-center',
                 orderable: false,

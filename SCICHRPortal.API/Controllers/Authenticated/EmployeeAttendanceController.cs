@@ -380,7 +380,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 DateTime ndLogStart = new DateTime();
                 DateTime ndLogEnd = new DateTime();
                 bool withND = false;
-                double shiftLateGracePeriod = Convert.ToDouble(timekeepingAdminSetup.ShiftLateMinuteGracePeriod) / 60;
                 if (item.TimeIn >= ndStart && item.TimeIn <= ndEnd)
                 {
                     ndLogStart = item.TimeIn;
@@ -426,14 +425,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     IsFlexibleBreak = item.IsFlexibleBreak,
                     IsNoShift = item.IsNoShift,
                     IsNoBreak = item.IsNoBreak,
-                    ShiftHours = ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value),
+                    ShiftHours = ComputeHours(item.ShiftStart!.Value.AddMinutes(timekeepingAdminSetup.ShiftLateMinuteGracePeriod), item.ShiftEnd!.Value),
                     RegularHour = ComputeHours(item.TimeIn, item.TimeOut) > ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value) ? ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value) : ComputeHours(item.TimeIn, item.TimeOut),
                     TotalLoggedHours = ComputeHours(item.TimeIn, item.TimeOut),
                     ApprovedOT = item.ApprovedOT,
                     OTHours = item.ApprovedOT == true ? ComputeHours(item.TimeIn, item.TimeOut) - ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value) : 0,
                     NDHours = withND == true ? ComputeHours(ndLogStart, ndLogEnd) : 0,
                     ShiftUndertime = item.TimeOut < item.ShiftEnd ? ComputeHours(item.TimeOut, item.ShiftEnd.Value) : 0,
-                    ShiftLate = item.TimeIn > item.ShiftStart ? (ComputeHours(item.ShiftStart.Value, item.TimeIn) > shiftLateGracePeriod ? ComputeHours(item.ShiftStart.Value, item.TimeIn) : 0) : 0,
+                    ShiftLate = item.TimeIn > item.ShiftStart ? ComputeHours(item.ShiftStart.Value, item.TimeIn) : 0,
                     BreakUndertime = item.IsNoBreak ? 0 : ComputeHours(item.BreakOut!.Value, item.BreakStart!.Value),
                     BreakLate = item.IsNoBreak ? 0 : ComputeHours(item.BreakOut!.Value, item.BreakEnd!.Value.AddMinutes(timekeepingAdminSetup.BreakLateMinuteGracePeriod)),
                     ApprovedHoliday = item.ApprovedHoliday,
