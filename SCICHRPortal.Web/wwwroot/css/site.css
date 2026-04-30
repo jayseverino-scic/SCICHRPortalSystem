@@ -81,7 +81,7 @@ input, select, textarea {
     margin: 10px;
     padding: 15px;
     border-radius: 6px;
-    background: linear-gradient(to left, #007f11, #63cb3a);
+    background: linear-gradient(to left, #0c7100, #33b500);
     height: 100px;
     width: 100% !important;
 }

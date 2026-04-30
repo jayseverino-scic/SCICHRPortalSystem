@@ -192,11 +192,11 @@
     background-color: #1c5d00 !important;
 }
 .modal-body {
-    background: #0f4a84;
+    background: #277700;
 }
-.modal-header, .modal-
+.modal-header, .modal- 
 {
-    background: #051a5e;
+    background: #065e05;
     color: #FFF;
     font-weight: bold;
 }
@@ -207,7 +207,7 @@
 
 .container {
     /*background: #FFF;*/
-    background: linear-gradient(to left, #007f11, #63cb3a);
+    background: linear-gradient(to left, #0c7100, #33b500);
     color: white;
     border-radius: 5px;
     margin-top: 5px;

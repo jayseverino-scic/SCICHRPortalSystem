@@ -62,9 +62,5 @@ namespace SCICHRPortal.Service.Implementations
         {
             await EmployeeShiftRepository.InsertRangeAsync(employeeShifts);
         }
-        public async Task<EmployeeShift> GetByEmployee(int id)
-        {
-            return await EmployeeShiftRepository.GetByEmployee(id);
-        }
     }
 }
