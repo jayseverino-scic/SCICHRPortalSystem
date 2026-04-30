@@ -151,5 +151,11 @@ namespace SCICHRPortal.Repository.Implementations
             Context.EmployeeShift!.AddRange(employeeShifts);
             await Context.SaveChangesAsync();
         }
+        public async Task<EmployeeShift> GetByEmployee(int id)
+        {
+            var employeeShift = await Context.EmployeeShift!
+            .SingleOrDefaultAsync(s => s.EmployeeId == id && !s.Deleted);
+            return employeeShift!;
+        }
     }
 }

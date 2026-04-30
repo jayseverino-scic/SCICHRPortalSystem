@@ -80,5 +80,10 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View();
         }
+        public IActionResult Holiday()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
     }
 }

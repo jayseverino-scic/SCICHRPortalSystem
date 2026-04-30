@@ -181,16 +181,20 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 {
                     foreach (Employee employee in mergedList)
                     {
-                        EmployeeShift employeeShift = new EmployeeShift
+                        EmployeeShift employeeWithShift = await EmployeeShiftService.GetByEmployee(employee.EmployeeId);
+                        if (employeeWithShift == null)
                         {
-                            AssignedShiftId = 0,
-                            ShiftId = 0,
-                            EmployeeId = employee.EmployeeId,
-                            DepartmentId = (int)employee.DepartmentId,
-                            Employee = employee,
-                            Department = departments.Where(d => d.DepartmentId == employee.DepartmentId).SingleOrDefault(),
-                        };
-                        employeeShifts.Add(employeeShift);
+                            EmployeeShift employeeShift = new EmployeeShift
+                            {
+                                AssignedShiftId = 0,
+                                ShiftId = 0,
+                                EmployeeId = employee.EmployeeId,
+                                DepartmentId = (int)employee.DepartmentId!,
+                                Employee = employee,
+                                Department = departments.Where(d => d.DepartmentId == employee.DepartmentId).SingleOrDefault(),
+                            };
+                            employeeShifts.Add(employeeShift);
+                        }
                     }
                 }
                 if (filterType == "All")

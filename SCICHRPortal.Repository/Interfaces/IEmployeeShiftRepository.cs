@@ -24,5 +24,6 @@ namespace SCICHRPortal.Repository.Interfaces
         Task RemoveRangeAsync(List<EmployeeShift> employeeShifts);
         Task UpdateRangeAsync(List<EmployeeShift> employeeShifts);
         Task InsertRangeAsync(List<EmployeeShift> employeeShifts);
+        Task<EmployeeShift> GetByEmployee(int id);
     }
 }
