@@ -45,6 +45,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.ShiftEnd,
                 d.BreakStart,
                 d.BreakEnd,
+                d.ShiftLateMinuteGracePeriod,
+                d.BreakLateMinuteGracePeriod,
+                d.ShiftLateTotalMinuteLimit,
+                d.BreakLateTotalMinuteLimit,
+                d.NoTimeLogCountLimit,
+                d.NoLeaveAbsentCountLimit,
+                d.RestDays,
                 IsTodayAnnouncement = dateToday.Date == d.CreatedAt.Date,
                 d.CreatedAt,
                 OrderNumber = orderNumber++

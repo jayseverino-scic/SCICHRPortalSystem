@@ -10,11 +10,56 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    const _daysOfWeekLookup = {
+        '1': 'Monday',
+        '2': 'Tuesday',
+        '3': 'Wednesday',
+        '4': 'Thursday',
+        '5': 'Friday',
+        '6': 'Saturday',
+        '7': 'Sunday'
+    };
+    let getDayNames = function (days) {
+        return _.map(normalizeDays(days), function (day) {
+            return _daysOfWeekLookup[day] || day;
+        });
+    }
+    let normalizeDays = function (days) {
+        if (!days) {
+            return [];
+        }
+
+        let normalizedDays = _.chain($.isArray(days) ? days : [days])
+            .map(function (day) {
+                return day != null ? day.toString().split(/[;,]/) : [];
+            })
+            .flatten()
+            .value();
+
+        return _.chain(normalizedDays)
+            .map(function (day) {
+                return day != null ? day.toString().trim() : '';
+            })
+            .filter(function (day) {
+                return day !== '';
+            })
+            .uniq()
+            .value();
+    }
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#shift-form').on('submit', onFormSubmit);
+        $('#shift-form #RestDays').val(null).trigger('change');
     };
-
+    let daysofWeekSelect2 = function (isMultiple) {
+        $('#shift-form #RestDays').select2({
+            multiple: isMultiple,
+            theme: "bootstrap",
+            width: 'element',
+            width: 'resolve',
+            //closeOnSelect: !params.autoClose,
+        });
+    }
     let onClickAddModal = function () {
         $('#shift-form')[0].reset();
         $('#shift-form').find(':submit').text('Add');
@@ -23,13 +68,14 @@
 
     let onFormSubmit = async event => {
         event.preventDefault();
-
+        let selectedAssignmentDays = $('#RestDays').val() || [];
         let form = $(event.target);
         $(event.target).validate();
         let button = $(event.target).find(':submit').text().toLowerCase();
         if ($(event.target).valid()) {
             $('#busy-indicator-container').removeClass('d-none');
             let response = '';
+            let daysOfWeek = selectedAssignmentDays;
             let data = _formHelper.toJsonString(event.target);
             let currentTabTitle = $('.tab-pane.active .title').text();
             let shiftStartFormat = moment().format('YYYY-MM-DD') + 'T' + data.ShiftStart;
@@ -40,7 +86,7 @@
             data.ShiftEnd = shiftEndFormat;
             data.BreakStart = breakStartFormat;
             data.BreakEnd = breakEndFormat;
-
+            data.RestDays = daysOfWeek.join(';');
             data.DepartmentId = data.DepartmentId ? data.DepartmentId : null;
 
             data.isApproved = true;
@@ -144,6 +190,8 @@
 
                     $('#shift-grid tbody').on('click', '.icon-edit', function () {
                         var data = table.row($(this).closest('tr')).data();
+                        data.restDays = normalizeDays(data.restDays);
+                        daysofWeekSelect2(true);
                         let form = $('#shift-form');
                         populateForm(form, data);
                         $('#shift-modal').modal('show');
@@ -215,7 +263,41 @@
                     return _dateHelper.formatLocalShortTime(data);
                 },
             },
-
+            {
+                title: "Shift Late Minute Grace Period",
+                data: "shiftLateMinuteGracePeriod",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "Break Late Minute Grace Period",
+                data: "breakLateMinuteGracePeriod",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "Shift Late Total Minute Limit",
+                data: "shiftLateTotalMinuteLimit",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "Break Late Total Minute Limit",
+                data: "breakLateTotalMinuteLimit",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "No Timelogs Count Limit",
+                data: "noTimeLogCountLimit",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "No Leave Count Limit",
+                data: "noLeaveAbsentCountLimit",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "Rest Day(s)",
+                data: "restDays",
+                className: 'noVis dt-center'
+            }
         ];
         let lastColumn = {
             data: "shiftId",
