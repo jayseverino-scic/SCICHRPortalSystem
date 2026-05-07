@@ -1,4 +1,68 @@
-﻿(function ($) {
+﻿class UploadDownloadModalHelper {
+    constructor(config) {
+        this.config = config;
+        this.init();
+    }
+
+    init() {
+        this.setupModalEvents();
+    }
+
+    setupModalEvents() {
+        $(document).on('click', '.modal-close, .modal-overlay', (e) => {
+            this.hideAll();
+        });
+        $(document).on('click', '.modal-content', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    show(type, data = {}) {
+        this.hideAll();
+
+        switch (type) {
+            case 'uploading':
+                $('#uploadModal').show();
+                if (data.filename) {
+                    $('#uploadFileName').text(data.filename);
+                }
+                break;
+            case 'success':
+                $('#successModal').show();
+                break;
+            case 'failed':
+                $('#errorModal').show();
+                if (data.error) {
+                    $('#errorMessage').text(data.error);
+                }
+                break;
+        }
+    }
+
+    hideAll() {
+        $('.modal').hide();
+    }
+
+    resetFileInput() {
+        $('#upload-file').val('');
+        $(".progress-bar").width('0%');
+        $(".progress-bar").html('0%');
+    }
+
+    downloadFile() {
+        const { xlsxDownloadUri, fileName } = this.config;
+        console.log('Downloading file...');
+    }
+}
+
+(function ($) {
+    const _config = {
+        pdfButtonEnabled: true,
+        fileName: 'biometricsLog',
+        xlsxDownloadUri: 'Authenticated/employee/Download',
+        pdfButtonNumber: 0,
+        tableId: 'biometrics-log-grid'
+    };
     //Events
     const CLICK_EVENT = 'click';
     const LOAD_EVENT = 'load'
@@ -9,6 +73,7 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    const _uploadDownloadModalHelper = new UploadDownloadModalHelper(_config);
     const SYSTEM = 'grading';
 
     let _department = [];
@@ -17,7 +82,7 @@
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#employee-form').on('submit', onFormSubmit);
-
+        $('#import').on('click', onSubmitUploadForm);
     };
 
     let onClickAddModal = function () {
@@ -25,7 +90,49 @@
         $('#employee-form').find(':submit').text('Add');
         $('#employee-modal').modal('show');
     }
+    let onSubmitUploadForm = async e => {
+        e.preventDefault();
+        let fileInput = $('#upload-file');
 
+        if (fileInput[0].files.length == 0) {
+            Swal.fire(
+                'No File!',
+                'Please Select File',
+                'error'
+            );
+            return;
+        }
+
+        let fileName = fileInput.val().replace(/C:\\fakepath\\/i, '');
+        _uploadDownloadModalHelper.show('uploading', { filename: fileName });
+
+        var request = _apiHelper.ajaxRequest('POST', {
+            url: 'Authenticated/Employee/Import',
+            data: $('#upload-file')[0].files[0],
+            xhr: function () {
+                let xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function (evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = ((evt.loaded / evt.total) * 100);
+                        $(".progress-bar").width(percentComplete + '%');
+                        $(".progress-bar").html(percentComplete + '%');
+                    }
+                }, false);
+                return xhr;
+            },
+            beforeSend: function () {
+                $(".progress-bar").width('0%');
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                _uploadDownloadModalHelper.show('failed', { error: XMLHttpRequest.responseText });
+            },
+            success: function (response) {
+                _uploadDownloadModalHelper.resetFileInput();
+                initializeGrid(response);
+                _uploadDownloadModalHelper.show('success');
+            }
+        });
+    };
     let onFormSubmit = async event => {
         event.preventDefault();
 

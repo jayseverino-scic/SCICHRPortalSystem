@@ -18,6 +18,7 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public DateTime ShiftEnd { get; set; }
         public DateTime? BreakStart { get; set; }
         public DateTime? BreakEnd {  get; set; }
+        public String? SystemRemarks { get; set; }
         public Employee? Employee { get; set; }
     }
 }

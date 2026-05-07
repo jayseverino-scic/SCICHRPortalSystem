@@ -23,19 +23,19 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IShiftService ShiftService { get; }
         private IDepartmentService DepartmentService { get; }
         private IEmployeeTimeLogService EmployeeTimeLogService { get; }
-        private ITimekeepingAdminSetupService TimekeepingAdminSetupService { get; }
+        private IEmployeeShiftService EmployeeShiftService { get; }
         private ICutOffService CutOffService { get; }
         private IHolidayService HolidayService { get; }
-        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IEmployeeTimeLogService employeeTimeLogService, ITimekeepingAdminSetupService timekeepingAdminSetupService, ICutOffService cutOffService, IHolidayService holidayService)
+        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IEmployeeTimeLogService employeeTimeLogService, ICutOffService cutOffService, IHolidayService holidayService, IEmployeeShiftService employeeShiftService)
         {
             EmployeeAttendanceService = employeeAttendanceService;
             EmployeeService = employeeService;
             ShiftService = shiftService;
             DepartmentService = departmentService;
             EmployeeTimeLogService = employeeTimeLogService;
-            TimekeepingAdminSetupService = timekeepingAdminSetupService;
             CutOffService = cutOffService;
             HolidayService = holidayService;
+            EmployeeShiftService = employeeShiftService;
         }
 
         [Authorize] 
@@ -120,85 +120,93 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             IEnumerable<EmployeeAttendance> employeeAttendance = await EmployeeAttendanceService.EmployeeAttendanceCutOffFilter(departmentId, cutOff.StartDate, cutOff.EndDate);
             IEnumerable<Employee> employees = await EmployeeService.GetEmployeeByDepartment(departmentId);
             List<EmployeeAttendanceSummary> attendanceList = new List<EmployeeAttendanceSummary>();
-            TimekeepingAdminSetup adminSetup = await TimekeepingAdminSetupService.GetFirstOrDefault();
+            //TimekeepingAdminSetup adminSetup = await TimekeepingAdminSetupService.GetFirstOrDefault();
             foreach (var employee in employees)
             {
-                var perEmployeeAttendance = employeeAttendance.Where(e => e.EmployeeId == employee.EmployeeId);
-                if (perEmployeeAttendance.Any())
+                EmployeeShift employeeShift = await EmployeeShiftService.GetByEmployee(employee.EmployeeId);
+                if (employeeShift != null)
                 {
-                    double shiftTotalHours = 0;
-                    double regularTotalHours = 0;
-                    double totalLoggedHours = 0;
-                    double shiftLateTotalMinutes = 0;
-                    double shiftUndertimeTotalMinutes = 0;
-                    double breakUndertimeTotalMinutes = 0;
-                    double breakLateTotalMinutes = 0;
-                    double overtimeTotalHours = 0;
-                    double nightDifferentialTotalHours = 0;
-                    double holidayTotalHours = 0;
-                    double holidayOvertimeTotalHours = 0;
-                    double holidayNightDifferentialTotalHours = 0;
-                    double specialHolidayTotalHours = 0;
-                    double specialHolidayOvertimeTotalHours = 0;
-                    double specialHolidayNightDifferentialTotalHours = 0;
-                    double restDayTotalHours = 0;
-                    double restDayOvertimeTotalHours = 0;
-                    double restDayNightDifferentialTotalHours = 0;
-                    bool isHoliday = false;
-                    bool isRestDay = false;
-                    IEnumerable<Holiday> holidays = await HolidayService.GetAllAsync();
-                    DaysEnum[] values = (DaysEnum[])Enum.GetValues(typeof(DaysEnum));
-                    foreach (var attendance in perEmployeeAttendance)
+                    Shift shift = await ShiftService.GetAsync(employeeShift.ShiftId);
+                    if (shift != null)
                     {
-                        string[] daysString = values.Select(v => v.ToString()).ToArray();
-                        string dayWorked = attendance.TimeIn.DayOfWeek.ToString();
-                        int dayIndex = Array.IndexOf(daysString, dayWorked) + 1;
-                        int restDays = Array.IndexOf(adminSetup.RestDays!.Split(';', StringSplitOptions.TrimEntries),dayIndex.ToString());
-                        isRestDay = restDays < 0;
-                        isHoliday = holidays.Any(h => h.HolidayDate!.Value.Day == attendance.TimeIn.Day);
-                        shiftTotalHours += attendance.ShiftHours;
-                        regularTotalHours += attendance.RegularHour;
-                        totalLoggedHours += attendance.TotalLoggedHours;
-                        shiftLateTotalMinutes += attendance.ShiftLate;
-                        shiftUndertimeTotalMinutes += attendance.ShiftUndertime;
-                        breakUndertimeTotalMinutes += attendance.BreakUndertime;
-                        breakLateTotalMinutes += attendance.BreakLate;
-                        overtimeTotalHours += attendance.ApprovedOT ? attendance.OTHours : 0;
-                        nightDifferentialTotalHours += attendance.NDHours;
-                        holidayTotalHours += attendance.ApprovedHoliday ? (isHoliday ? attendance.RegularHour : 0) : 0;
-                        holidayOvertimeTotalHours += attendance.ApprovedHolidayOT ? (isHoliday ? attendance.OTHours : 0) : 0;
-                        holidayNightDifferentialTotalHours += attendance.ApprovedHoliday ? (isHoliday ? attendance.NDHours : 0) : 0;
-                        specialHolidayTotalHours += attendance.ApprovedSPHoliday ? (isHoliday ? attendance.RegularHour : 0) : 0;
-                        specialHolidayOvertimeTotalHours += attendance.ApprovedSPHolidayOT ? (isHoliday ? attendance.OTHours : 0) : 0;
-                        specialHolidayNightDifferentialTotalHours += attendance.ApprovedSPHoliday ? (isHoliday ? attendance.NDHours : 0) : 0;
-                        restDayTotalHours += attendance.ApprovedRestDay ? (isRestDay ? attendance.RegularHour : 0) : 0;
-                        restDayOvertimeTotalHours += attendance.ApprovedRestDayOT ? (isRestDay ? attendance.OTHours : 0) : 0;
-                        restDayNightDifferentialTotalHours += attendance.ApprovedRestDay ? attendance.NDHours : 0;
+                        var perEmployeeAttendance = employeeAttendance.Where(e => e.EmployeeId == employee.EmployeeId);
+                        if (perEmployeeAttendance.Any())
+                        {
+                            double shiftTotalHours = 0;
+                            double regularTotalHours = 0;
+                            double totalLoggedHours = 0;
+                            double shiftLateTotalMinutes = 0;
+                            double shiftUndertimeTotalMinutes = 0;
+                            double breakUndertimeTotalMinutes = 0;
+                            double breakLateTotalMinutes = 0;
+                            double overtimeTotalHours = 0;
+                            double nightDifferentialTotalHours = 0;
+                            double holidayTotalHours = 0;
+                            double holidayOvertimeTotalHours = 0;
+                            double holidayNightDifferentialTotalHours = 0;
+                            double specialHolidayTotalHours = 0;
+                            double specialHolidayOvertimeTotalHours = 0;
+                            double specialHolidayNightDifferentialTotalHours = 0;
+                            double restDayTotalHours = 0;
+                            double restDayOvertimeTotalHours = 0;
+                            double restDayNightDifferentialTotalHours = 0;
+                            bool isHoliday = false;
+                            bool isRestDay = false;
+                            IEnumerable<Holiday> holidays = await HolidayService.GetAllAsync();
+                            DaysEnum[] values = (DaysEnum[])Enum.GetValues(typeof(DaysEnum));
+                            foreach (var attendance in perEmployeeAttendance)
+                            {
+                                string[] daysString = values.Select(v => v.ToString()).ToArray();
+                                string dayWorked = attendance.TimeIn.DayOfWeek.ToString();
+                                int dayIndex = Array.IndexOf(daysString, dayWorked) + 1;
+                                int restDays = Array.IndexOf(shift.RestDays!.Split(';', StringSplitOptions.TrimEntries), dayIndex.ToString());
+                                isRestDay = restDays < 0;
+                                isHoliday = holidays.Any(h => h.HolidayDate!.Value.Day == attendance.TimeIn.Day);
+                                shiftTotalHours += attendance.ShiftHours;
+                                regularTotalHours += attendance.RegularHour;
+                                totalLoggedHours += attendance.TotalLoggedHours;
+                                shiftLateTotalMinutes += attendance.ShiftLate;
+                                shiftUndertimeTotalMinutes += attendance.ShiftUndertime;
+                                breakUndertimeTotalMinutes += attendance.BreakUndertime;
+                                breakLateTotalMinutes += attendance.BreakLate;
+                                overtimeTotalHours += attendance.ApprovedOT ? attendance.OTHours : 0;
+                                nightDifferentialTotalHours += attendance.NDHours;
+                                holidayTotalHours += attendance.ApprovedHoliday ? (isHoliday ? attendance.RegularHour : 0) : 0;
+                                holidayOvertimeTotalHours += attendance.ApprovedHolidayOT ? (isHoliday ? attendance.OTHours : 0) : 0;
+                                holidayNightDifferentialTotalHours += attendance.ApprovedHoliday ? (isHoliday ? attendance.NDHours : 0) : 0;
+                                specialHolidayTotalHours += attendance.ApprovedSPHoliday ? (isHoliday ? attendance.RegularHour : 0) : 0;
+                                specialHolidayOvertimeTotalHours += attendance.ApprovedSPHolidayOT ? (isHoliday ? attendance.OTHours : 0) : 0;
+                                specialHolidayNightDifferentialTotalHours += attendance.ApprovedSPHoliday ? (isHoliday ? attendance.NDHours : 0) : 0;
+                                restDayTotalHours += attendance.ApprovedRestDay ? (isRestDay ? attendance.RegularHour : 0) : 0;
+                                restDayOvertimeTotalHours += attendance.ApprovedRestDayOT ? (isRestDay ? attendance.OTHours : 0) : 0;
+                                restDayNightDifferentialTotalHours += attendance.ApprovedRestDay ? attendance.NDHours : 0;
+                            }
+                            var finalAttendance = new EmployeeAttendanceSummary
+                            {
+                                EmployeeNo = employee.EmployeeNo,
+                                EmployeeName = employee.LastName + ", " + employee.FirstName,
+                                ShiftTotalHours = shiftTotalHours,
+                                RegularTotalHours = regularTotalHours,
+                                TotalLoggedHours = totalLoggedHours,
+                                ShiftLateTotalMinutes = shiftLateTotalMinutes,
+                                ShiftUndertimeTotalMinutes = shiftUndertimeTotalMinutes,
+                                BreakUndertimeTotalMinutes = breakUndertimeTotalMinutes,
+                                BreakLateTotalMinutes = breakLateTotalMinutes,
+                                OvertimeTotalHours = overtimeTotalHours,
+                                NightDifferentialTotalHours = nightDifferentialTotalHours,
+                                HolidayTotalHours = holidayTotalHours,
+                                HolidayOvertimeTotalHours = holidayOvertimeTotalHours,
+                                HolidayNightDifferentialTotalHours = holidayNightDifferentialTotalHours,
+                                SpecialHolidayTotalHours = specialHolidayTotalHours,
+                                SpecialHolidayOvertimeTotalHours = specialHolidayOvertimeTotalHours,
+                                SpecialHolidayNightDifferentialTotalHours = specialHolidayNightDifferentialTotalHours,
+                                RestDayTotalHours = restDayTotalHours,
+                                RestDayOvertimeTotalHours = restDayOvertimeTotalHours,
+                                RestDayNightDifferentialTotalHours = restDayNightDifferentialTotalHours,
+                            };
+                            attendanceList.Add(finalAttendance);
+                        }
                     }
-                    var finalAttendance = new EmployeeAttendanceSummary
-                    {
-                        EmployeeNo = employee.EmployeeNo,
-                        EmployeeName = employee.LastName + ", " + employee.FirstName,
-                        ShiftTotalHours = shiftTotalHours,
-                        RegularTotalHours = regularTotalHours,
-                        TotalLoggedHours = totalLoggedHours,
-                        ShiftLateTotalMinutes = shiftLateTotalMinutes,
-                        ShiftUndertimeTotalMinutes = shiftUndertimeTotalMinutes,
-                        BreakUndertimeTotalMinutes = breakUndertimeTotalMinutes,
-                        BreakLateTotalMinutes = breakLateTotalMinutes,
-                        OvertimeTotalHours = overtimeTotalHours,
-                        NightDifferentialTotalHours = nightDifferentialTotalHours,
-                        HolidayTotalHours = holidayTotalHours,
-                        HolidayOvertimeTotalHours = holidayOvertimeTotalHours,
-                        HolidayNightDifferentialTotalHours = holidayNightDifferentialTotalHours,
-                        SpecialHolidayTotalHours = specialHolidayTotalHours,
-                        SpecialHolidayOvertimeTotalHours = specialHolidayOvertimeTotalHours,
-                        SpecialHolidayNightDifferentialTotalHours = specialHolidayNightDifferentialTotalHours,
-                        RestDayTotalHours = restDayTotalHours,
-                        RestDayOvertimeTotalHours = restDayOvertimeTotalHours,
-                        RestDayNightDifferentialTotalHours = restDayNightDifferentialTotalHours,
-                    };
-                    attendanceList.Add(finalAttendance);
                 }
             }
             return Ok(attendanceList);
@@ -370,8 +378,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             if (employeeAttendance.Count() == 0 || employeeAttendance == null)
                 return BadRequest();
 
-            //TimekeepingAdminSetup timekeepingAdminSetup = await TimekeepingAdminSetupService.GetAsync(2);
-            TimekeepingAdminSetup timekeepingAdminSetup = await TimekeepingAdminSetupService.GetFirstOrDefault();
+            //TimekeepingAdminSetup timekeepingAdminSetup = await TimekeepingAdminSetupService.GetFirstOrDefault();
 
             foreach (var item in employeeAttendance)
             {
@@ -380,7 +387,18 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 DateTime ndLogStart = new DateTime();
                 DateTime ndLogEnd = new DateTime();
                 bool withND = false;
-                double shiftLateGracePeriod = Convert.ToDouble(timekeepingAdminSetup.ShiftLateMinuteGracePeriod) / 60;
+                double shiftLateGracePeriod = 0;
+                double breakLateMinuteGracePeriod = 0;
+                EmployeeShift employeeShift = await EmployeeShiftService.GetByEmployee(item.EmployeeId);
+                if (employeeShift != null)
+                {
+                    Shift shift = await ShiftService.GetAsync(employeeShift.ShiftId);
+                    if (shift != null)
+                    {
+                        shiftLateGracePeriod = Convert.ToDouble(shift.ShiftLateMinuteGracePeriod) / 60;
+                        breakLateMinuteGracePeriod = Convert.ToDouble(shift.BreakLateMinuteGracePeriod) / 60;
+                    }
+                }
                 if (item.TimeIn >= ndStart && item.TimeIn <= ndEnd)
                 {
                     ndLogStart = item.TimeIn;
@@ -435,7 +453,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     ShiftUndertime = item.TimeOut < item.ShiftEnd ? ComputeHours(item.TimeOut, item.ShiftEnd.Value) : 0,
                     ShiftLate = item.TimeIn > item.ShiftStart ? (ComputeHours(item.ShiftStart.Value, item.TimeIn) > shiftLateGracePeriod ? ComputeHours(item.ShiftStart.Value, item.TimeIn) : 0) : 0,
                     BreakUndertime = item.IsNoBreak ? 0 : ComputeHours(item.BreakOut!.Value, item.BreakStart!.Value),
-                    BreakLate = item.IsNoBreak ? 0 : ComputeHours(item.BreakOut!.Value, item.BreakEnd!.Value.AddMinutes(timekeepingAdminSetup.BreakLateMinuteGracePeriod)),
+                    BreakLate = item.IsNoBreak ? 0 : ComputeHours(item.BreakOut!.Value, item.BreakEnd!.Value.AddMinutes(breakLateMinuteGracePeriod)),
                     ApprovedHoliday = item.ApprovedHoliday,
                     ApprovedHolidayOT = item.ApprovedHolidayOT,
                     ApprovedSPHoliday = item.ApprovedSPHoliday,

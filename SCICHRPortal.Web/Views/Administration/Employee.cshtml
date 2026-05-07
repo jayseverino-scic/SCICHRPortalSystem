@@ -119,8 +119,23 @@
         </div>
         @if (@ViewBag.SystemSelected == "Administration")
         {
-        <button class="btn btn-primary add-new-btn" id="add-button">Add new</button>
-            
+        <div>
+            <button class="btn btn-primary add-new-btn" id="add-button">Add new</button>
+        </div>
+        <br />
+        <div></div>
+        <div></div>
+        <div></div>
+        <div>
+            <div class="form-label">Import Employee File</div>
+            <div class="d-flex">
+                <input type="file" id="upload-file" class="form-control" style="width: 500px; height: 38px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                <button id="import" class="btn btn-primary" style="height: 38px; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                    Import
+                    <i class="fas fa-upload"></i>
+                </button>
+            </div>
+        </div>
         }
         <table id="employee-grid" class="display" cellspacing="0" width="100%">
         </table>

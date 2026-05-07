@@ -619,6 +619,12 @@
                 orderable: false
             },
             {
+                title: "System Remarks",
+                data: "systemRemarks",
+                className: 'noVis dt-right',
+                orderable: true
+            },
+            {
                 title: "Actions",
                 data: "timeLogId",
                 width: "10em",

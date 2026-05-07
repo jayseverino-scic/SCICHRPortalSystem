@@ -27,6 +27,7 @@ namespace SCICHRPortal.Data.Entities
         public bool IsFlexibleBreak { get; set; }
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
+        public string? SystemRemarks { get; set; }
         public Employee? Employee { get; set; }
     }
 }

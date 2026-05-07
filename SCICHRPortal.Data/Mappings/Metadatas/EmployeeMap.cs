@@ -13,7 +13,7 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
             entityBuilder.Property(t => t.PositionId).IsRequired(false);
             entityBuilder.Property(t => t.EmployeeNo).HasMaxLength(20).IsRequired();
             entityBuilder.Property(t => t.LastName).HasMaxLength(30).IsRequired();
-            entityBuilder.Property(t => t.FirstName).HasMaxLength(30).IsRequired();
+            entityBuilder.Property(t => t.FirstName).HasMaxLength(100).IsRequired();
             entityBuilder.Property(t => t.MiddleName).HasMaxLength(30).IsRequired();
             entityBuilder.Property(t => t.Suffix).HasMaxLength(10).IsRequired();
             entityBuilder.Property(t => t.Address).HasMaxLength(2000).IsRequired(false);

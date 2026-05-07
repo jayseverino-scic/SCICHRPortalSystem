@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Operations;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.Enums;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
@@ -61,6 +62,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.IsFlexibleBreak,
                 d.IsNoShift,
                 d.IsNoBreak,
+                d.SystemRemarks,
                 d.CreatedAt,
                 OrderNumber = orderNumber++
             });
@@ -144,6 +146,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     employeeTimeLog.IsNoBreak = shift.IsNoBreak;
                     employeeTimeLog.IsFlexibleBreak  = shift.IsFlexibleBreak;
                     employeeTimeLog.IsFlexibleShift = shift.IsFlexibleShift;
+                    employeeTimeLog.SystemRemarks = "Biometrics";
                     employeeTimeLog.CreatedAt = DateTime.UtcNow;
                     employeeTimeLog.CreatedBy = "manuel";
                     timeLogs.Add(employeeTimeLog);
@@ -172,6 +175,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.IsFlexibleBreak,
                 d.IsNoShift,
                 d.IsNoBreak,
+                d.SystemRemarks,
                 d.CreatedAt
             });
             return Ok(displayData);
@@ -207,6 +211,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 employeeTimeLog.BreakEnd = employeeTimeLog.BreakEnd.Value.AddDays(1);
             }
+            employeeTimeLog.SystemRemarks = "Manual Add";
             employeeTimeLog.CreatedAt = DateTime.UtcNow;
             employeeTimeLog.CreatedBy = "manuel";
             await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
@@ -237,6 +242,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 employeeTimeLog.BreakEnd = employeeTimeLog.BreakEnd.Value.AddDays(1);
             }
+            employeeTimeLog.SystemRemarks = "Manual Edit";
             employeeTimeLog.UpdatedAt = DateTime.Now;
             employeeTimeLog.UpdatedBy = "manuel";
             var updated = await EmployeeTimeLogService.UpdateAsync(employeeTimeLog);
