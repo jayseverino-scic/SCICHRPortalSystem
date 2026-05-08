@@ -4,16 +4,19 @@ using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
+using SCICHRPortal.Data.TimekeepingTables;
 
 namespace SCICHRPortal.Repository.Implementations
 {
     public class BiometricsLogRepository : Repository, IBiometricsLogRepository
     {
-        public BiometricsLogRepository(ApplicationContext context)
+        private TimekeepingContext TimekeepingContext { get; set; }
+        public BiometricsLogRepository(ApplicationContext context, TimekeepingContext timekeepingContext)
     : base(context)
         {
+            TimekeepingContext = timekeepingContext;
         }
-
+        
         public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate)
         {
             var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false);
@@ -82,6 +85,16 @@ namespace SCICHRPortal.Repository.Implementations
 
             await Context.SaveChangesAsync();
             return true;
+        }
+        public async Task<IEnumerable<TimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate)
+        {
+            IEnumerable<TimeLogs> biometricsLogs;
+            biometricsLogs = await TimekeepingContext.TimeLogs!.ToListAsync();
+            if (startDate.HasValue && endDate.HasValue)
+                biometricsLogs = biometricsLogs.Where(b => b.RecordDate >= startDate && b.RecordDate <= endDate);
+
+
+            return biometricsLogs;
         }
     }
 }

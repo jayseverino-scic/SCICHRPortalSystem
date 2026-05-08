@@ -18,5 +18,6 @@ namespace SCICHRPortal.Service.Interfaces
         Task<IEnumerable<Employee>> GetEmployeeByDepartment(int departmentId);
         Task<DuplicateMessage> HasDuplicateName(Employee employee);
         Task<Employee> GetByUserId(int userId);
+        Task<Employee> GetByEmployeeNoAsync(string employeeNo);
     }
 }

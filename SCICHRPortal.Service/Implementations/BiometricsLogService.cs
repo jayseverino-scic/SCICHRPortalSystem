@@ -1,6 +1,7 @@
 ﻿using SCICHRPortal.Core.Interfaces;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
 
@@ -46,6 +47,10 @@ namespace SCICHRPortal.Service.Implementations
         public async Task<IEnumerable<BiometricsLog>> GetAllAsync()
         {
             return await BiometricsLogRepository.GetAllAsync();
+        }
+        public async Task<IEnumerable<TimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate)
+        {
+            return await BiometricsLogRepository.ImportDbDateRange(startDate, endDate);
         }
     }
 }

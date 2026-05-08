@@ -64,7 +64,12 @@ namespace SCICHRPortal.Repository.Implementations
                     .SingleOrDefaultAsync(s => s.EmployeeId == id && !s.Deleted);
             return employee!;
         }
-        
+        public async Task<Employee> GetByEmployeeNoAsync(string employeeNo)
+        {
+            var employee = await Context.Employee!
+                    .SingleOrDefaultAsync(s => s.EmployeeNo == employeeNo && !s.Deleted);
+            return employee!;
+        }
         public async Task<Employee> GetByUserId(int userId)
         {
             var employee = await Context.Employee!.FirstOrDefaultAsync(t => t.UserId == userId && !t.Deleted);

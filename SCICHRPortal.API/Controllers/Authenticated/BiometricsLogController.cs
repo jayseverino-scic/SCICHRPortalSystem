@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch.Internal;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
@@ -22,10 +24,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class BiometricsLogController : ControllerBase
     {
         private IBiometricsLogService BiometricsLogService { get; }
+        private IEmployeeService EmployeeService { get; }
 
-        public BiometricsLogController(IBiometricsLogService biometricsLogService)
+        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService)
         {
             BiometricsLogService = biometricsLogService;
+            EmployeeService = employeeService;
 
         }
         [HttpGet()]
@@ -157,6 +161,44 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         return StatusCode(422, $"One or more fields invalid at row {row}");
                     }
+                }
+            }
+            var dto = new
+            {
+                Data = biometricsLogs,
+                Total = biometricsLogs.Count()
+            };
+            return Ok(dto);
+        }
+
+        [HttpGet("ImportDb")]
+        [Authorize]
+        public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport)
+        {
+            if (!startImport.HasValue || !endImport.HasValue)
+                return BadRequest(ResponseMessage.BadRequest);
+            
+            var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport);
+            var biometricsLogs = new List<BiometricsLog>();
+            if (timeLogs != null)
+            {
+                foreach (var timeLog in timeLogs)
+                {
+                    //Employee employee = await EmployeeService.GetByEmployeeNoAsync(timeLog.AccessNumber!);
+                    BiometricsLog biometricsLog = new()
+                    {
+                        PersonnelId = timeLog.AccessNumber,
+                        LastName = " ",//employee.LastName,
+                        FirstName =" ", //employee.FirstName,
+                        Date = timeLog.RecordDate,
+                        Time = timeLog.TimeLogStamp, //Convert.ToDateTime(parsedDate.ToShortDateString() + " " + parsedTime.ToShortTimeString()),
+                        LogType = timeLog.LogType!.ToString(),
+                        DeviceName = timeLog.Location,
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = "Manuel"
+                    };
+                    biometricsLogs.Add(biometricsLog);
+                    await BiometricsLogService.InsertAsync(biometricsLog);
                 }
             }
             var dto = new

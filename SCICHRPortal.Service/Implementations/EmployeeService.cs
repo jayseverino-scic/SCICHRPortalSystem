@@ -72,5 +72,9 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await EmployeeRepository.GetByUserId(userId);
         }
+        public async Task<Employee> GetByEmployeeNoAsync(string employeeNo)
+        {
+            return await EmployeeRepository.GetByEmployeeNoAsync(employeeNo);
+        }
     }
 }

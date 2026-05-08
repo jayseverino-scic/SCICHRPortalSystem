@@ -3,6 +3,7 @@
     public class Repository
     {
         protected ApplicationContext Context { get; }
+        
 
         public Repository(ApplicationContext context)
         {

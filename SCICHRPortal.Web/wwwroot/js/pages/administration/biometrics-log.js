@@ -85,8 +85,12 @@
     let attachEvents = () => {
         $('#end-date-filter').attr('value', moment().format('yyyy-MM-DD'));
         $('#start-date-filter').attr('value', moment().format('yyyy-MM-DD'));
+        $('#end-date-dbfilter').attr('value', moment().format('yyyy-MM-DD'));
+        $('#start-date-dbfilter').attr('value', moment().format('yyyy-MM-DD'));
         $('#filter').on(CLICK_EVENT, onClickFilter);
+        $('#dbfilter').on(CLICK_EVENT, onClickDbFilter);
         $('#start-date-filter').on('change', onChangeStartFilter)
+        $('#start-date-dbfilter').on('change', onChangeDbStartFilter)
         $('#import').on('click', onSubmitUploadForm);
     };
 
@@ -142,7 +146,14 @@
 
         $('#end-date-filter').attr('min', startDateVal);
     };
+    let onChangeDbStartFilter = () => {
+        let startDateVal = $('#start-date-dbfilter').val();
+        let endDateVal = $('#end-date-dbfilter').val();
+        if (new Date(startDateVal) > new Date(endDateVal))
+            $('#end-date-dbfilter').val(startDateVal);
 
+        $('#end-date-dbfilter').attr('min', startDateVal);
+    };
     let onClickFilter = async e => {
         e.preventDefault();
         let startDate = $('#start-date-filter').val();
@@ -157,6 +168,29 @@
 
         let response = await _apiHelper.get({
             url: `Authenticated/BiometricsLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}`,
+        });
+
+        if (response.ok) {
+            let json = await response.json();
+            let dataRetrieved = json.data;
+            initializeGrid(dataRetrieved);
+        }
+    };
+
+    let onClickDbFilter = async e => {
+        e.preventDefault();
+        let startDate = $('#start-date-dbfilter').val();
+        let endDate = $('#end-date-dbfilter').val();
+
+        // Check if DataTable exists before trying to get page info
+        let pageNumber = 1;
+        if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
+            let gridInfo = dataTable.page.info();
+            pageNumber = gridInfo.page + 1;
+        }
+
+        let response = await _apiHelper.get({
+            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}`,
         });
 
         if (response.ok) {
