@@ -101,9 +101,14 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
     //ServerVersion.AutoDetect(mySqlConnectionStr),
      options => options.MigrationsAssembly("SCICHRPortal.Repository")));
 
-builder.Services.AddDbContext<TimekeepingContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("TimekeepingConnection")));
+//builder.Services.AddDbContext<TimekeepingContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("TimekeepingConnection")));
 
+builder.Services.AddDbContext<TimekeepingContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TimekeepingConnection"), sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null)));
 
 builder.Services.AddCors(options =>
            options.AddDefaultPolicy(

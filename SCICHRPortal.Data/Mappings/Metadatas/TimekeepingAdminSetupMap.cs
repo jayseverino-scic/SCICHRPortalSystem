@@ -11,28 +11,9 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
         {
             entityBuilder.HasKey(e => e.SetupId);
 
-            entityBuilder.Property(e => e.ShiftLateMinuteGracePeriod).IsRequired();
-            entityBuilder.Property(e => e.BreakLateMinuteGracePeriod).IsRequired();
-            entityBuilder.Property(e => e.ShiftLateTotalMinuteLimit).IsRequired();
-            entityBuilder.Property(e => e.BreakLateTotalMinuteLimit).IsRequired();
-            entityBuilder.Property(e => e.NoTimeLogCountLimit).IsRequired();
-            entityBuilder.Property(e => e.NoLeaveAbsentCountLimit).IsRequired();
-            entityBuilder.Property(e => e.RestDays).IsRequired().HasMaxLength(50);
+            entityBuilder.Property(e => e.AdminPassword).IsRequired().HasMaxLength(20);
 
-
-            //entityBuilder.HasData(new TimekeepingAdminSetup[]
-            //{
-            //    new TimekeepingAdminSetup
-            //    {
-            //        SetupId = 1,
-            //        ShiftLateMinuteGracePeriod = 0,
-            //        BreakLateMinuteGracePeriod = 0,
-            //        ShiftLateTotalMinuteLimit = 0,
-            //        BreakLateTotalMinuteLimit = 0,
-            //        NoTimeLogCountLimit = 0,
-            //        NoLeaveAbsentCountLimit = 0
-            //    }
-            //});
+  
         }
     }
 }

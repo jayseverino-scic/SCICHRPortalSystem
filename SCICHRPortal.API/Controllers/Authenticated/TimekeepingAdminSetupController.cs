@@ -36,13 +36,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             if (settingOnDB is not null)
             {
-                settingOnDB.ShiftLateMinuteGracePeriod = setting.ShiftLateMinuteGracePeriod;
-                settingOnDB.BreakLateMinuteGracePeriod = setting.BreakLateMinuteGracePeriod;
-                settingOnDB.ShiftLateTotalMinuteLimit = setting.ShiftLateTotalMinuteLimit;
-                settingOnDB.BreakLateTotalMinuteLimit = setting.BreakLateTotalMinuteLimit;
-                settingOnDB.NoTimeLogCountLimit = setting.NoTimeLogCountLimit;
-                settingOnDB.NoLeaveAbsentCountLimit = setting.NoLeaveAbsentCountLimit;
-                settingOnDB.RestDays = setting.RestDays;
+                settingOnDB.AdminPassword = setting.AdminPassword;
                 settingOnDB.CreatedAt = DateTime.UtcNow;
                 settingOnDB.CreatedBy = "manuel"; 
                 await TimekeepingAdminSetupService.UpdateAsync(settingOnDB);

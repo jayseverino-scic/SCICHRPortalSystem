@@ -191,7 +191,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         LastName = " ",//employee.LastName,
                         FirstName =" ", //employee.FirstName,
                         Date = timeLog.RecordDate,
-                        Time = timeLog.TimeLogStamp, //Convert.ToDateTime(parsedDate.ToShortDateString() + " " + parsedTime.ToShortTimeString()),
+                        Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)), //Convert.ToDateTime(parsedDate.ToShortDateString() + " " + parsedTime.ToShortTimeString()),
                         LogType = timeLog.LogType!.ToString(),
                         DeviceName = timeLog.Location,
                         CreatedAt = DateTime.Now,

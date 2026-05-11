@@ -91,7 +91,7 @@ namespace SCICHRPortal.Repository.Implementations
             IEnumerable<TimeLogs> biometricsLogs;
             biometricsLogs = await TimekeepingContext.TimeLogs!.ToListAsync();
             if (startDate.HasValue && endDate.HasValue)
-                biometricsLogs = biometricsLogs.Where(b => b.RecordDate >= startDate && b.RecordDate <= endDate);
+                biometricsLogs = biometricsLogs.Where(b => b.RecordDate >= startDate && b.RecordDate <= endDate && b.DeviceSerialNumber == "CN9A242160368");
 
 
             return biometricsLogs;
