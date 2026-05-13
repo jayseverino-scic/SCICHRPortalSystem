@@ -85,5 +85,10 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View();
         }
+        public IActionResult TimekeepingDevices()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
     }
 }

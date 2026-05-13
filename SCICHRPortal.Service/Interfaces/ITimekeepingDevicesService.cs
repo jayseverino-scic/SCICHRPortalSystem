@@ -1,0 +1,22 @@
+﻿using SCICHRPortal.Core.Interfaces;
+using SCICHRPortal.Data.DTOs;
+using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Utility.Interface;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace SCICHRPortal.Service.Interfaces
+{
+    public interface ITimekeepingDevicesService :
+        IScopedService,
+         IInserter<TimekeepingDevices>,
+         IRetriever<TimekeepingDevices, int>,
+         IListRetriever<TimekeepingDevices>
+    {
+        Task<bool> DeleteAsync(int Id);
+        Task<bool> UpdateAsync(TimekeepingDevices timekeepingDevices);
+        Task<Tuple<IEnumerable<TimekeepingDevices>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
+        Task<DuplicateMessage> HasDuplicateName(TimekeepingDevices timekeepingDevices);
+    }
+}

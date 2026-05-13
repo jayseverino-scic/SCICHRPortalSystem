@@ -184,14 +184,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 foreach (var timeLog in timeLogs)
                 {
-                    //Employee employee = await EmployeeService.GetByEmployeeNoAsync(timeLog.AccessNumber!);
+                    Employee employee = await EmployeeService.GetByEmployeeNoAsync(timeLog.AccessNumber!);
                     BiometricsLog biometricsLog = new()
                     {
                         PersonnelId = timeLog.AccessNumber,
-                        LastName = " ",//employee.LastName,
-                        FirstName =" ", //employee.FirstName,
+                        LastName = employee.LastName,
+                        FirstName =employee.FirstName,
                         Date = timeLog.RecordDate,
-                        Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)), //Convert.ToDateTime(parsedDate.ToShortDateString() + " " + parsedTime.ToShortTimeString()),
+                        Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
                         LogType = timeLog.LogType!.ToString(),
                         DeviceName = timeLog.Location,
                         CreatedAt = DateTime.Now,

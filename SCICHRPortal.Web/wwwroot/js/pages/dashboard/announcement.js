@@ -10,34 +10,12 @@
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
     const SYSTEM = 'enrolment';
-    const ROLE_DROPDOWN_SELECTOR = '#announcement-form #RoleIds';
     let _currentUser = undefined;
-    let _role = [];
-    let _isSyncingSectionSelection = false;
-    let _previousSectionValues = [];
     let attachEvents = () => {
 
         $('#announcement-form').on('submit', onFormSubmit);
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#upload-file').on('change', onChangeFile);
-        $('#announcement-form').on('change', '#RoleIds', onRoleChange);
-    };
-
-    let getSelectedRoleIds = () => {
-        return getSelectedRecipientValues()
-            .map(value => Number(value))
-            .filter(value => !Number.isNaN(value) && value > 0);
-    };
-
-    let resetRoleSelection = isDisabled => {
-        let dropdown = $(ROLE_DROPDOWN_SELECTOR);
-        if (!dropdown.length) {
-            return;
-        }
-
-        dropdown.prop('disabled', !!isDisabled);
-        dropdown.val(null).trigger('change');
-        dropdown.trigger('change.select2');
     };
 
     let onChangeFile = e => {
@@ -46,19 +24,6 @@
 
         var fileName = $('#upload-file')[0].files[0].name;
         $('#upload-file').next('label').text(fileName);
-    }
-
-    let toggleRoleSelection = isVisible => {
-        let roleSection = $(ROLE_DROPDOWN_SELECTOR).closest('.form-group');
-        if (!roleSection.length) {
-            return;
-        }
-
-        if (isVisible) {
-            roleSection.removeClass('d-none');
-        } else {
-            roleSection.addClass('d-none');
-        }
     }
 
     let setModalSize = isEdit => {
@@ -77,30 +42,12 @@
     let onClickAddModal = function () {
         $('#announcement-form')[0].reset();
         setModalSize(false);
-        toggleRoleSelection(true);
-        resetRoleSelection(false);
-        toggleSectionSelection(false);
-        $('#role-validation').addClass('d-none');
         let fileInput = $('#upload-file');
         fileInput.val(null);
         fileInput.next('label').text("");
         $('#announcement-form').find(':submit').text('Add');
         $('#announcement-modal').modal('show');
     }
-    let onRoleChange = function () {
-        toggleRoleValidation();
-        syncSectionSelectionVisibility();
-    }
-
-    let toggleRoleValidation = () => {
-        if (isRecipientSelected()) {
-            $('#role-validation').addClass('d-none');
-        } else {
-            $('#role-validation').removeClass('d-none');
-        }
-    }
-
-
     let onFormSubmit = async event => {
         event.preventDefault();
         let file = $('#upload-file')[0].files[0];
@@ -117,21 +64,6 @@
             formData.append('file', file)
             let currentTabTitle = 'Announcement';
             if (button == 'add') {
-                if (!isRecipientSelected()) {
-                    toggleRoleValidation();
-                    $('#busy-indicator-container').addClass('d-none');
-                    return;
-                }
-
-                getSelectedRoleIds().forEach(function (roleId) {
-                    formData.append('roleIds', roleId);
-                });
-                if (shouldNotifyStudents()) {
-                    formData.append('notifyStudents', 'true');
-                    getSelectedSectionIds().forEach(function (sectionId) {
-                        formData.append('sectionIds', sectionId);
-                    });
-                }
                 response = _apiHelper.ajaxAnnouncementRequest('POST', {
                     url: 'Authenticated/Announcement',
                     data: formData,
@@ -165,8 +97,6 @@
                         toastr.success('Success');
                         $('#announcement-grid').DataTable().ajax.reload(null, false);
                         $(event.target)[0].reset();
-                        resetRoleSelection(false);
-                        $('#role-validation').addClass('d-none');
                         $(event.target)[0].elements[1].focus();
                         $(event.target).find(':submit').prop("disabled", false).text('Add');
                         let fileInput = $('#upload-file');
@@ -192,8 +122,6 @@
                 $('#announcement-grid').DataTable().ajax.reload(null, false);
                 toastr.success('Success');
                 $(event.target)[0].reset();
-                resetRoleSelection(false);
-                $('#role-validation').addClass('d-none');
                 $(event.target)[0].elements[1].focus();
                 $(event.target).find(':submit').prop("disabled", false).text('Add');
                 let fileInput = $('#upload-file');
@@ -280,12 +208,7 @@
     let populateForm = (form, data) => {
         $(form).find(':submit').text('Update');
         setModalSize(true);
-        toggleRoleSelection(false);
-        toggleSectionSelection(false);
         _formHelper.populateForm(form, data);
-        resetRoleSelection(true);
-        resetSectionSelection(true);
-        $('#role-validation').addClass('d-none');
     }
 
 
@@ -347,50 +270,6 @@
         return columns;
     };
 
-    let renderRoleDropdown = () => {
-        let dropdown = $(ROLE_DROPDOWN_SELECTOR);
-        if (!dropdown.length) {
-            return;
-        }
-
-        if (dropdown.data('select2')) {
-            dropdown.select2('destroy');
-        }
-
-        dropdown.empty();
-
-        _role.forEach(function (role) {
-            dropdown.append($('<option />').val(role.roleId).text(role.name));
-        });
-
-        dropdown.select2({
-            theme: 'bootstrap',
-            width: '100%',
-            multiple: true,
-            closeOnSelect: false,
-            dropdownParent: $('#announcement-modal'),
-            placeholder: 'Select recipient(s)'
-        });
-    };
-
-    let renderDropDowns = async () => {
-        await getDropdownData();
-        renderRoleDropdown();
-    };
-
-    let getDropdownData = async () => {
-        let responses = await Promise.all([
-            _apiHelper.get({
-                url: `Authenticated/Role`
-            }),
-        ]);
-
-        let roleResponse = responses[0];
-        if (roleResponse.ok) {
-            _role = await roleResponse.json();
-        }
-    }
-
     let initializeModals = e => {
         $('#announcement-modal').modal({ backdrop: 'static', keyboard: false });
         $('.nav-link').removeClass('d-none');
@@ -428,7 +307,6 @@
 
     $(document).ready(function () {
         initializeModals();
-        renderDropDowns();
         getCurrentLogIn();
         attachEvents();
     });
