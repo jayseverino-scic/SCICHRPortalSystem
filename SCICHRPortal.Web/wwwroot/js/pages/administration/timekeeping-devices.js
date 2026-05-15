@@ -12,6 +12,7 @@
     const _cookieHelper = new CookieHelper();
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
+        $('#update-button').on(CLICK_EVENT, onUpdate)
         $('#timekeepingdevices-form').on('submit', onFormSubmit);
     };
 
@@ -20,7 +21,9 @@
         $('#timekeepingdevices-form').find(':submit').text('Add');
         $('#timekeepingdevices-modal').modal('show');
     }
-
+    let onUpdate = function () {
+        
+    }
     let onFormSubmit = async event => {
         event.preventDefault();
 

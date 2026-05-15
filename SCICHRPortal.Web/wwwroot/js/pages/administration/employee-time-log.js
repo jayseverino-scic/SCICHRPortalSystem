@@ -11,6 +11,8 @@
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
 
+    let _biometrics = [];
+    let _currentBiometrics = "0";
     let _employee = [];
     let _employeeShift = [];
     let pageSize = 10;
@@ -34,6 +36,7 @@
     };
 
     let onClickImport = () => {
+        _currentBiometrics = $('#biometrics').val() || 0;
         let startImportDate = $('#start-import-filter').val();
         let endImportDate = $('#end-date-filter').val() + 'T23:59:59' ;
         let pageNumber = 1;
@@ -83,6 +86,7 @@
 
     let onClickFilter = async e => {
         e.preventDefault();
+        _currentBiometrics = $('#biometrics').val() || 0;
         let startDate = $('#start-date-filter').val();
         let endDate = $('#end-date-filter').val();
 
@@ -309,7 +313,7 @@
     };
 
     let renderDropDowns = async () => {
-        await getDropdownData();
+        //await getDropdownData();
         _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeNo', valueName: 'employeeId', data: _employee, text: 'employeeNo', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
         _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeName', valueName: 'employeeId', data: _employee, text: 'firstName', secondText: 'lastName', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
     };
