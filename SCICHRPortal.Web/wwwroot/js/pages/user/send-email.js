@@ -16,7 +16,7 @@
 
     let busyindicator = $('#busy-indicator-container');
 
-    let sendEmail = async event =>{
+    let sendEmail = async event => {
         event.preventDefault();
         $('#busy-indicator-container').removeClass('d-none');
         let email = $('#Email').val();
@@ -61,10 +61,10 @@
         $(this).removeClass('border border-danger');
     };
 
-   
     let onCancelClicked = event => {
         window.location = '/Dashboard/Index';
     };
+
     let onEmailVerified = function (data, retrievedData) {
         let emailToken = retrievedData.emailToken;
         let email = $('#Email').val();
@@ -90,7 +90,6 @@
     };
 
     let onEmailSent = function () {
-
         if (confirm("A link to reset your password has been sent to your email."))
             window.location = '/Users/login';
         else {
@@ -104,18 +103,16 @@
         let emailField = $('#Email');
         let emailVal = emailField.val();
 
-
         if (!emailReg.test(emailVal) || emailVal == '') {
             toastr.error('Please enter a valid email');
             emailField.addClass('border border-danger');
-
         } else {
             emailField.removeClass('border border-danger');
         }
     };
 
-
     $(document).ready(function () {
         attachEvents();
     });
+
 })(jQuery);

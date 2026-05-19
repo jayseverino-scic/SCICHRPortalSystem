@@ -5,152 +5,211 @@
 @{
     ViewData["Title"] = "Login";
     Layout = "LoginLayout";
-
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In</title>
     <link href="~/css/pages/login/login-page.css" rel="stylesheet" asp-append-version="true" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" />
     <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
-
+    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 </head>
 <body>
     <input id="base-api-url" type="hidden" value="@Configuration["BaseApiUrl"]" />
-    <div class="row log-in-main-container">
-        <div class="col-8 col-md-8 logo-container">
-            <div class="align-container-1">
-                <div class="d-flex flex-row justify-content-center align-items-center w-100">
-                    <div id="logo">
-                        <img id="lmsi-main-logo" src="/images/logo2.png">
-                    </div>
+
+    <div id="busy-indicator-container" class="d-none">
+        <img class="indicator-img-position" src="/images/loading_indicator.gif" />
+    </div>
+
+    <div class="sign-in-container">
+
+        <!-- Background -->
+        <div class="scic-logo-wrapper">
+            <div class="scic-logo-content">
+                <div class="scic-logo-overflow">
+                    <img alt="SCIC Logo" class="scic-logo-image" src="/images/SCIC-bground1.jpg" />
                 </div>
-                <div class="d-flex flex-row justify-content-center align-items-center w-100">
-                    <div id="logo">
-                        <img id="lmsi-logo" src="/images/SCIC-text 1.png">
-                    </div>
-                </div>
-                <span class="enrollment-tool-word-style">HR Portal</span>
+                <div class="scic-logo-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-border" id="login-border">
+
+            <!-- Tab toggle: Sign In / Sign Up -->
+            <div class="sign-border">
+                <div class="tab-indicator" id="tabIndicator"></div>
+                <button type="button" class="tab-btn sign-in-text active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
+                <button type="button" class="tab-btn sign-up-text" id="tabSignUp" onclick="switchTab('signup')">Sign Up</button>
             </div>
 
-        </div>
-        <div class="col-4 col-md-4 log-in-container">
-            <div class="d-flex justify-content-left">
-                <div class="container align-container-2">
-                    <div class="row h-100 justify-content-center log-in-form" id="login-form-container">
-                        <form class="col-12 row" autocomplete="on" id="log-in-form">
-                    <div class="text-center m-3">
-                        <img id="" src="/images/create account icon.png">
-                    </div>
-                    <h2 class="user-login-text form-group text-center">SIGN IN</h2>
-                    <div class="form-group mx-auto">
-                        <input asp-for="IsLogin" hidden />
-                        <input type="text" asp-for="Email" class="form-control username-field lowercase" id="user-name" placeholder="Email">
-                        <span asp-validation-for="Email" class="text-danger ml-5"></span>
+            <!-- Sign In Form -->
+            <div id="formSignIn" class="tab-form">
+                <form id="log-in-form" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input asp-for="IsLogin" hidden />
 
+                    <!-- Email Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="Email" class="sr-only"></label>
+                        <input type="text" asp-for="Email" class="input-field-control lowercase" placeholder="Email Address" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
-                    <div class="form-group mt-4 pt-4 mx-auto">
-                        <input type="password" asp-for="Password" class="form-control password-field lowercase" id="password" placeholder="Password">
-                        <i class="fas fa-eye fa-2x text-white float-right show-pass" id="show-login-pass"></i>
-                        <span asp-validation-for="Password" class="text-danger ml-5"></span>
+
+                    <!-- Password Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="Password" class="sr-only"></label>
+                        <input type="password" asp-for="Password" id="signInPassword" class="input-field-control" placeholder="Password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <button type="button" class="eye-icon" aria-label="Toggle password visibility" data-target="signInPassword">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
                     </div>
-                    <div class="">
+
+                    <!-- Forgot Password -->
+                    <div class="forgot-password-wrapper">
                         <a asp-area="" asp-controller="User" asp-action="SendEmail" class="forgot-password-link">
-                            <span class="">forgot password?</span>
+                            <span>Forgot password?</span>
                         </a>
                     </div>
 
-
-                    <div class="form-group mt-4 pt-4 " align="center">
-                        <button type="submit" class="btn btn-light log-in-btn" id="log-in-btn">LOGIN</button>
-                    </div>
-                    <hr class="solid">
-                    <label class="d-block text-center">no account yet? <span class="sign-up-span">sign up here</span></label>
+                    <!-- Submit button -->
+                    <button type="submit" class="shape-login">
+                        <span class="login-text">Login</span>
+                    </button>
                 </form>
-                    </div>
-                    <div class="row h-100 justify-content-center log-in-form d-none" id="register-form-container">
-                        <form class="col-12 row my-auto" id="register-form">
-                            <div class="text-center col-12">
-                                <img id="" src="/images/create account icon.png">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <input type="text" asp-for="Email" class="form-control lowercase" placeholder="Email Address">
-                                <span asp-validation-for="Email" class="text-danger"></span>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <select class="form-control user-role" id="add-user-role" disabled></select>
-                                <span class="text-danger user-role-validation d-none mt-2">Select Role</span>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <input type="text" asp-for="LastName" class="form-control" placeholder="Last Name">
-                                <span asp-validation-for="LastName" class="text-danger"></span>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <input type="text" asp-for="MiddleName" class="form-control" placeholder="Middle Name">
-                                <span asp-validation-for="MiddleName" class="text-danger"></span>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <input type="text" asp-for="FirstName" class="form-control" placeholder="First Name">
-                                <span asp-validation-for="FirstName" class="text-danger"></span>
-                            </div>
 
-                            <div class="form-group col-md-6">
-                                <input type="text" asp-for="ContactNumber" class="form-control" placeholder="Contact Number">
-                                <span asp-validation-for="ContactNumber" class="text-danger"></span>
-                            </div>
-                            @*     <div class="form-group col-md-6">
-                            <input type="password" asp-for="Password" class="form-control" id="new-password" placeholder="New Password">
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                            </div>
-                            <div class="form-group col-md-6">
-                            <input type="password" asp-for="ConfirmPassword" class="form-control" id="confirm-password" placeholder="Confirm Password">
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                            </div>
-                            <span class="d-none text-warning unmatched-password-validation">New Password and Confirm Password does not matched.</span>*@
-
-                            <div class="form-group col-md-12" align="center">
-                                <button type="submit" class="btn btn-light log-in-btn" id="">Create Account</button>
-                            </div>
-                            <hr class="solid">
-                            <label class="d-block text-center">already have an account? <span class="sign-in-span">sign in here</span></label>
-                        </form>
-                    </div>
-                    <div class="row h-100 justify-content-center log-in-form d-none" id="success-register-container">
-                        <div class="text-center col-12 my-auto">
-                            <img id="login-logo" src="/images/check your email icon.png">
-                            <label class="d-block text-center">Your account has been register</label>
-                            <button type="button" class="btn btn-light log-in-btn" id="procced-login">procced to login</button>
-                        </div>
-
-                    </div>
-                </div>
-
+                <!-- Footer -->
+                <p class="account-text">
+                    Don't have an account yet?
+                    <a href="javascript:void(0)" class="sign-up-link" id="goToSignUp" onclick="switchTab('signup'); return false;">Sign up here</a>
+                </p>
             </div>
 
-        </div>
-    </div>
+            <!-- Sign Up Form -->
+            <div id="formSignUp" class="tab-form hidden">
+                <form id="register-form" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <!-- Username Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="UserName" class="sr-only"></label>
+                        <input type="text" asp-for="UserName" class="input-field-control" placeholder="Username" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Last Name Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="LastName" class="sr-only"></label>
+                        <input type="text" asp-for="LastName" class="input-field-control" placeholder="Last Name" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+
+                    <!-- First Name Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="FirstName" class="sr-only"></label>
+                        <input type="text" asp-for="FirstName" class="input-field-control" placeholder="First Name" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Middle Name Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="MiddleName" class="sr-only"></label>
+                        <input type="text" asp-for="MiddleName" class="input-field-control" placeholder="Middle Name" />
+                        <span asp-validation-for="MiddleName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="Email" class="sr-only"></label>
+                        <input type="text" asp-for="Email" class="input-field-control lowercase" placeholder="Email Address" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <!-- Contact Number Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="ContactNumber" class="sr-only"></label>
+                        <input type="text" asp-for="ContactNumber" class="input-field-control" placeholder="Contact Number" />
+                        <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="Password" class="sr-only"></label>
+                        <input type="password" asp-for="Password" id="signupPassword" class="input-field-control" placeholder="Password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <button type="button" class="eye-icon" aria-label="Toggle password visibility" data-target="signupPassword">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div class="input-field-wrapper">
+                        <label asp-for="ConfirmPassword" class="sr-only"></label>
+                        <input type="password" asp-for="ConfirmPassword" id="confirmPassword" class="input-field-control" placeholder="Confirm Password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        <button type="button" class="eye-icon" aria-label="Toggle password visibility" data-target="confirmPassword">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+
+                    <!-- Submit button -->
+                    <button type="submit" class="shape-login">
+                        <span class="login-text">Create an Account</span>
+                    </button>
+                </form>
+
+                <p class="account-text">
+                    Already have an account?
+                    <a href="javascript:void(0)" class="sign-in-link" id="goToSignIn" onclick="switchTab('signin'); return false;">Sign In</a>
+                </p>
+            </div>
+
+        </div> <!-- login-border -->
+
+    </div> <!-- sign-in-container -->
+    <!-- Global switchTab — must be defined before any onclick calls it -->
+    <script>
+            function switchTab(tab) {
+                var signInForm  = document.getElementById('formSignIn');
+                var signUpForm  = document.getElementById('formSignUp');
+                var tabSignIn   = document.getElementById('tabSignIn');
+                var tabSignUp   = document.getElementById('tabSignUp');
+                var loginBorder = document.getElementById('login-border');
+                var indicator   = document.getElementById('tabIndicator');
+
+                if (tab === 'signin') {
+                    signInForm.classList.remove('hidden');
+                    signUpForm.classList.add('hidden');
+                    tabSignIn.classList.add('active');
+                    tabSignUp.classList.remove('active');
+                    loginBorder.classList.remove('signup-active');
+                    indicator.style.left = '4px';
+                } else {
+                    signInForm.classList.add('hidden');
+                    signUpForm.classList.remove('hidden');
+                    tabSignIn.classList.remove('active');
+                    tabSignUp.classList.add('active');
+                    loginBorder.classList.add('signup-active');
+                    indicator.style.left = 'calc(50% + 2px)';
+                }
+            }
+    </script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/lib/toastr.js/toastr.min.js" asp-append-version="true"></script>
+    <script src="~/js/helpers/api-helper.js" asp-append-version="true"></script>
+    <script src="~/js/helpers/date-helper.js" asp-append-version="true"></script>
+    <script src="~/js/helpers/string-helper.js" asp-append-version="true"></script>
+    <script src="~/js/helpers/form-helper.js" asp-append-version="true"></script>
+    <script src="~/js/helpers/cookie-helper.js" asp-append-version="true"></script>
+    <script src="~/js/pages/login/login-page.js" asp-append-version="true"></script>
 
 </body>
 </html>
-
-
-
-<div id="busy-indicator-container" class="d-none">
-    <img class="indicator-img-position " src="/images/loading-indicator.gif">
-</div>
-
-@section Scripts {
-    @{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
-}
-<script src="~/lib/toastr.js/toastr.min.js"></script>
-<script src="~/js/helpers/api-helper.js"></script>
-<script src="~/js/helpers/form-helper.js"></script>
-<script src="~/js/helpers/cookie-helper.js"></script>
-<script src="~/js/helpers/date-helper.js"></script>
-<script src="~/js/helpers/string-helper.js"></script>
-<script src="~/js/pages/login/login-page.js"></script>
-}
-
-
