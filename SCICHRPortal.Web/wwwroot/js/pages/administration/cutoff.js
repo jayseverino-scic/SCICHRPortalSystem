@@ -9,7 +9,7 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
-    const SYSTEM = 'library';
+    const SYSTEM = 'scichrportal';
 
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);

@@ -9,5 +9,6 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
         public string? Name { get; set; }
         [Required(ErrorMessage ="This field is required.")]
         public string? SerialNumber { get; set; }
+        public string? Source { get; set; }
     }
 }

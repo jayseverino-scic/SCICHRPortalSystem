@@ -2,7 +2,7 @@
     //Events
     const CLICK_EVENT = 'click';
     const LOAD_EVENT = 'load';
-    const SYSTEM = 'library';
+    const SYSTEM = 'scichrportal';
 
     //Helpers
     const _apiHelper = new ApiHelper();
@@ -44,7 +44,7 @@
             });
 
             if (response.ok) {
-                //await initializeGrids();
+                await initializeGrids();
                 alert('Devices successfully imported!');
             } else if (response.status === 403) {
                 alert('Access denied.');
@@ -118,11 +118,23 @@
     };
 
     let populateForm = (form, data) => {
+        if (data.source == 'Imported') {
+            $('#timekeepingdevices-form #SerialNumber').prop("disabled", true);
+        }
+        else {
+            $('#timekeepingdevices-form #SerialNumber').prop("disabled", false);
+        }
         $(form).find(':submit').text('Update');
         _formHelper.populateForm(form, data);
     }
 
     let initializeGrid = async () => {
+        const tableId = '#timekeepingdevices-grid';
+        const $table = $(tableId);
+        if ($.fn.DataTable.isDataTable(tableId)) {
+            dataTable.destroy();
+            $table.empty();
+        }
         let columns = await getColumns();
         let table = $('#timekeepingdevices-grid').DataTable({
             bLengthChange: true,
