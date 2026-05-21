@@ -17,41 +17,69 @@
 </head>
 <body>
     <input id="base-api-url" type="hidden" value="@Configuration["BaseApiUrl"]" />
-    <div class="logo">
-        <img src="~/images/logo.png" alt="LMSI Enrolment Logo">
+    
+    <!-- Busy Indicator -->
+    <div id="busy-indicator-container" class="busy-indicator d-none">
+        <img class="indicator-img-position" src="/images/loading_indicator.gif" />
     </div>
-    <div id="row-container" class="row d-flex">
 
-        <div id="reset-container" class="col-md-5 content-container send-email">
-            <form id="forgot-password-form" class="email ">
-                <h3 id="banner" class="font-weight-bold">Forgot Password?</h3>
-                <div class="reset">
-                    <div class="email-section">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Enter your email to reset your password</label>
-                            <input placeholder="Email" class="form-control lowercase" id="Email" name="Email" runat="server" value="">
-                        </div>
-                    </div>
+    <div class="forgot-page-container">
+
+        <!-- Background -->
+        <div class="scic-logo-wrapper">
+            <div class="scic-logo-content">
+                <div class="scic-logo-overflow">
+                    <img alt="SCIC Logo" class="scic-logo-image" src="/images/SCIC-bground1.jpg" />
                 </div>
-                <div class="btn-section">
-                    <button id="resetBtn" type="submit" class="btn btn-info  btn-sm float-right font-weight-bold">SUBMIT</button>
-                    <a id="backToLogin" class="btn btn-secondary btn-sm float-right font-weight-bold" href="/Login/">CANCEL</a>
+                <div class="scic-logo-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Forgot Password Card -->
+        <div id="reset-container" class="forgot-card">
+
+            <div class="forgot-card-header">
+                <h2 class="forgot-title">Forgot your password?</h2>
+                <p class="forgot-subtitle">A code will be sent to your email.</p>
+            </div>
+
+            <p class="forgot-instruction">Enter your email to reset your password</p>
+
+            <form id="forgot-password-form" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="input-field-wrapper">
+                    <label for="Email" class="sr-only">Email</label>
+                    <input type="email" id="Email" name="Email" class="forgot-input lowercase" placeholder="Email Address" />
+                    <span class="text-danger" id="email-error"></span>
+                </div>
+
+                <div class="forgot-btn-row">
+                    <a href="/Login/Index" class="btn-cancel">Cancel</a>
+                    <button type="submit" id="resetBtn" class="btn-submit">Submit</button>
                 </div>
             </form>
         </div>
-        <div id="success-container" class="col-md-5 content-container d-none">
-            <h3 id="banner" class="font-weight-bold">Email Sent!</h3>
-            <div class="reset">
-                <div class="email-section">
-                    <label class="font-weight-bold">Please check your email for temporary password then proceed to log in.
-On your profile, you can changes your temporary password.</label>
+
+        <!-- Success Container -->
+        <div id="success-container" class="success-overlay d-none">
+            <div class="success-modal">
+                <div class="success-icon-wrapper">
+                    <i class="fas fa-envelope"></i>
                 </div>
-            </div>
-            <div class="back-to-login p-3">
-                <a class="btn btn-secondary btn-sm font-weight-bold" href="/Login/">Back to login</a>
+                <h3 class="success-title">Email Sent!</h3>
+                <p class="success-message">
+                    We have sent your temporary password, please check your email.
+                    You can modify your temporary password on your profile.
+                </p>
+                <a href="/Login/Index" class="back-to-login">Back to Login</a>
             </div>
         </div>
+
     </div>
+
+    
+
 
 </body>
 </html>
@@ -69,6 +97,13 @@ On your profile, you can changes your temporary password.</label>
 <script src="~/js/helpers/form-helper.js"></script>
 <script src="~/js/helpers/cookie-helper.js"></script>
 <script src="~/js/pages/user/send-email.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/lib/toastr.js/toastr.min.js" asp-append-version="true"></script>
+<script src="~/js/pages/login/send-email.js" asp-append-version="true"></script>
+
+    
 
 }
 
