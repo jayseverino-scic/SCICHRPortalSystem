@@ -5,14 +5,17 @@ using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
+using SCICHRPortal.Data.TimekeepingTables;
 
 namespace SCICHRPortal.Repository.Implementations
 {
     public class TimekeepingDevicesRepository : Repository, ITimekeepingDevicesRepository
     {
-        public TimekeepingDevicesRepository(ApplicationContext context)
+        private TimekeepingContext TimekeepingContext { get; set; }
+        public TimekeepingDevicesRepository(ApplicationContext context, TimekeepingContext timekeepingContext)
     : base(context)
         {
+            TimekeepingContext = timekeepingContext;
         }
         public async Task<bool> DeleteAsync(int Id)
         {
@@ -62,6 +65,12 @@ namespace SCICHRPortal.Repository.Implementations
             return TimekeepingDevices!;
         }
 
+        public async Task<TimekeepingDevices> GetBySerialNumber(string? serialNumber)
+        {
+            var TimekeepingDevices = await Context.TimekeepingDevices!
+                    .SingleOrDefaultAsync(s => s.SerialNumber!.ToUpper() == serialNumber!.ToUpper() && !s.Deleted);
+            return TimekeepingDevices!;
+        }
         public async Task<DuplicateMessage> HasDuplicateName(TimekeepingDevices TimekeepingDevices)
         {
             DuplicateMessage message = new();
@@ -101,6 +110,14 @@ namespace SCICHRPortal.Repository.Implementations
 
             await Context.SaveChangesAsync();
             return true;
+        }
+        public async Task<IEnumerable<ZKDevices>> GetDevices()
+        {
+            IEnumerable<ZKDevices> devices;
+
+            devices = await TimekeepingContext.ZKDevices!.ToListAsync();
+
+            return devices;
         }
     }
 }

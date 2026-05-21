@@ -29,7 +29,7 @@ namespace SCICHRPortal.Data.TimekeepingTables
         public bool AntiPassbackOn {  get; set; }
         public string? KeyMapping { get; set; }
         public string? SyncStatus { get; set; }
-        public string? Model {  get; set; }
-        public string? KeyCode { get; set; }
+        public string? Model {  get;}
+        public string? KeyCode { get;}
     }
 }

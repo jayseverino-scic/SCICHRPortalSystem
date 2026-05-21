@@ -2,8 +2,10 @@
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SCICHRPortal.Service.Implementations
 {
@@ -65,5 +67,16 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await TimekeepingDevicesRepository.HasDuplicateName(timekeepingDevices);
         }
+
+        public async Task<IEnumerable<ZKDevices>> GetDevices()
+        {
+            return await TimekeepingDevicesRepository.GetDevices();
+        }
+
+        public async Task<TimekeepingDevices> GetBySerialNumber(string  serialNumber)
+        {
+            return await TimekeepingDevicesRepository.GetBySerialNumber(serialNumber);
+        }
+
     }
 }

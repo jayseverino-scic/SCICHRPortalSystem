@@ -9,6 +9,7 @@ using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
 using SCICHRPortal.Utility.Settings;
+using SCICHRPortal.Data.TimekeepingTables;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -99,6 +100,42 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 return NotFound(ResponseMessage.NotFound);
 
             return Ok();
+        }
+        [Authorize]
+        [HttpPost("ImportDevices")]
+        public async Task<IActionResult> ImportDevices()
+        {
+            IEnumerable<ZKDevices> devices = await TimekeepingDevicesService.GetDevices();
+
+            foreach (var device in devices)
+            {
+                TimekeepingDevices existingDevice = await TimekeepingDevicesService.GetBySerialNumber(device.SerialNumber);
+                if (existingDevice == null)
+                {
+                    TimekeepingDevices item = new TimekeepingDevices
+                    {
+                        Name = device.Name,
+                        SerialNumber = device.SerialNumber,
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = "jun rivas"
+                    };
+                    await TimekeepingDevicesService.InsertAsync(item);
+                }
+                else
+                {
+                    TimekeepingDevices item = new TimekeepingDevices
+                    {
+                        Id = existingDevice.Id,
+                        Name = device.Name,
+                        SerialNumber = device.SerialNumber,
+                        UpdatedAt = DateTime.Now,
+                        UpdatedBy = "jun rivas"
+                    };
+                    await TimekeepingDevicesService.UpdateAsync(item);
+                }
+            }
+            var timekeepingDevices = await TimekeepingDevicesService.GetAllAsync();
+            return Ok(timekeepingDevices);
         }
     }
 }

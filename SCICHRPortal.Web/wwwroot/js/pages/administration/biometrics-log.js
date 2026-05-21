@@ -81,16 +81,15 @@
     let pageSize = 10;
     let searchKeyword = '';
     let dataTable = null;
+    let devices = [];
+    let _currentDevice = '';
 
     let attachEvents = () => {
         $('#end-date-filter').attr('value', moment().format('yyyy-MM-DD'));
         $('#start-date-filter').attr('value', moment().format('yyyy-MM-DD'));
-        $('#end-date-dbfilter').attr('value', moment().format('yyyy-MM-DD'));
-        $('#start-date-dbfilter').attr('value', moment().format('yyyy-MM-DD'));
         $('#filter').on(CLICK_EVENT, onClickFilter);
         $('#dbfilter').on(CLICK_EVENT, onClickDbFilter);
         $('#start-date-filter').on('change', onChangeStartFilter)
-        $('#start-date-dbfilter').on('change', onChangeDbStartFilter)
         $('#import').on('click', onSubmitUploadForm);
     };
 
@@ -146,19 +145,12 @@
 
         $('#end-date-filter').attr('min', startDateVal);
     };
-    let onChangeDbStartFilter = () => {
-        let startDateVal = $('#start-date-dbfilter').val();
-        let endDateVal = $('#end-date-dbfilter').val();
-        if (new Date(startDateVal) > new Date(endDateVal))
-            $('#end-date-dbfilter').val(startDateVal);
 
-        $('#end-date-dbfilter').attr('min', startDateVal);
-    };
     let onClickFilter = async e => {
         e.preventDefault();
         let startDate = $('#start-date-filter').val();
         let endDate = $('#end-date-filter').val();
-
+        _currentDevice = $('#device').val() || '';
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
         if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
@@ -167,7 +159,7 @@
         }
 
         let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}`,
+            url: `Authenticated/BiometricsLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${_currentDevice}`,
         });
 
         if (response.ok) {
@@ -179,9 +171,9 @@
 
     let onClickDbFilter = async e => {
         e.preventDefault();
-        let startDate = $('#start-date-dbfilter').val();
-        let endDate = $('#end-date-dbfilter').val();
-
+        let startDate = $('#start-date-filter').val();
+        let endDate = $('#end-date-filter').val();
+        _currentDevice = $('#device').val() || '';
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
         if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
@@ -190,13 +182,48 @@
         }
 
         let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}`,
+            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&deviceName=${_currentDevice}`,
         });
 
         if (response.ok) {
             let json = await response.json();
             let dataRetrieved = json.data;
             initializeGrid(dataRetrieved);
+        }
+    };
+
+    let renderDropDowns = () => {
+        const renderSimpleDropdown = (elementId, data, valueField, textField, placeholder) => {
+            const $select = $(elementId);
+            $select.empty();
+
+            if (placeholder) {
+                $select.append(`<option value="">${placeholder}</option>`);
+            }
+
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    $select.append(`<option value="${item[valueField]}">${item[textField]}</option>`);
+                });
+            } else {
+                $select.append('<option value="">No data available</option>');
+            }
+        };
+        renderSimpleDropdown('#device', devices, 'serialNumber', 'name', 'Select Device');
+    };
+
+    let getDropdownData = async () => {
+        try {
+            const deviceResponse = await _apiHelper.get({ url: 'Authenticated/TimekeepingDevices' });
+
+            if (deviceResponse.ok) {
+                devices = await deviceResponse.json();
+            } else {
+                devices = [];
+            }
+
+        } catch (error) {
+            devices = [];
         }
     };
 
@@ -336,14 +363,21 @@
         return columns;
     };
 
-    let initializeGrids = () => {
-        // Initialize with empty data first
-        initializeGrid([]);
+    let initializeGrids = async () => {
+        try {
+            await getDropdownData();
+            renderDropDowns();
+            // Initialize with empty data first
+            initializeGrid([]);
 
-        // Then trigger filter to load actual data
-        const button = document.getElementById("filter");
-        if (button) {
-            button.click();
+            // Then trigger filter to load actual data
+            const button = document.getElementById("filter");
+            if (button) {
+                button.click();
+            }
+        }
+        catch (error) {
+            console.error('DataTables initialization error:', error);
         }
     };
 

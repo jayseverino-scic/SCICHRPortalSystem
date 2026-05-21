@@ -10,6 +10,7 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    let dataTable = null;
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#update-button').on(CLICK_EVENT, onUpdate)
@@ -21,9 +22,42 @@
         $('#timekeepingdevices-form').find(':submit').text('Add');
         $('#timekeepingdevices-modal').modal('show');
     }
-    let onUpdate = function () {
-        
-    }
+    let onUpdate = async event => {
+        event.preventDefault();
+
+        if (!dataTable) {
+            alert('Data table not initialized.');
+            return;
+        }
+
+        const data = dataTable.rows().data().toArray();
+
+        if (data.length === 0) {
+            alert('No data to save.');
+            return;
+        }
+
+        try {
+            const response = await _apiHelper.post({
+                url: `Authenticated/TimekeepingDevices/ImportDevices`,
+                data: data
+            });
+
+            if (response.ok) {
+                //await initializeGrids();
+                alert('Devices successfully imported!');
+            } else if (response.status === 403) {
+                alert('Access denied.');
+            } else if (response.status === 409) {
+                const errorText = await response.text();
+                alert('Conflict: ' + errorText);
+            } else {
+                alert('Failed to import devices.');
+            }
+        } catch (error) {
+            alert('An error occurred while saving.');
+        }
+    };
     let onFormSubmit = async event => {
         event.preventDefault();
 
@@ -138,6 +172,7 @@
             pageLength: 5,
             dom: '<"pull-left">lBf<"pull-right">tipr',
         });
+        dataTable = table;
     }
 
     let getColumns = async () => {

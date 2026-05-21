@@ -39,9 +39,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(biometricsLogs);
         }
         [HttpGet("Filter")]
-        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
         {
-            var tuple = await BiometricsLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startDate, endDate);
+            var tuple = await BiometricsLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startDate, endDate, deviceName);
             var maxOrderNumber = pageNumber * pageSize;
             var orderNumber = maxOrderNumber - pageSize + 1;
 
@@ -173,12 +173,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
         [HttpGet("ImportDb")]
         [Authorize]
-        public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport)
+        public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport, string? serialNumber)
         {
             if (!startImport.HasValue || !endImport.HasValue)
                 return BadRequest(ResponseMessage.BadRequest);
             
-            var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport);
+            var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport, serialNumber);
             var biometricsLogs = new List<BiometricsLog>();
             if (timeLogs != null)
             {

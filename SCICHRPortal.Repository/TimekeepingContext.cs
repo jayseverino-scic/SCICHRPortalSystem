@@ -13,6 +13,7 @@ namespace SCICHRPortal.Repository
         // DbSets for the tables you want to read from SQL Server
         public DbSet<TimeLogs> TimeLogs { get; set; }
         public DbSet<Personnels> Personnels { get; set; }
+        public DbSet<ZKDevices> ZKDevices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,7 +30,11 @@ namespace SCICHRPortal.Repository
                 entity.HasKey(e => e.Id);
                 // Configure other properties
             });
-
+            modelBuilder.Entity<ZKDevices>(entity =>
+            {
+                entity.ToTable("ZKDevices", "dbo");
+                entity.HasKey(e =>e.Id);
+            });
             base.OnModelCreating(modelBuilder);
         }
     }

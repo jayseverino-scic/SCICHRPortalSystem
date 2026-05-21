@@ -20,14 +20,14 @@ namespace SCICHRPortal.Service.Implementations
             return await BiometricsLogRepository.UpdateAsync(biometricsLog);
         }
 
-        public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate)
+        public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
         {
-            return await BiometricsLogRepository.FilterAsync(pageNumber, pageSize, searchKeyword, startDate,endDate);
+            return await BiometricsLogRepository.FilterAsync(pageNumber, pageSize, searchKeyword, startDate,endDate, deviceName);
         }
 
-        public async Task<IEnumerable<BiometricsLog>> FilterByDateRange(DateTime? startDate, DateTime? endDate)
+        public async Task<IEnumerable<BiometricsLog>> FilterByDateRange(DateTime? startDate, DateTime? endDate, string? deviceName)
         {
-            return await BiometricsLogRepository.FilterByDateRange(startDate, endDate);
+            return await BiometricsLogRepository.FilterByDateRange(startDate, endDate, deviceName);
         }
         public async Task<IEnumerable<BiometricsLog>> GetDailyLogAsync(DateTime logDate)
         {
@@ -48,9 +48,9 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await BiometricsLogRepository.GetAllAsync();
         }
-        public async Task<IEnumerable<TimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate)
+        public async Task<IEnumerable<TimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
         {
-            return await BiometricsLogRepository.ImportDbDateRange(startDate, endDate);
+            return await BiometricsLogRepository.ImportDbDateRange(startDate, endDate, serialNumber);
         }
     }
 }

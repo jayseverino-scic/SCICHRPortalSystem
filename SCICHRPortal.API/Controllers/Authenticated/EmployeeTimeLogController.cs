@@ -76,7 +76,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         [HttpPost("Import")]
-        public async Task<IActionResult> ImportAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startImportDate, DateTime? endImportDate)
+        public async Task<IActionResult> ImportAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startImportDate, DateTime? endImportDate, string? deviceName)
         {
             //var tuple = await BiometricsLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startImportDate, endImportDate);
             //var data = tuple.Item1.Select(d => new
@@ -96,7 +96,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             //    Data = data,
             //    Total = tuple.Item2
             //};
-            IEnumerable<BiometricsLog> biometricsLogs = await BiometricsLogService.FilterByDateRange(startImportDate, endImportDate);
+            IEnumerable<BiometricsLog> biometricsLogs = await BiometricsLogService.FilterByDateRange(startImportDate, endImportDate, deviceName);
             List<string> bioEmployees = new List<string>();
             List<string?> bioDates = new List<string?>();
             bioDates = biometricsLogs.Select(d => d.Date.ToString()).Distinct().ToList(); //tuple.Item1.Select(d => d.Date.ToString()).Distinct().ToList();
