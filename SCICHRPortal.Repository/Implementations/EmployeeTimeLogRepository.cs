@@ -25,7 +25,7 @@ namespace SCICHRPortal.Repository.Implementations
             return true;
         }
 
-        public async Task<Tuple<IEnumerable<EmployeeTimeLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate)
+        public async Task<Tuple<IEnumerable<EmployeeTimeLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
         {
             var employeeTimeLogs = Context.EmployeeTimeLog!
                 .Include(e => e.Employee)

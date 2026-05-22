@@ -25,9 +25,9 @@ namespace SCICHRPortal.Service.Implementations
             return await EmployeeTimeLogRepository.UpdateAsync(employeeTimeLog);
         }
 
-        public async Task<Tuple<IEnumerable<EmployeeTimeLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate)
+        public async Task<Tuple<IEnumerable<EmployeeTimeLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
         {
-            return await EmployeeTimeLogRepository.FilterAsync(pageNumber, pageSize, searchKeyword, startDate,endDate);
+            return await EmployeeTimeLogRepository.FilterAsync(pageNumber, pageSize, searchKeyword, startDate,endDate, deviceName);
         }
 
         public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate)

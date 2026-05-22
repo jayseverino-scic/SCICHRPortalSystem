@@ -25,11 +25,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     {
         private IBiometricsLogService BiometricsLogService { get; }
         private IEmployeeService EmployeeService { get; }
+        private ITimekeepingDevicesService TimekeepingDevicesService { get; }
 
-        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService)
+        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService, ITimekeepingDevicesService timekeepingDevicesService)
         {
             BiometricsLogService = biometricsLogService;
             EmployeeService = employeeService;
+            TimekeepingDevicesService = timekeepingDevicesService;
 
         }
         [HttpGet()]
@@ -177,7 +179,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!startImport.HasValue || !endImport.HasValue)
                 return BadRequest(ResponseMessage.BadRequest);
-            
+
+            TimekeepingDevices timekeepingDevice = await TimekeepingDevicesService.GetBySerialNumber(serialNumber);
+            string? deviceName = "";
+            if (timekeepingDevice != null)
+            {
+                deviceName = timekeepingDevice.Name;
+            }
             var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport, serialNumber);
             var biometricsLogs = new List<BiometricsLog>();
             if (timeLogs != null)
@@ -193,7 +201,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         Date = timeLog.RecordDate,
                         Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
                         LogType = timeLog.LogType!.ToString(),
-                        DeviceName = timeLog.Location,
+                        DeviceName = deviceName,
                         CreatedAt = DateTime.Now,
                         CreatedBy = "Manuel"
                     };

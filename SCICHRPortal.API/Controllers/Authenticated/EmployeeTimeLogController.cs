@@ -34,7 +34,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(employeeTimeLogs);
         }
         [HttpGet("Filter")]
-        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
         {
             var tuple = await EmployeeTimeLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startDate, endDate);
             var maxOrderNumber = pageNumber * pageSize;

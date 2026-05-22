@@ -160,13 +160,21 @@
                 <input id="end-import-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
             </div>
             <div>
+                <div class="form-label">Timekeeping Device</div>
+                <select id="biometrics" class="form-control select" style="width:400px"></select>
+            </div>
+            <div>
+                <div class="form-label" style="color: transparent;">Button</div>
+                <button id="filter" class="btn btn-primary" style="height: 38px; width: 80px;">Filter</button>
+            </div>
+            <div>
                 <div class="form-label" style="color: transparent;">Button</div>
                 <button id="import" class="btn btn-primary" style="height: 38px; width: auto;">Get Imported Logs</button> &nbsp; &nbsp; &nbsp; &nbsp;
                 <button class="btn btn-primary add-new-btn" id="add-button">New Log</button>
             </div>
         </div>
         <br />
-        <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
+@*         <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
             <div>
                 <div class="form-label">From</div>
                 <input id="start-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
@@ -183,7 +191,7 @@
                 <div class="form-label" style="color: transparent;">Button</div>
                 <button id="filter" class="btn btn-primary" style="height: 38px; width: 80px;">Filter</button>
             </div>
-        </div>
+        </div> *@
         <table id="employee-time-log-grid" class="display" cellspacing="0" width="100%" style="background-color:cornflowerblue">
         </table>
     </div>

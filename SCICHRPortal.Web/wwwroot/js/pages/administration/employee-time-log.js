@@ -30,7 +30,6 @@
         $('#end-import-filter').attr('value', moment().format('yyyy-MM-DD'));
         $('#start-import-filter').attr('value', moment().format('yyyy-MM-DD'));
         $('#filter').on(CLICK_EVENT, onClickFilter);
-        $('#start-date-filter').on('change', onChangeStartFilter)
         $('#start-import-filter').on('change', onChangeStartImport)
         $('#import').on(CLICK_EVENT, onClickImport);
     };
@@ -66,15 +65,6 @@
         });
     }
 
-    let onChangeStartFilter = () => {
-        let startDateVal = $('#start-date-filter').val();
-        let endDateVal = $('#end-date-filter').val();
-        if (new Date(startDateVal) > new Date(endDateVal))
-            $('#end-date-filter').val(startDateVal);
-
-        $('#end-date-filter').attr('min', startDateVal);
-    };
-
     let onChangeStartImport = () => {
         let startDateVal = $('#start-import-filter').val();
         let endDateVal = $('#end-import-filter').val();
@@ -87,8 +77,8 @@
     let onClickFilter = async e => {
         e.preventDefault();
         _currentBiometrics = $('#biometrics').val() || 0;
-        let startDate = $('#start-date-filter').val();
-        let endDate = $('#end-date-filter').val();
+        let startDate = $('#start-import-filter').val();
+        let endDate = $('#end-import-filter').val();
 
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
@@ -99,7 +89,7 @@
         }
 
         let response = await _apiHelper.get({
-            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}`,
+            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${}`,
         });
 
         if (response.ok) {

@@ -150,7 +150,7 @@
         e.preventDefault();
         let startDate = $('#start-date-filter').val();
         let endDate = $('#end-date-filter').val();
-        _currentDevice = $('#device').val() || '';
+        _currentDevice = $('#device option:selected').text() || '';
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
         if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
@@ -188,7 +188,7 @@
             return;
         }
         let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&deviceName=${_currentDevice}`,
+            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&serialNumber=${_currentDevice}`,
         });
 
         if (response.ok) {

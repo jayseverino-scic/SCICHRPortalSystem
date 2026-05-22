@@ -20,9 +20,7 @@ namespace SCICHRPortal.Repository.Implementations
         
         public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
         {
-            var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false);
-            if (startDate.HasValue && endDate.HasValue)
-                biometricsLogs = biometricsLogs.Where(b => b.Date >= startDate && b.Date <= endDate && b.DeviceName == deviceName).AsNoTracking();
+            var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false && b.Date >= startDate && b.Date <= endDate && b.DeviceName == deviceName).AsNoTracking();
 
             if (!String.IsNullOrWhiteSpace(searchKeyword))
             {
@@ -90,12 +88,12 @@ namespace SCICHRPortal.Repository.Implementations
         public async Task<IEnumerable<TimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
         {
             IEnumerable<TimeLogs> biometricsLogs;
-            biometricsLogs = await TimekeepingContext.TimeLogs!.ToListAsync();
             if (startDate.HasValue && endDate.HasValue)
-                biometricsLogs = biometricsLogs.Where(b => b.RecordDate >= startDate && b.RecordDate <= endDate && b.DeviceSerialNumber == serialNumber);
-
-
-            return biometricsLogs;
+                biometricsLogs = await TimekeepingContext.TimeLogs!.Where(b => b.RecordDate >= startDate && b.RecordDate <= endDate && b.DeviceSerialNumber == serialNumber).ToListAsync();
+            else
+                biometricsLogs = null;
+            
+            return biometricsLogs!;
         }
 
     }
