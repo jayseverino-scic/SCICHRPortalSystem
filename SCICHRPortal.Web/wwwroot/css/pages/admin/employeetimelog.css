@@ -1,0 +1,307 @@
+﻿
+#employee-time-log-modal .modal-dialog {
+    max-width: 900px;
+    width: 100%;
+    margin: 1.75rem auto;
+    top: 80px;
+}
+
+#employee-time-log-modal .modal-content {
+    font-family: 'Inter', sans-serif;
+    background: rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(20px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.55) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(30, 100, 30, 0.15), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Header */
+#employee-time-log-modal .modal-header {
+    background: rgba(46, 125, 50, 0.72) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.2) !important;
+    padding: 18px 24px 16px;
+    border-radius: 20px 20px 0 0 !important;
+}
+
+#employee-time-log-modal .modal-title {
+    font-weight: 700;
+    font-size: 17px;
+    color: #ffffff !important;
+    letter-spacing: 0.3px;
+}
+
+/* Body */
+#employee-time-log-modal .modal-body {
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    padding: 22px 24px 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(46,125,50,0.35) transparent;
+}
+
+    #employee-time-log-modal .modal-body::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    #employee-time-log-modal .modal-body::-webkit-scrollbar-thumb {
+        background: rgba(46,125,50,0.35);
+        border-radius: 4px;
+    }
+
+/* Labels */
+#employee-time-log-modal label,
+#employee-time-log-modal .col-form-label {
+    color: #000000 !important;
+    font-weight: 600 !important;
+    font-size: 12.5px !important;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+/* Inputs */
+#employee-time-log-modal .form-control {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border: 1.5px solid #4caf50 !important;
+    border-radius: 10px !important;
+    color: #000000 !important;
+    font-size: 13.5px !important;
+    padding: 9px 13px !important;
+    transition: all 0.2s ease !important;
+    -webkit-text-fill-color: #000000 !important;
+    opacity: 1 !important;
+}
+
+    #employee-time-log-modal .form-control:focus {
+        background: rgba(255, 255, 255, 0.75) !important;
+        border-color: #2e7d32 !important;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.18) !important;
+        outline: none !important;
+    }
+
+    #employee-time-log-modal .form-control:disabled {
+        background: rgba(255, 255, 255, 0.30) !important;
+        border: 1.5px solid #a5d6a7 !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        opacity: 1 !important;
+    }
+
+    #employee-time-log-modal .form-control::placeholder {
+        color: #000000 !important;
+        opacity: 1 !important;
+    }
+
+/* Select2 */
+#employee-time-log-modal .select2-container--default .select2-selection--multiple,
+#employee-time-log-modal .select2-container--default .select2-selection--single {
+    background: rgba(255,255,255,0.55) !important;
+    border: 1.5px solid #4caf50 !important;
+    border-radius: 10px !important;
+    min-height: 40px !important;
+}
+
+#employee-time-log-modal .select2-container .select2-selection__rendered {
+    color: #000000 !important;
+    padding: 4px 10px !important;
+}
+
+#employee-time-log-modal .select2-container .select2-selection__choice {
+    background: rgba(46,125,50,0.65) !important;
+    border: none !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+    padding: 2px 8px !important;
+}
+
+/* Shift Details border box */
+#employee-time-log-modal .form-border {
+    border: 1.5px solid rgba(255,255,255,0.5) !important;
+    border-radius: 10px !important;
+    background: rgba(255,255,255,0.15) !important;
+    padding: 10px !important;
+}
+
+/* Checkboxes labels */
+#employee-time-log-modal .text-white {
+    color: #000000 !important;
+}
+
+/* Form group spacing */
+#employee-time-log-modal .form-group {
+    margin-bottom: 16px;
+}
+
+/* Footer */
+#employee-time-log-modal .modal-footer {
+    background: rgba(255,255,255,0.30) !important;
+    border-top: 1px solid rgba(255,255,255,0.22) !important;
+    padding: 14px 24px;
+    border-radius: 0 0 20px 20px !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Cancel button */
+#employee-time-log-modal .cancel-button {
+    background: rgba(255,255,255,0.50) !important;
+    border: 1.5px solid #4caf50 !important;
+    color: #000000 !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 8px 22px !important;
+    transition: all 0.18s ease !important;
+}
+
+    #employee-time-log-modal .cancel-button:hover {
+        background: rgba(255,255,255,0.75) !important;
+        color: #000000 !important;
+    }
+
+/* Add button */
+#employee-time-log-modal .btn-primary,
+#employee-time-log-modal #borrower-modal-btn {
+    background: rgba(46,125,50,0.88) !important;
+    border: 1px solid rgba(46,125,50,0.6) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 8px 26px !important;
+    transition: all 0.18s ease !important;
+    box-shadow: 0 2px 8px rgba(46,125,50,0.28) !important;
+}
+
+    #employee-time-log-modal .btn-primary:hover,
+    #employee-time-log-modal #borrower-modal-btn:hover {
+        background: rgba(27,94,32,0.95) !important;
+        box-shadow: 0 4px 14px rgba(46,125,50,0.40) !important;
+        transform: translateY(-1px);
+    }
+
+/* Validation */
+#employee-time-log-modal .text-danger {
+    color: #c62828 !important;
+    font-size: 11.5px;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    background-color: rgba(20, 60, 20, 0.45) !important;
+}
+
+/* Page wrapper */
+.employee-timelog-page-wrapper {
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 12px rgba(40,100,40,0.08);
+    padding: 24px 28px 28px;
+    margin-bottom: 40px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif !important;
+}
+
+    .employee-timelog-page-wrapper .left-header-container {
+        display: flex !important;
+        align-items: center !important;
+        gap: 14px;
+        color: #1b5e20 !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 18px !important;
+        border-bottom: 1px solid #e8f5e9;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    .employee-timelog-page-wrapper .left-header-container .icon {
+        width: 46px !important;
+        height: 46px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .employee-timelog-page-wrapper .left-header-container h1.title {
+        display: inline !important;
+        color: #1b5e20 !important;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 !important;
+    }
+
+.employee-timelog-page-wrapper .form-label {
+    color: #1b5e20 !important;
+    font-weight: 600;
+}
+
+.employee-timelog-page-wrapper .form-control {
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+}
+
+.employee-timelog-page-wrapper .dataTables_length label,
+.employee-timelog-page-wrapper .dataTables_filter label,
+.employee-timelog-page-wrapper .dataTables_info label {
+    color: #555 !important;
+}
+
+.employee-timelog-page-wrapper .dataTables_wrapper {
+    border-top: 1px solid #e8f5e9;
+    margin-top: 20px;
+}
+
+#content-container .dataTables_paginate .paginate_button {
+    border-radius: 6px !important;
+    border: 1px solid #c8e6c9 !important;
+    color: #2e7d32 !important;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif !important;
+}
+
+    #content-container .dataTables_paginate .paginate_button.current,
+    #content-container .dataTables_paginate .paginate_button:hover {
+        background: #2e7d32 !important;
+        color: #fff !important;
+        border-color: #2e7d32 !important;
+    }
+
+
+#employee-time-log-grid_filter label,
+#employee-time-log-grid_filter select{
+    font-size: 12px !important;
+    color: #555 !important;
+    font-weight: normal !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#employee-time-log-grid_filter input[type=search] {
+    width: 250px !important;
+    height: 36px !important;
+    font-size: 18px !important;
+    padding: 4px 8px !important;
+    border: 1px solid #c8e6c9 !important;
+    border-radius: 6px !important;
+    outline: none !important;
+    color: #333 !important;
+}
+
+    #employee-time-log-grid_filter input[type=search]:focus {
+        border-color: #4caf50 !important;
+        box-shadow: 0 0 0 2px rgba(46,125,50,0.15) !important;
+    }
+
+
+

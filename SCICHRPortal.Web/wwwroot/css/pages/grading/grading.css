@@ -89,7 +89,6 @@
     }
 .left-header-container {
     color: white;
-    /*background-color: steelblue;*/
     display: block;
     margin-bottom: 15px;
     margin-top: 20px;
@@ -171,16 +170,16 @@
     font-size: 20px;
     font-weight: bold;
 }
-.dataTables_filter input[type=search] {
-    border: 2px solid #309ffd;
-    border-radius: 8px;
-    outline: none;
-}
+    .dataTables_filter input[type=search] {
+        border: 2px solid #4caf50;
+        border-radius: 8px;
+        outline: none;
+    }
     .cancel-form{
     margin-right: 5px !important;
 }
 .status-label {
-    color: #309ffd;
+    color: #4caf50;
 }
 .k-scheduler-header-wrap table {
     background: #2e6da4;
@@ -192,7 +191,7 @@
     background-color: #1c5d00 !important;
 }
 .modal-body {
-    background: #0f4a84;
+    background: #1bc25e;
 }
 .modal-header, .modal-
 {
@@ -273,7 +272,7 @@
 }
 
     #upload-form .import-container {
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
         display: flex;
         justify-content: space-between;
         flex-direction: row;
@@ -303,7 +302,7 @@
         }
 
 .import-container {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Inter', sans-serif;
     display: flex;
     justify-content: space-between;
     flex-direction: row;
@@ -386,4 +385,8 @@
     width: 115px;
     font-size: 18px !important;
     font-weight: bold !important;
+}
+
+#employee-time-log-modal .modal-body {
+    background: rgba(255, 255, 255, 0.25) !important;
 }

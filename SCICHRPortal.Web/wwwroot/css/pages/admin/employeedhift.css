@@ -1,0 +1,114 @@
+﻿
+
+#content-container .container {
+    background: #ffffff !important;
+    border-radius: 12px;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 12px rgba(40,100,40,0.08);
+    padding: 24px 28px 28px;
+    margin-bottom: 40px;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif !important;
+}
+
+#content-container .left-header-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px;
+    color: #1b5e20 !important;
+    margin-bottom: 20px;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e8f5e9;
+    background: none !important;
+}
+
+    #content-container .left-header-container .icon {
+        width: 46px !important;
+        height: 46px !important;
+        margin-bottom: 0 !important;
+    }
+
+    #content-container .left-header-container .title {
+        display: inline !important;
+        color: #1b5e20 !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+    }
+
+#content-container .form-label,
+#content-container label {
+    color: #1b5e20 !important;
+    font-weight: 600;
+}
+
+#content-container .form-control {
+    border: 1px solid #c8e6c9 !important;
+    border-radius: 8px !important;
+    color: #000000 !important;
+}
+
+#content-container .btn-primary,
+#content-container .btn-filter {
+    background-color: #2e7d32 !important;
+    border-color: #2e7d32 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    font-family: 'Inter', sans-serif !important;
+    margin-top: 0 !important;
+}
+
+    #content-container .btn-primary:hover,
+    #content-container .btn-filter:hover {
+        background-color: #1b5e20 !important;
+        border-color: #1b5e20 !important;
+    }
+
+#content-container .dataTables_wrapper {
+    border-top: 1px solid #e8f5e9;
+    margin-top: 20px;
+}
+
+#content-container .dataTables_length label,
+#content-container .dataTables_filter label,
+#content-container .dataTables_info {
+    color: #555 !important;
+}
+
+#employee-shift-grid thead th {
+    background: #2e7d32 !important;
+    color: #ffffff !important;
+    font-size: 13px;
+    font-weight: 600;
+    border: none !important;
+    padding: 11px 14px;
+}
+
+#employee-shift-grid tbody tr:hover {
+    background: #f1f8f1 !important;
+}
+
+#employee-shift-grid tbody td {
+    font-size: 13px;
+    color: #333;
+    border-bottom: 1px solid #e8f5e9 !important;
+    padding: 10px 14px;
+    vertical-align: middle;
+}
+
+#employee-shift-grid_paginate .paginate_button {
+    border-radius: 6px !important;
+    border: 1px solid #c8e6c9 !important;
+    color: #2e7d32 !important;
+    font-size: 12px;
+}
+
+    #employee-shift-grid_paginate .paginate_button.current,
+    #employee-shift-grid_paginate .paginate_button:hover {
+        background: #2e7d32 !important;
+        color: #fff !important;
+        border-color: #2e7d32 !important;
+    }

@@ -112,21 +112,25 @@
 
     let getSetting = async () => {
         $('#busy-indicator-container').removeClass('d-none');
-        let api = document.getElementById('base-api-url').value;
-        let response = await _apiHelper.get({
-            url: `Authenticated/TimekeepingAdminSetup`,
-        });
+        try {
+            let api = document.getElementById('base-api-url').value;
+            let response = await _apiHelper.get({
+                url: `Authenticated/TimekeepingAdminSetup`,
+            });
 
-        if (response.ok) {
-            let json = await response.json();
-            console.log(json);
-            let data = json;
-            //console.log(data);
+            if (response.ok) {
+                let json = await response.json();
+                console.log(json);
+                let data = json;
+                let form = $('#setting-form');
+                data.restDays = normalizeDays(data.restDays);
+                daysofWeekSelect2(true);
+                populateForm(form, json);
+            }
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        } finally {
             $('#busy-indicator-container').addClass('d-none');
-            let form = $('#setting-form');
-            data.restDays = normalizeDays(data.restDays);
-            daysofWeekSelect2(true);
-            populateForm(form, json);
         }
     };
 

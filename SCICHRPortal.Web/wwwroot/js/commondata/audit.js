@@ -25,7 +25,6 @@
             serverSide: true,
             targets: 'no-sort',
             bSort: false,
-            scrollY: "350px",
             scrollX: true,
             order: [1, 'asc'],
             ajax: async function (params, success, settings) {
@@ -51,7 +50,13 @@
             },
             columns: columns,
             pageLength: 5,
-            dom: '<"pull-left">lBf<"pull-right">tipr',
+            dom: '<"d-flex justify-content-between align-items-center mb-2"<"pull-left"l><"pull-right"f>>rtip',
+            language: {
+                search: 'Search:',
+                searchPlaceholder: '',
+                info: 'Showing _START_ to _END_ of _TOTAL_ entries', 
+                lengthMenu: 'Show _MENU_ entries'
+            }
         });
     }
 

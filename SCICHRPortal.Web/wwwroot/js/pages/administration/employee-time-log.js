@@ -388,10 +388,12 @@
                 data: initialData,
                 columns: columns,
                 pageLength: 5,
-                dom: '<"pull-left">lBf<"pull-right">tipr',
+                dom: '<"d-flex justify-content-between align-items-center mb-2"<"pull-left"lB><"pull-right"f>>tipr',
                 language: {
                     emptyTable: "No employee time log data available",
-                    zeroRecords: "No matching records found"
+                    zeroRecords: "No matching records found",
+                    search: 'Search:',
+                    searchPlaceholder: ''
                 }
             });
 

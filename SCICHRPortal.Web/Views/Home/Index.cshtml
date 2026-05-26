@@ -23,12 +23,46 @@
 }
 @section Styles {
     <link href="~/css/pages/home/home.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 }
-    <div class="text-center" align="center">
-    <h1 style="font-family:Times New Roman; color:darkblue">SCIC HR Web Portal</h1>
-    </div>
-<div class="text-center row p-5 " align="center" id="content-container" style="background:linear-gradient(280deg,#63cb3a,transparent); color:white">
-@*     @if (isAdmin || isRegistrar || isParent)
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+        <img src="/images/SCIC_TextLogoBelow.png" alt="Sta.Clara" class="navbar-logo" />
+        </div>
+        <div class="navbar-right">
+        <div class="nav-action" id="logoutBtn">
+            <a id="log-out">
+                <span class="nav-icon logout-icon">&#10140;</span>
+                <span class="nav-label">Logout</span>
+            </a>
+        </div>
+        </div>
+        
+    </nav>
+
+    <!-- Main Content -->
+    <div class="portal-container">
+
+        <!-- Background -->
+        <div class="bg-blob"></div>
+        <h1 class="portal-title">SCIC Digital Portal</h1>
+
+        <!-- Module grid-->
+        <div class="module-grid" id="moduleGrid">
+            
+
+           @if (isAuthorize)
+        {
+            <div class="module-card">
+                <a asp-controller="Administration" asp-area="" asp-action="Announcement">
+                    <img src="/images/administration/humanresources.png" alt="Administration" class="module-icon" />
+                </a>
+                <span class="module-label">Timekeeping</span>
+            </div>
+        }
+
+        @*     @if (isAdmin || isRegistrar || isParent)
     {
         <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
             <a asp-controller="Dashboard" asp-area="" asp-action="Announcement">
@@ -46,8 +80,8 @@
             <span class="dashboard-icon-title">Grading</span>
         </div>
     }
- 
-    @if (isStudent || isPrincipal || isParent || isTeacher || isCoordinator || isAdmin || isRegistrar)
+
+@if (isStudent || isPrincipal || isParent || isTeacher || isCoordinator || isAdmin || isRegistrar)
     {
         <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
             <a asp-controller="Schedule" asp-area="" asp-action="Announcement">
@@ -75,31 +109,18 @@
         </div>
 
     } *@
-    @if (isAuthorize)
-    {
-        <div class="col-lg-4 mb-lg-3 mx-auto dashboard-icon-container">
-            <a asp-controller="Administration" asp-area="" asp-action="Announcement">
-                <img id="deur-entries-logo" class="dashboard-icon" src="/images/administration/administrator.png">
-            </a>
-            <span class="dashboard-icon-title">Timekeeping</span>
-        </div>
 
-    }
 
-</div>
-<div class="text-center d-flex flex-row justify-content-center align-items-center w-100" align="center" id="content-container">
-    <div class="mb-lg-3 dashboard-icon-container">
-        <a id="log-out">
-            <img id="deur-entries-logo" class="dashboard-icon" src="/images/common/logout.png">
-            <span class="dashboard-icon-title" style="color: blue; text-underline-position">Logout</span>
-        </a>
     </div>
-</div>
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    </div>
+
+
+    @section Scripts {
+        @{
+         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/js/helpers/cookie-helper.js"></script>
-    <script src="~/js/pages/home/home.js"></script>
-}
+    <script src="~/js/helpers/cookie-helper.js" asp-append-version="true"></script>
+    <script src="~/js/pages/home/home.js" asp-append-version="true"></script>
+    }
+

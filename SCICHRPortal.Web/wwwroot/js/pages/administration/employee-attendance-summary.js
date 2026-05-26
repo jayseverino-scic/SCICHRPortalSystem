@@ -202,7 +202,12 @@
             lengthChange: false,
             //ordering: true,
             data: data,
-            columns: getEmployeeAttendanceColumns()
+            columns: getEmployeeAttendanceColumns(),
+            dom: '<"d-flex justify-content-end align-items-center mb-2"f>rtip',
+            language: {
+                search: 'Search:',        
+                searchPlaceholder: ''
+            }
         });
     };
 

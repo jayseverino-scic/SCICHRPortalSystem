@@ -15,11 +15,13 @@
     <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/admin/employeetimelog.css" asp-append-version="true" />
     <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 
 }
 <div class="modal" id="employee-time-log-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-xl" role="document" style="width: 1100px">
+    <div class="modal-dialog .modal-dialog-centered .modal-dialog-scrollable .modal-xl" role="document">
         <form id="employee-time-log-form">
             <div class="modal-content">
                 <div class="form-content">
@@ -145,7 +147,7 @@
 </div>
 
 <div id="content-container" class="row">
-    <div class="container col-md-12">
+    <div class="container col-md-12 employee-timelog-page-wrapper" >
         <div class="left-header-container">
             <img class="icon" src="/images/administration/attendancebig.png">
             <h1 class="title">Employee Time Logs</h1>

@@ -77,19 +77,16 @@ input, select, textarea {
     width: 80px;
     margin-top: -3px;
 }
-.nav-first-container {
+/* .nav-first-container {
     margin: 10px;
     padding: 15px;
     border-radius: 6px;
     background: linear-gradient(to left, #007f11, #63cb3a);
     height: 100px;
     width: 100% !important;
-}
+} */
 .nav-second-container {
     visibility: hidden;
-}
-.nav-second-container img{
-    width:  1%;
 }
 #school-name {
     width: 20%;

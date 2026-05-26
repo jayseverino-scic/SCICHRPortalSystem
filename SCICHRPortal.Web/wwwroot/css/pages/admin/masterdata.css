@@ -1,0 +1,541 @@
+﻿#content-container .container {
+    background: #ffffff !important;
+    border-radius: 12px;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 12px rgba(40,100,40,0.08);
+    padding: 24px 28px 28px;
+    margin-bottom: 40px;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif !important;
+}
+
+
+#content-container .left-header-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px;
+    color: #1b5e20 !important;
+    margin-top: 0 !important;
+    margin-bottom: 18px !important;
+    padding-top: 0 !important;
+    padding-bottom: 18px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border-bottom: 1px solid #e8f5e9 !important;
+    background: none !important;
+    width: 100% !important;
+    min-height: 60px !important;
+}
+
+    #content-container .left-header-container .icon {
+        width: 46px !important;
+        height: 46px !important;
+        margin-bottom: 0 !important;
+        display: block !important;
+    }
+
+    #content-container .left-header-container .title {
+        display: inline !important;
+        color: #1b5e20 !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+    }
+
+#content-container .add-new-btn {
+    background-color: #2e7d32 !important;
+    border-color: #2e7d32 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 7px 18px !important;
+    margin-bottom: 18px;
+    font-family: 'Inter', sans-serif !important;
+    transition: background 0.15s !important;
+}
+
+    #content-container .add-new-btn:hover {
+        background-color: #1b5e20 !important;
+        border-color: #1b5e20 !important;
+    }
+
+
+#content-container .form-label,
+#content-container label {
+    color: #1b5e20 !important;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif !important;
+}
+
+#content-container .form-control {
+    border: 1px solid #c8e6c9 !important;
+    border-radius: 8px !important;
+    color: #000000 !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+
+#content-container .btn-primary,
+#content-container .btn-filter {
+    background-color: #2e7d32 !important;
+    border-color: #2e7d32 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+    #content-container .btn-primary:hover,
+    #content-container .btn-filter:hover {
+        background-color: #1b5e20 !important;
+        border-color: #1b5e20 !important;
+    }
+
+
+#content-container .dataTables_wrapper {
+    border-top: 1px solid #e8f5e9;
+    margin-top: 20px;
+}
+
+#content-container .dataTables_length label,
+#content-container .dataTables_filter label,
+#content-container .dataTables_info {
+    color: #555 !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 18px;
+    font-weight: normal !important;
+}
+
+
+#employee-grid thead th,
+#shift-grid thead th,
+#department-grid thead th,
+#cutoff-grid thead th,
+#leavetype-grid thead th,
+#position-grid thead th,
+#holiday-grid thead th,
+#timekeepingdevices-grid thead th,
+#timekeepingadminsetup-grid thead th {
+    background: #2e7d32 !important;
+    color: #ffffff !important;
+    font-size: 13px;
+    font-weight: 600;
+    border: none !important;
+    padding: 11px 14px;
+    font-family: 'Inter', sans-serif !important;
+}
+
+#employee-grid tbody tr:hover,
+#shift-grid tbody tr:hover,
+#department-grid tbody tr:hover,
+#cutoff-grid tbody tr:hover,
+#leavetype-grid tbody tr:hover,
+#position-grid tbody tr:hover,
+#holiday-grid tbody tr:hover,
+#timekeepingdevices-grid tbody tr:hover,
+#timekeepingadminsetup-grid tbody tr:hover {
+    background: #f1f8f1 !important;
+}
+
+#employee-grid tbody td,
+#shift-grid tbody td,
+#department-grid tbody td,
+#cutoff-grid tbody td,
+#leavetype-grid tbody td,
+#position-grid tbody td,
+#holiday-grid tbody td,
+#timekeepingdevices-grid tbody td,
+#timekeepingadminsetup-grid tbody td {
+    font-size: 13px;
+    color: #333;
+    border-bottom: 1px solid #e8f5e9 !important;
+    padding: 10px 14px;
+    vertical-align: middle;
+    font-family: 'Inter', sans-serif !important;
+}
+
+
+#employee-grid_paginate .paginate_button,
+#shift-grid_paginate .paginate_button,
+#department-grid_paginate .paginate_button,
+#cutoff-grid_paginate .paginate_button,
+#leavetype-grid_paginate .paginate_button,
+#position-grid_paginate .paginate_button,
+#holiday-grid_paginate .paginate_button,
+#timekeepingdevices-grid_paginate .paginate_button,
+#timekeepingadminsetup-grid_paginate .paginate_button {
+    border-radius: 6px !important;
+    border: 1px solid #c8e6c9 !important;
+    color: #2e7d32 !important;
+    font-size: 12px;
+}
+
+    #employee-grid_paginate .paginate_button.current,
+    #employee-grid_paginate .paginate_button:hover,
+    #shift-grid_paginate .paginate_button.current,
+    #shift-grid_paginate .paginate_button:hover,
+    #department-grid_paginate .paginate_button.current,
+    #department-grid_paginate .paginate_button:hover,
+    #cutoff-grid_paginate .paginate_button.current,
+    #cutoff-grid_paginate .paginate_button:hover,
+    #leavetype-grid_paginate .paginate_button.current,
+    #leavetype-grid_paginate .paginate_button:hover,
+    #position-grid_paginate .paginate_button.current,
+    #position-grid_paginate .paginate_button:hover,
+    #holiday-grid_paginate .paginate_button.current,
+    #holiday-grid_paginate .paginate_button:hover,
+    #timekeepingdevices-grid_paginate .paginate_button.current,
+    #timekeepingdevices-grid_paginate .paginate_button:hover,
+    #timekeepingadminsetup-grid_paginate .paginate_button.current,
+    #timekeepingadminsetup-grid_paginate .paginate_button:hover {
+        background: #2e7d32 !important;
+        color: #fff !important;
+        border-color: #2e7d32 !important;
+    }
+
+
+#employee-modal .modal-dialog,
+#shift-modal .modal-dialog,
+#department-modal .modal-dialog,
+#cutoff-modal .modal-dialog,
+#leavetype-modal .modal-dialog,
+#position-modal .modal-dialog,
+#holiday-modal .modal-dialog,
+#timekeepingdevices-modal .modal-dialog,
+#timekeepingadminsetup-modal .modal-dialog {
+    max-width: 700px;
+    width: 100%;
+    margin: 1.75rem auto;
+    position: relative;
+    top: 80px;
+}
+
+
+#employee-modal .modal-content,
+#shift-modal .modal-content,
+#department-modal .modal-content,
+#cutoff-modal .modal-content,
+#leavetype-modal .modal-content,
+#position-modal .modal-content,
+#holiday-modal .modal-content,
+#timekeepingdevices-modal .modal-content,
+#timekeepingadminsetup-modal .modal-content {
+    font-family: 'Inter', sans-serif !important;
+    background: rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(20px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.55) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(30, 100, 30, 0.15), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+    overflow: hidden;
+    width: 100%;
+}
+
+#employee-modal .modal-header,
+#shift-modal .modal-header,
+#department-modal .modal-header,
+#cutoff-modal .modal-header,
+#leavetype-modal .modal-header,
+#position-modal .modal-header,
+#holiday-modal .modal-header,
+#timekeepingdevices-modal .modal-header,
+#timekeepingadminsetup-modal .modal-header {
+    background: rgba(46, 125, 50, 0.72) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.2) !important;
+    padding: 18px 24px 16px;
+    border-radius: 20px 20px 0 0 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+
+#employee-modal .modal-title,
+#shift-modal .modal-title,
+#department-modal .modal-title,
+#cutoff-modal .modal-title,
+#leavetype-modal .modal-title,
+#position-modal .modal-title,
+#holiday-modal .modal-title,
+#timekeepingdevices-modal .modal-title,
+#timekeepingadminsetup-modal .modal-title {
+    font-weight: 700;
+    font-size: 17px;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff !important;
+    letter-spacing: 0.3px;
+}
+
+
+#employee-modal .modal-body,
+#shift-modal .modal-body,
+#department-modal .modal-body,
+#cutoff-modal .modal-body,
+#leavetype-modal .modal-body,
+#position-modal .modal-body,
+#holiday-modal .modal-body,
+#timekeepingdevices-modal .modal-body,
+#timekeepingadminsetup-modal .modal-body {
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    padding: 22px 24px 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(46,125,50,0.35) transparent;
+}
+
+    #employee-modal .modal-body::-webkit-scrollbar,
+    #shift-modal .modal-body::-webkit-scrollbar,
+    #department-modal .modal-body::-webkit-scrollbar,
+    #cutoff-modal .modal-body::-webkit-scrollbar,
+    #leavetype-modal .modal-body::-webkit-scrollbar,
+    #position-modal .modal-body::-webkit-scrollbar,
+    #holiday-modal .modal-body::-webkit-scrollbar,
+    #timekeepingdevices-modal .modal-body::-webkit-scrollbar,
+    #timekeepingadminsetup-modal .modal-body::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    #employee-modal .modal-body::-webkit-scrollbar-thumb,
+    #shift-modal .modal-body::-webkit-scrollbar-thumb,
+    #department-modal .modal-body::-webkit-scrollbar-thumb,
+    #cutoff-modal .modal-body::-webkit-scrollbar-thumb,
+    #leavetype-modal .modal-body::-webkit-scrollbar-thumb,
+    #position-modal .modal-body::-webkit-scrollbar-thumb,
+    #holiday-modal .modal-body::-webkit-scrollbar-thumb,
+    #timekeepingdevices-modal .modal-body::-webkit-scrollbar-thumb,
+    #timekeepingadminsetup-modal .modal-body::-webkit-scrollbar-thumb {
+        background: rgba(46,125,50,0.35);
+        border-radius: 4px;
+    }
+
+
+#employee-modal label, #employee-modal .col-form-label,
+#shift-modal label, #shift-modal .col-form-label,
+#department-modal label, #department-modal .col-form-label,
+#cutoff-modal label, #cutoff-modal .col-form-label,
+#leavetype-modal label, #leavetype-modal .col-form-label,
+#position-modal label, #position-modal .col-form-label,
+#holiday-modal label, #holiday-modal .col-form-label,
+#timekeepingdevices-modal label, #timekeepingdevices-modal .col-form-label,
+#timekeepingadminsetup-modal label, #timekeepingadminsetup-modal .col-form-label {
+    color: #000000 !important;
+    font-weight: 600 !important;
+    font-size: 12.5px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-family: 'Inter', sans-serif !important;
+    margin-bottom: 5px;
+}
+
+#employee-modal .form-control,
+#shift-modal .form-control,
+#department-modal .form-control,
+#cutoff-modal .form-control,
+#leavetype-modal .form-control,
+#position-modal .form-control,
+#holiday-modal .form-control,
+#timekeepingdevices-modal .form-control,
+#timekeepingadminsetup-modal .form-control {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border: 1.5px solid #4caf50 !important;
+    border-radius: 10px !important;
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    opacity: 1 !important;
+    font-size: 13.5px !important;
+    padding: 9px 13px !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: all 0.2s ease !important;
+}
+
+    #employee-modal .form-control:focus,
+    #shift-modal .form-control:focus,
+    #department-modal .form-control:focus,
+    #cutoff-modal .form-control:focus,
+    #leavetype-modal .form-control:focus,
+    #position-modal .form-control:focus,
+    #holiday-modal .form-control:focus,
+    #timekeepingdevices-modal .form-control:focus,
+    #timekeepingadminsetup-modal .form-control:focus {
+        background: rgba(255, 255, 255, 0.42) !important;
+        border: 1.5px solid #4caf50 !important;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.18) !important;
+        outline: none !important;
+    }
+
+    #employee-modal .form-control::placeholder,
+    #shift-modal .form-control::placeholder,
+    #department-modal .form-control::placeholder,
+    #cutoff-modal .form-control::placeholder,
+    #leavetype-modal .form-control::placeholder,
+    #position-modal .form-control::placeholder,
+    #holiday-modal .form-control::placeholder,
+    #timekeepingdevices-modal .form-control::placeholder,
+    #timekeepingadminsetup-modal .form-control::placeholder {
+        color: rgba(0, 0, 0, 0.4) !important;
+        opacity: 1 !important;
+    }
+
+/* Form groups */
+#employee-modal .form-group,
+#shift-modal .form-group,
+#department-modal .form-group,
+#cutoff-modal .form-group,
+#leavetype-modal .form-group,
+#position-modal .form-group,
+#holiday-modal .form-group,
+#timekeepingdevices-modal .form-group,
+#timekeepingadminsetup-modal .form-group {
+    margin-bottom: 16px;
+}
+
+#employee-modal .modal-footer,
+#shift-modal .modal-footer,
+#department-modal .modal-footer,
+#cutoff-modal .modal-footer,
+#leavetype-modal .modal-footer,
+#position-modal .modal-footer,
+#holiday-modal .modal-footer,
+#timekeepingdevices-modal .modal-footer,
+#timekeepingadminsetup-modal .modal-footer {
+    background: rgba(255,255,255,0.10) !important;
+    border-top: 1px solid rgba(255,255,255,0.22) !important;
+    padding: 14px 24px;
+    border-radius: 0 0 20px 20px !important;
+    gap: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+
+#employee-modal .cancel-button,
+#shift-modal .cancel-button,
+#department-modal .cancel-button,
+#cutoff-modal .cancel-button,
+#leavetype-modal .cancel-button,
+#position-modal .cancel-button,
+#holiday-modal .cancel-button,
+#timekeepingdevices-modal .cancel-button,
+#timekeepingadminsetup-modal .cancel-button {
+    background: rgba(255,255,255,0.20) !important;
+    border: 1px solid #4caf50 !important;
+    color: #000 !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 8px 22px !important;
+    transition: all 0.18s ease !important;
+    backdrop-filter: blur(4px);
+}
+
+    #employee-modal .cancel-button:hover,
+    #shift-modal .cancel-button:hover,
+    #department-modal .cancel-button:hover,
+    #cutoff-modal .cancel-button:hover,
+    #leavetype-modal .cancel-button:hover,
+    #position-modal .cancel-button:hover,
+    #holiday-modal .cancel-button:hover,
+    #timekeepingdevices-modal .cancel-button:hover,
+    #timekeepingadminsetup-modal .cancel-button:hover {
+        background: rgba(255,255,255,0.35) !important;
+        color: #000 !important;
+    }
+
+
+#employee-modal .btn-primary,
+#shift-modal .btn-primary,
+#department-modal .btn-primary,
+#cutoff-modal .btn-primary,
+#leavetype-modal .btn-primary,
+#position-modal .btn-primary,
+#holiday-modal .btn-primary,
+#timekeepingdevices-modal .btn-primary,
+#timekeepingadminsetup-modal .btn-primary {
+    background: rgba(46,125,50,0.88) !important;
+    border: 1px solid rgba(46,125,50,0.6) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 8px 26px !important;
+    transition: all 0.18s ease !important;
+    box-shadow: 0 2px 8px rgba(46,125,50,0.28) !important;
+}
+
+    #employee-modal .btn-primary:hover,
+    #shift-modal .btn-primary:hover,
+    #department-modal .btn-primary:hover,
+    #cutoff-modal .btn-primary:hover,
+    #leavetype-modal .btn-primary:hover,
+    #position-modal .btn-primary:hover,
+    #holiday-modal .btn-primary:hover,
+    #timekeepingdevices-modal .btn-primary:hover,
+    #timekeepingadminsetup-modal .btn-primary:hover {
+        background: rgba(27,94,32,0.95) !important;
+        box-shadow: 0 4px 14px rgba(46,125,50,0.40) !important;
+        transform: translateY(-1px);
+    }
+
+
+
+#employee-modal .text-danger,
+#shift-modal .text-danger,
+#department-modal .text-danger,
+#cutoff-modal .text-danger,
+#leavetype-modal .text-danger,
+#position-modal .text-danger,
+#holiday-modal .text-danger,
+#timekeepingdevices-modal .text-danger,
+#timekeepingadminsetup-modal .text-danger {
+    color: #b71c1c !important;
+    font-size: 11.5px;
+    font-family: 'Inter', sans-serif;
+}
+
+.modal-backdrop {
+    background-color: rgba(20, 60, 20, 0.45) !important;
+}
+
+.modal {
+    overflow-y: auto !important;
+}
+
+
+.pagination > .active > a,
+.pagination > .active > a:focus,
+.pagination > .active > a:hover,
+.pagination > .active > span,
+.pagination > .active > span:focus,
+.pagination > .active > span:hover {
+    background-color: white !important;
+    border-color: #2e7d32 !important;
+    color: #2e7d32 !important;
+}
+
+.pagination > li > a:focus,
+.pagination > li > a:hover,
+.pagination > li > span:focus,
+.pagination > li > span:hover {
+    background-color: #e8f5e9 !important;
+    color: #2e7d32 !important;
+}
+
+#employee-grid_filter input[type=search]:focus,
+#shift-grid_filter input[type=search]:focus,
+#department-grid_filter input[type=search]:focus,
+#cutoff-grid_filter input[type=search]:focus,
+#leavetype-grid_filter input[type=search]:focus,
+#position-grid_filter input[type=search]:focus,
+#holiday-grid_filter input[type=search]:focus,
+#timekeepingdevices-grid_filter input[type=search]:focus {
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.18) !important;
+    outline: none !important;
+}
+

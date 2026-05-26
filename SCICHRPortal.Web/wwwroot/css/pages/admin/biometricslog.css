@@ -1,0 +1,127 @@
+﻿/* Page wrapper */
+#content-container .container {
+    background: #ffffff !important;
+    border-radius: 12px;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 12px rgba(40,100,40,0.08);
+    padding: 24px 28px 28px;
+    margin-bottom: 40px;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif !important;
+}
+
+#content-container .left-header-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px;
+    color: #1b5e20 !important;
+    margin-bottom: 20px;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e8f5e9;
+    background: none !important;
+}
+
+#content-container .left-header-container .icon {
+    width: 46px !important;
+    height: 46px !important;
+    margin-bottom: 0 !important;
+}
+
+    #content-container .left-header-container .title {
+        display: inline;
+        color: #1b5e20 !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+    }
+
+#content-container .form-control {
+    border: 1px solid #c8e6c9 !important;
+    border-radius: 8px !important;
+    color: #000000 !important;
+}
+
+#content-container .btn-primary {
+    background-color: #2e7d32 !important;
+    border-color: #2e7d32 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+}
+
+#content-container .btn-primary:hover{
+    background-color: #1b5e20 !important;
+    border-color: #1b5e20 !important;
+}
+
+#content-container .dataTables_wrapper {
+    border-top: 1px solid #e8f5e9;
+    margin-top: 20px;
+}
+
+/* DataTable Header */
+#biometrics-log-grid thead th {
+    background: #2e7d32 !important;
+    color: #ffffff !important;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif !important;
+    border: none !important;
+    padding: 11px 14px;
+}
+
+#biometrics-log-grid tbody tr:hover {
+    background: #f1f8f1 !important;
+}
+
+#biometrics-log-grid tbody td {
+    font-size: 13px;
+    color: #333;
+    border-bottom: 1px solid #e8f5e9 !important;
+    padding: 10px 14px;
+    vertical-align: middle;
+}
+
+#content-container .dataTables_length label,
+#content-container .dataTables_filter label,
+#content-container .dataTables_info {
+    font-size: 16px !important;
+    color: #555 !important;
+    font-weight: normal !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#content-container .dataTables_paginate .paginate_button {
+    border-radius: 6px !important;
+    border: 1px solid #c8e6c9 !important;
+    color: #2e7d32 !important;
+    font-size: 12px;
+}
+
+    #content-container .dataTables_paginate .paginate_button.current,
+    #content-container .dataTables_paginate .paginate_button:hover {
+        background: #2e7d32 !important;
+        color: #fff !important;
+        border-color: #2e7d32 !important;
+    }
+
+#biometrics-log-grid_filter input[type=search] {
+    width: 250px !important;
+    height: 36px !important;
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+    border: 1px solid #c8e6c9 !important;
+    border-radius: 6px !important;
+    outline: none !important;
+    color: #333 !important;
+}
+
+    #biometrics-log-grid_filter input[type=search]:focus {
+        border-color: #2e7d32 !important;
+        box-shadow: 0 0 0 2px rgba(46,125,50,0.2) !important;
+    }
