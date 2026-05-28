@@ -1,13 +1,15 @@
 ﻿#content-container .container {
-    background: #ffffff !important;
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(20px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
     border-radius: 12px;
     border: 1px solid #c8e6c9;
     box-shadow: 0 2px 12px rgba(40,100,40,0.08);
     padding: 24px 28px 28px;
     margin-bottom: 40px;
+    width: 100%;
     box-sizing: border-box;
     overflow: hidden;
-    font-family: 'Inter', sans-serif !important;
 }
 
 
