@@ -11,8 +11,8 @@
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
 
-    let _biometrics = [];
-    let _currentBiometrics = "0";
+    let devices = [];
+    let _currentDevice = "0";
     let _employee = [];
     let _employeeShift = [];
     let pageSize = 10;
@@ -27,17 +27,18 @@
         $('#employee-time-log-form #employeeNo').on('change', onChangeEmployeeNo);
         $('#end-date-filter').attr('value', moment().format('yyyy-MM-DD'));
         $('#start-date-filter').attr('value', moment().format('yyyy-MM-DD'));
-        $('#end-import-filter').attr('value', moment().format('yyyy-MM-DD'));
-        $('#start-import-filter').attr('value', moment().format('yyyy-MM-DD'));
         $('#filter').on(CLICK_EVENT, onClickFilter);
-        $('#start-import-filter').on('change', onChangeStartImport)
         $('#import').on(CLICK_EVENT, onClickImport);
     };
 
     let onClickImport = () => {
-        _currentBiometrics = $('#biometrics').val() || 0;
-        let startImportDate = $('#start-import-filter').val();
-        let endImportDate = $('#end-date-filter').val() + 'T23:59:59' ;
+        _currentDevice = $('#device').val() || 0;
+        let startImportDate = $('#start-date-filter').val();
+        let endImportDate = $('#end-date-filter').val() + 'T23:59:59';
+        if (_currentDevice == '') {
+            alert('Please select the device to be filtered!');
+            return;
+        }
         let pageNumber = 1;
         var request = _apiHelper.ajaxRequest('POST', {
             url: `Authenticated/EmployeeTimeLog/Import?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startImportDate=${startImportDate}&endImportDate=${endImportDate}`,
@@ -65,20 +66,11 @@
         });
     }
 
-    let onChangeStartImport = () => {
-        let startDateVal = $('#start-import-filter').val();
-        let endDateVal = $('#end-import-filter').val();
-        if (new Date(startDateVal) > new Date(endDateVal))
-            $('#end-import-filter').val(startDateVal);
-
-        $('#end-import-filter').attr('min', startDateVal);
-    };
-
     let onClickFilter = async e => {
         e.preventDefault();
-        _currentBiometrics = $('#biometrics').val() || 0;
-        let startDate = $('#start-import-filter').val();
-        let endDate = $('#end-import-filter').val();
+        _currentDevice = $('#device').val() || 0;
+        let startDate = $('#start-date-filter').val();
+        let endDate = $('#end-date-filter').val();
 
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
@@ -87,9 +79,16 @@
             let gridInfo = dataTable.page.info();
             pageNumber = gridInfo.page + 1;
         }
-
+        if (_currentDevice == '') {
+            alert('Please select the device to be filtered!');
+            return;
+        }
         let response = await _apiHelper.get({
+<<<<<<< HEAD
+            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${_currentDevice}`,
+=======
             url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${deviceName}`,
+>>>>>>> 2f88a5325ad9e5c6ac6cb4f1e97658d7ff6d0b3b
         });
 
         if (response.ok) {
@@ -303,29 +302,58 @@
     };
 
     let renderDropDowns = async () => {
+        const renderSimpleDropdown = (elementId, data, valueField, textField, placeholder) => {
+            const $select = $(elementId);
+            $select.empty();
+
+            if (placeholder) {
+                $select.append(`<option value="">${placeholder}</option>`);
+            }
+
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    $select.append(`<option value="${item[valueField]}">${item[textField]}</option>`);
+                });
+            } else {
+                $select.append('<option value="">No data available</option>');
+            }
+        };
+        renderSimpleDropdown('#device', devices, 'serialNumber', 'name', 'Select Device');
         //await getDropdownData();
-        _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeNo', valueName: 'employeeId', data: _employee, text: 'employeeNo', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
-        _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeName', valueName: 'employeeId', data: _employee, text: 'firstName', secondText: 'lastName', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
+        // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeNo', valueName: 'employeeId', data: _employee, text: 'employeeNo', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
+        // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeName', valueName: 'employeeId', data: _employee, text: 'firstName', secondText: 'lastName', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
     };
 
     let getDropdownData = async () => {
-        let [employeeResp, employeeShiftResp] = await Promise.all([
-            _apiHelper.get({
-                url: `Authenticated/Employee`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/EmployeeShift`
-            }),
-        ]);
+        try {
+            const deviceResponse = await _apiHelper.get({ url: 'Authenticated/TimekeepingDevices' });
 
-        let [employee, employeeShift] = await Promise.all(
-            [
-                employeeResp.json(),
-                employeeShiftResp.json(),
-            ]
-        );
-        _employee = employee;
-        _employeeShift = employeeShift;
+            if (deviceResponse.ok) {
+                devices = await deviceResponse.json();
+            } else {
+                devices = [];
+            }
+
+        } catch (error) {
+            devices = [];
+        }
+        // let [employeeResp, employeeShiftResp] = await Promise.all([
+        //     _apiHelper.get({
+        //         url: `Authenticated/Employee`
+        //     }),
+        //     _apiHelper.get({
+        //         url: `Authenticated/EmployeeShift`
+        //     }),
+        // ]);
+
+        // let [employee, employeeShift] = await Promise.all(
+        //     [
+        //         employeeResp.json(),
+        //         employeeShiftResp.json(),
+        //     ]
+        // );
+        // _employee = employee;
+        // _employeeShift = employeeShift;
     };
 
     let destroyDataTable = () => {
@@ -644,12 +672,27 @@
         $('#employee-time-log-form #dateBreakIn').attr('value', moment().format('YYYY-MM-DD'));
     };
 
-    let initializeGrids = e => {
-        initializeGrid([]);
-        const button = document.getElementById("filter");
-        if (button) {
-            button.click();
+    let initializeGrids = async () => {
+        try {
+            await getDropdownData();
+            renderDropDowns();
+            // Initialize with empty data first
+            initializeGrid([]);
+
+            // Then trigger filter to load actual data
+            const button = document.getElementById("filter");
+            if (button) {
+                button.click();
+            }
         }
+        catch (error) {
+            console.error('DataTables initialization error:', error);
+        }
+        // initializeGrid([]);
+        // const button = document.getElementById("filter");
+        // if (button) {
+        //     button.click();
+        // }
     };
 
     $(document).ready(function () {
@@ -657,10 +700,10 @@
             console.error('Table element not found:', 'employee-time-log-grid');
             return;
         }
-        renderDropDowns();
+        //renderDropDowns();
         initializeGrids();
         attachEvents();
-        initializeModals();
+        //initializeModals();
     });
 
 })(jQuery);
