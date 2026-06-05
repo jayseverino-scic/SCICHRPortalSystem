@@ -32,7 +32,7 @@
     };
 
     let onClickImport = () => {
-        _currentDevice = $('#device').val() || 0;
+        _currentDevice = $('#device option:selected').text() || '';
         let startImportDate = $('#start-date-filter').val();
         let endImportDate = $('#end-date-filter').val() + 'T23:59:59';
         if (_currentDevice == '') {
@@ -68,7 +68,7 @@
 
     let onClickFilter = async e => {
         e.preventDefault();
-        _currentDevice = $('#device').val() || 0;
+        _currentDevice = $('#device option:selected').text() || '';
         let startDate = $('#start-date-filter').val();
         let endDate = $('#end-date-filter').val();
 
@@ -84,11 +84,7 @@
             return;
         }
         let response = await _apiHelper.get({
-<<<<<<< HEAD
             url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${_currentDevice}`,
-=======
-            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${deviceName}`,
->>>>>>> 2f88a5325ad9e5c6ac6cb4f1e97658d7ff6d0b3b
         });
 
         if (response.ok) {
@@ -700,10 +696,10 @@
             console.error('Table element not found:', 'employee-time-log-grid');
             return;
         }
-        //renderDropDowns();
+        renderDropDowns();
         initializeGrids();
         attachEvents();
-        //initializeModals();
+        initializeModals();
     });
 
 })(jQuery);

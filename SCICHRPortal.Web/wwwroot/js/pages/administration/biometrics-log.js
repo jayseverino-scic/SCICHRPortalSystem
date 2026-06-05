@@ -157,10 +157,10 @@
             let gridInfo = dataTable.page.info();
             pageNumber = gridInfo.page + 1;
         }
-        if (_currentDevice == '') {
-            alert('Please select the device to be filtered!');
-            return;
-        }
+        // if (_currentDevice != '' && _currentDevice == 'Select Device') {
+        //     alert('Please select the device to be filtered!');
+        //     return;
+        // }
         let response = await _apiHelper.get({
             url: `Authenticated/BiometricsLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${_currentDevice}`,
         });
@@ -183,10 +183,10 @@
             let gridInfo = dataTable.page.info();
             pageNumber = gridInfo.page + 1;
         }
-        if (_currentDevice == '') {
-            alert('Please select the device to be filtered!');
-            return;
-        }
+        // if (_currentDevice != '' && _currentDevice == 'Select Device') {
+        //     alert('Please select the device to be filtered!');
+        //     return;
+        // }
         let response = await _apiHelper.get({
             url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&serialNumber=${_currentDevice}`,
         });

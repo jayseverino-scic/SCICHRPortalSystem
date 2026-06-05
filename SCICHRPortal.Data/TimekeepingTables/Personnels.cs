@@ -28,5 +28,7 @@ namespace SCICHRPortal.Data.TimekeepingTables
         public DateTime DateHired { get; set; }
         public DateTime SeparationDate {  get; set; }
         public bool EnableOTP { get; set; }
+        public TimeLogs? TimeLogs { get; set; }
+        public ZKDevices? ZKDevices { get; set; }
     }
 }
