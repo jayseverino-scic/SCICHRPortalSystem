@@ -21,9 +21,10 @@
 
 }
 <div class="modal" id="employee-time-log-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog .modal-dialog-centered modal-dialog-scrollable modal-xl" role="document">
-        <form id="employee-time-log-form">
-            <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document" style="max-width: 900px; width: 900px;">
+        <div class="modal-content">
+            <form id="employee-time-log-form">
+
                 <div class="form-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="addModalLabel">Time Log Form</h4>
@@ -141,8 +142,8 @@
                     <button type="button" data-bs-dismiss="modal" class="btn btn-secondary cancel-button save-button">Cancel</button>
                     <button type="submit" id="borrower-modal-btn" class="btn btn btn-primary save-button">Add</button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -155,28 +156,28 @@
         <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
             <div>
                 <div class="form-label">Start</div>
-                <input id="start-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+                <input id="start-import-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
             </div>
             <div>
                 <div class="form-label">End</div>
-                <input id="end-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+                <input id="end-import-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
             </div>
             <div>
                 <div class="form-label">Timekeeping Device</div>
-                <select id="device" class="form-control select" style="width:400px"></select>
+                <select id="biometrics" class="form-control select" style="width:400px"></select>
             </div>
             <div>
-                <div class="form-label" style="color: transparent;">&nbsp;</div>
-                <button id="filter" class="btn btn-primary" style="height: 38px; width: auto;">Get Saved Logs</button>
+                <div class="form-label" style="color: transparent !important;">Button</div>
+                <button id="filter" class="btn btn-primary" style="height: 38px; width: 80px;">Filter</button>
             </div>
             <div>
-                <div class="form-label" style="color: transparent;">&nbsp;</div>
+                <div class="form-label" style="color: transparent !important;">Button</div>
                 <button id="import" class="btn btn-primary" style="height: 38px; width: auto;">Get Imported Logs</button> &nbsp; &nbsp; &nbsp; &nbsp;
                 <button class="btn btn-primary add-new-btn" id="add-button">New Log</button>
             </div>
         </div>
         <br />
-@*         <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
+        @*         <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
             <div>
                 <div class="form-label">From</div>
                 <input id="start-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">

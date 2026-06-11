@@ -25,34 +25,34 @@
     <link href="~/css/pages/home/home.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 }
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="navbar-left">
+<!-- Navigation Bar -->
+<nav class="navbar">
+    <div class="navbar-left">
         <img src="/images/SCIC_TextLogoBelow.png" alt="Sta.Clara" class="navbar-logo" />
-        </div>
-        <div class="navbar-right">
+    </div>
+    <div class="navbar-right">
         <div class="nav-action" id="logoutBtn">
             <a id="log-out">
-                <span class="nav-icon logout-icon">&#10140;</span>
-                <span class="nav-label">Logout</span>
+                <i class="fas fa-sign-out-alt nav-action-icon"></i>
+                <span class="nav-action-label">Logout</span>
             </a>
         </div>
-        </div>
-        
-    </nav>
+    </div>
 
-    <!-- Main Content -->
-    <div class="portal-container">
+</nav>
 
-        <!-- Background -->
-        <div class="bg-blob"></div>
-        <h1 class="portal-title">SCIC Digital Portal</h1>
+<!-- Main Content -->
+<div class="portal-container">
 
-        <!-- Module grid-->
-        <div class="module-grid" id="moduleGrid">
+    <!-- Background -->
+    <div class="bg-blob"></div>
+    <h1 class="portal-title">SCIC Digital Portal</h1>
+
+    <!-- Module grid-->
+    <div class="module-grid" id="moduleGrid">
+
             
-
-           @if (isAuthorize)
+        @if (isAuthorize)
         {
             <div class="module-card">
                 <a asp-controller="Administration" asp-area="" asp-action="Announcement">
@@ -112,15 +112,15 @@
 
 
     </div>
-    </div>
+</div>
 
 
-    @section Scripts {
-        @{
-         await Html.RenderPartialAsync("_ValidationScriptsPartial");
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/helpers/cookie-helper.js" asp-append-version="true"></script>
     <script src="~/js/pages/home/home.js" asp-append-version="true"></script>
-    }
+}
 

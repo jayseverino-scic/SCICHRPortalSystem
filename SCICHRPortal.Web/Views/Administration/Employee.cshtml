@@ -32,9 +32,9 @@
 
 }
 <div class="modal" id="employee-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog  .modal-dialog-centered .modal-dialog-scrollable .modal-lg">
-        <form id="employee-form">
-            <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document" style="max-width: 900px; width: 900px;">
+        <div class="modal-content">
+            <form id="employee-form">
                 <div class="form-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="addModalLabel">Employee Form</h4>
@@ -107,13 +107,13 @@
                     {
                         <button type="submit" id="employee-modal-btn" class="btn btn btn-primary save-button">Add</button>
                     }
-                   
+
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
-    <div id="content-container" class="row">
+<div id="content-container" class="row">
     <div class="container col-md-12">
         <div class="left-header-container">
             <img class="icon" src="/images/administration/employeebig.png">
@@ -121,23 +121,23 @@
         </div>
         @if (@ViewBag.SystemSelected == "Administration")
         {
-        <div>
-            <button class="btn btn-primary add-new-btn" id="add-button">Add new</button>
-        </div>
-        <br />
-        <div></div>
-        <div></div>
-        <div></div>
-        <div>
-            <div class="form-label">Import Employee File</div>
-            <div class="d-flex">
-                <input type="file" id="upload-file" class="form-control" style="width: 500px; height: 38px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;">
-                <button id="import" class="btn btn-primary" style="height: 38px; border-top-left-radius: 0; border-bottom-left-radius: 0;">
-                    Import
-                    <i class="fas fa-upload"></i>
-                </button>
+            <div>
+                <button class="btn btn-primary add-new-btn" id="add-button">Add new</button>
             </div>
-        </div>
+            <br />
+            <div></div>
+            <div></div>
+            <div></div>
+            <div>
+                <div class="form-label">Import Employee File</div>
+                <div class="d-flex">
+                    <input type="file" id="upload-file" class="form-control" style="width: 500px; height: 38px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                    <button id="import" class="btn btn-primary" style="height: 38px; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                        Import
+                        <i class="fas fa-upload"></i>
+                    </button>
+                </div>
+            </div>
         }
         <table id="employee-grid" class="display" cellspacing="0" width="100%">
         </table>
@@ -148,9 +148,9 @@
     var system = '@(ViewBag.SystemSelected)';
 </script>
 @section Scripts {
-@{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
-}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script src="~/lib/toastr.js/toastr.min.js"></script>
     <script src="~/lib/moment.js/moment.min.js"></script>
     <script src="~/lib/select2/js/select2.min.js"></script>

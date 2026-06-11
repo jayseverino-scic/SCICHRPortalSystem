@@ -213,10 +213,24 @@ var customizePdf = (doc, tableSelector) => {
 
         return dayBeforeDueDate;
     }
-   let validateToken = () => {
+    let validateToken = () => {
         if (!_cookieHelper.get('jsonWebToken'))
             window.location = '/Login/Index';
     };
+
+    $(document).ready(function () {
+        const pallete = ['#9FA1FF', '#B5BAFF', '#AEE2FF', '#D9F9DF', '#FFF9D2', '#FFEBCC', '#BFDDF0', '#8CC0EB'];
+
+        $('.avatar-circle-dynamic').each(function () {
+            const textNode = $(this).text().trim();
+            let sum = 0;
+            for (let i = 0; i < textNode.length; i++) {
+                sum += textNode.charCodeAt(i);
+            }
+            const colorIndex = sum % pallete.length;
+            $(this).css('background-color', pallete[colorIndex]);
+        });
+    });
 
     var inactivityTime = function () {
         var time;

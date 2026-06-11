@@ -25,19 +25,15 @@
 </head>
 <body>
 
-    <!-- Busy Indicator -->
     <div id="busy-indicator-container" class="d-none">
         <img class="indicator-img-position" src="/images/loading_indicator.gif" />
     </div>
 
-    <!-- Top Navbar -->
     <nav id="head-nav">
-
-        <!-- Logo -->
-        <a class="nav-logo-wrapper" href="/">
+        <div class="nav-logo-wrapper">
             <img src="/images/SCIC_TextLogoBelow.png" alt="Sta.Clara" id="nav-logo" />
-            <h1 class="portal-title">SCIC Web Portal</h1>
-        </a>
+            <h1 class="portal-title">SCIC WEB PORTAL</h1>
+        </div>
 
         <!-- Search — only when sidebar is visible -->
         @* @if (!hideSidebar)
@@ -50,45 +46,55 @@
             </div>
         }*@
 
-        <!-- Right Actions -->
-        <!-- FIX: changed nav-action-wrapper to nav-actions-wrapper to match _layout.css -->
+       
         <div class="nav-actions-wrapper">
-
-            <!-- Notification -->
             <div class="nav-action-item">
                 <a href="#" id="notification-btn">
-                    <i class="fas fa-bell nav-action-icon"></i>
+                    <div class="icon"><i class="fas fa-bell"></i></div>
                     <span class="nav-action-label">Notification</span>
                 </a>
             </div>
 
-            <!-- Logout -->
-            <!-- FIX: id="logout" changed to id="nav-log-out" — consistent naming -->
+            
             <div class="nav-action-item">
                 <a href="#" id="nav-log-out">
-                    <i class="fas fa-sign-out-alt nav-action-icon"></i>
+                    <div class="icon"><i class="fas fa-sign-out-alt"></i></div>
                     <span class="nav-action-label">Logout</span>
                 </a>
             </div>
 
-            <!-- Username / Avatar -->
             <div class="nav-action-item">
-                <div class="nav-avatar">
-                    <img src="/images/default-avatar.png" alt="User" id="nav-avatar-img" />
+                @{
+                    string currentUserName = User.Identity?.Name ?? "Username";
+                    string initials = "??";
+
+                    if (!string.IsNullOrEmpty(currentUserName))
+                    {
+                        var nameParts = currentUserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (nameParts.Length >= 2)
+                        {
+                            initials = $"{nameParts[0][0]}{nameParts[1][0]}".ToUpper();
+                        }
+                        else if (nameParts.Length == 1)
+                        {
+                            initials = $"{nameParts[0][0]}".ToUpper();
+                        }
+                    }
+                }
+                <div class="nav-avatar avatar-circle-dynamic" id="nav-avatar-container">
+                    <span class="nav-avatar-initials">@initials</span>
                 </div>
-                <span class="nav-action-label" id="current-user">Username</span>
+                <span class="nav-action-label" id="current-user">@currentUserName</span>
             </div>
 
         </div>
     </nav>
 
-    <!-- Page Body -->
     <div class="page-body-wrapper">
         <input id="base-api-url" type="hidden" value="@Configuration["BaseApiUrl"]" />
 
         <div id="content-container" class="row">
 
-            <!-- Sidebar -->
             @if (!hideSidebar)
             {
                 <div class="nav-container" id="sidebar-container" tabindex="0">
@@ -96,7 +102,6 @@
                 </div>
             }
 
-            <!-- Main Content -->
             <main role="main" class="pb-3 @(hideSidebar ? "col-md-12 px-4" : "") main-wrapper">
                 @RenderBody()
             </main>
@@ -104,13 +109,11 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer id="page-footer">
         <span>&copy; 2026 - SCIC</span>
         <span>&nbsp; @ViewBag.SystemSelected System - @DateTime.Today.ToShortDateString()</span>
     </footer>
 
-    <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/moment.js/moment.min.js"></script>
@@ -133,7 +136,6 @@
     }
 
     <script>
-        // Navbar logout handler
         document.getElementById('nav-log-out')?.addEventListener('click', function (e) {
         e.preventDefault();
         const c = new CookieHelper();

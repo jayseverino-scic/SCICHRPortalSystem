@@ -4,8 +4,6 @@
     box-sizing: border-box;
 }
 
-/* Utility */
-
 .sr-only {
     position: absolute;
     width: 1px;
@@ -25,7 +23,7 @@
 
 .text-danger {
     position: absolute;
-    top: 40px; /* sits just below the 38px input */
+    top: 40px;
     left: 2px;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
@@ -40,7 +38,6 @@
     display: none !important;
 }
 
-/* Base */
 body {
     font-family: 'Inter', sans-serif;
 }
@@ -52,8 +49,6 @@ body {
     width: 100%;
     height: 100vh;
 }
-
-/* Background */
 
 .scic-logo-wrapper {
     position: absolute;
@@ -87,8 +82,6 @@ body {
     background: rgba(14, 37, 7, 0.2);
 }
 
-/* Login Card */
-
 .login-border {
     position: absolute;
     left: 10%;
@@ -101,9 +94,7 @@ body {
     border: 0.5px solid rgba(255, 255, 255, 0.32);
     border-radius: 15px;
     box-shadow: 0px 4px 50px 0px rgba(0, 0, 0, 0.25);
-    background-image: 
-        linear-gradient(90deg, rgba(49, 48, 48, 0.05) 0%, rgba(49, 48, 48, 0.05) 100%), 
-        linear-gradient(90deg, rgba(255, 244, 244, 0.10) 0%, rgba(255, 244, 244, 0.10) 100%);
+    background-image: linear-gradient(90deg, rgba(49, 48, 48, 0.05) 0%, rgba(49, 48, 48, 0.05) 100%), linear-gradient(90deg, rgba(255, 244, 244, 0.10) 0%, rgba(255, 244, 244, 0.10) 100%);
     padding: 30px 37px 50px;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(10px);
@@ -112,8 +103,6 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
 }
-
-/* Tab Toggle */
 
 .sign-border {
     position: relative;
@@ -126,7 +115,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Sliding active indicator */
 .tab-indicator {
     position: absolute;
     left: 4px;
@@ -154,13 +142,15 @@ body {
     color: rgba(0, 0, 0, 70);
     z-index: 2;
     transition: color 0.2s;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    text-align: center;
 }
 
     .tab-btn.active {
         color: black;
     }
-
-/* Tab Form Panels */
 
 .tab-form {
     display: flex;
@@ -169,15 +159,13 @@ body {
     margin-top: 60px;
 }
 
-/* Input Fields */
-
 .input-field-wrapper {
     position: relative;
     width: 100%;
     height: auto;
     min-height: 38px;
-    margin-bottom: 7px; /* removed — spacing handled by padding-bottom below */
-    padding-bottom: 18px; /* always reserves space whether error shows or not */
+    margin-bottom: 7px;
+    padding-bottom: 18px;
 }
 
 .input-field-control {
@@ -205,17 +193,14 @@ body {
         box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.3);
     }
 
-/* Hide browser built-in password reveal icon */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear,
-input[type="password"]::-webkit-contacts-auto-fill-button,
-input[type="password"]::-webkit-credentials-auto-fill-button {
+input[type="password"]::-webkit-clear-button,
+input[type="password"]::-webkit-autofill {
     display: none !important;
     visibility: hidden;
     pointer-events: none;
 }
-
-/* Eye Toggle Button */
 
 .eye-icon {
     position: absolute;
@@ -239,8 +224,6 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         color: rgba(0, 0, 0, 0.8);
     }
 
-/* Forgot Password */
-
 .forgot-password-wrapper {
     margin-top: -8px;
     margin-bottom: 12px;
@@ -257,8 +240,6 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     .forgot-password-link:hover {
         text-decoration: underline;
     }
-
-/* Submit Button */
 
 .shape-login {
     width: 214px;
@@ -291,12 +272,10 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     font-family: 'Inter', sans-serif;
     font-size: 18px;
     font-weight: 600;
-    color: #1a4d1a; /* dark green to match your background */
+    color: #1a4d1a;
     white-space: nowrap;
     pointer-events: none;
 }
-
-/* Footer */
 
 .account-text {
     margin-top: 12px;
@@ -319,4 +298,3 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     white-space: nowrap;
     cursor: pointer;
 }
-

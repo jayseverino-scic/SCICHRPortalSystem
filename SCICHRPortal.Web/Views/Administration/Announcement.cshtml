@@ -25,20 +25,22 @@
     <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/pages/admin/announcement.css" asp-append-version="true" />
     <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 }
 
 
 <div class="modal" id="announcement-modal" tabindex="-1" role="dialog"
      aria-labelledby="addModalLabel" aria-hidden="true"
      data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog .modal-dialog-centered .modal-xl" role="document">
-        <form id="announcement-form">
-            <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document" style="max-width: 900px; width: 900px;">
+        <div class="modal-content">
+            <form id="announcement-form">
 
+            
                 <!-- Header -->
                 <div class="modal-header">
                     <h4 class="modal-title" id="addModalLabel">
@@ -113,9 +115,9 @@
                         </button>
                     }
                 </div>
+            </form>
+        </div>
 
-            </div>
-        </form>
     </div>
 </div>
 
@@ -142,6 +144,16 @@
     </div>
 
 </div>
+
+<style>
+    .select2-container--default .select2-selection--multiple,
+    .select2-container--default .select2-selection--single {
+        border: 1.5px solid #4caf50 !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+    }
+</style>
+
 
 @section Scripts {
     @{

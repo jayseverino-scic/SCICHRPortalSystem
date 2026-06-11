@@ -1,31 +1,31 @@
-﻿
-#employee-time-log-modal .modal-dialog {
-    max-width: 900px;
-    width: 100%;
-    margin: 1.75rem auto;
-    top: 80px;
+﻿#employee-time-log-modal .modal-dialog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100% - 60px);
 }
 
 #employee-time-log-modal .modal-content {
-    font-family: 'Inter', sans-serif;
-    background: rgba(255, 255, 255, 0.35) !important;
-    backdrop-filter: blur(20px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.55) !important;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 150px) !important;
+    background: rgba(245, 252, 245, 0.55) !important;
+    backdrop-filter: blur(28px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.60) !important;
     border-radius: 20px !important;
-    box-shadow: 0 8px 32px rgba(30, 100, 30, 0.15), inset 0 1px 0 rgba(255,255,255,0.6) !important;
-    overflow: hidden;
-    width: 100%;
+    box-shadow: 0 12px 48px rgba(30, 100, 30, 0.18), 0 2px 0 rgba(255,255,255,0.7) inset !important;
+    overflow: visible !important;
 }
 
-/* Header */
 #employee-time-log-modal .modal-header {
-    background: rgba(46, 125, 50, 0.72) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(255,255,255,0.2) !important;
-    padding: 18px 24px 16px;
+    background: linear-gradient(135deg, rgba(46,125,50,0.85), rgba(27,94,32,0.90)) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.15) !important;
+    padding: 18px 26px 16px;
     border-radius: 20px 20px 0 0 !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
 #employee-time-log-modal .modal-title {
@@ -33,251 +33,297 @@
     font-size: 17px;
     color: #ffffff !important;
     letter-spacing: 0.3px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
 
-/* Body */
 #employee-time-log-modal .modal-body {
-    background: rgba(255, 255, 255, 0.25) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    padding: 22px 24px 8px;
-    max-height: 70vh;
-    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.28) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    padding: 24px 26px 10px;
+    max-height: calc(100vh - 300px) !important;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
     scrollbar-width: thin;
-    scrollbar-color: rgba(46,125,50,0.35) transparent;
+    scrollbar-color: rgba(46,125,50,0.30) transparent;
+    font-family: 'Inter', sans-serif !important;
+    flex: 1 1 auto !important;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 24px 26px 10px;
 }
 
     #employee-time-log-modal .modal-body::-webkit-scrollbar {
         width: 5px;
+        display: block !important;
     }
 
     #employee-time-log-modal .modal-body::-webkit-scrollbar-thumb {
-        background: rgba(46,125,50,0.35);
+        background: rgba(46,125,50,0.30);
         border-radius: 4px;
     }
 
-/* Labels */
-#employee-time-log-modal label,
-#employee-time-log-modal .col-form-label {
-    color: #000000 !important;
-    font-weight: 600 !important;
-    font-size: 12.5px !important;
-    letter-spacing: 0.4px;
-    text-transform: uppercase;
-    margin-bottom: 5px;
+#announcement-modal .modal-body::-webkit-scrollbar-track {
+    background: rgba(200, 230, 200, 0.2) !important;
+    border-radius: 4px;
 }
 
-/* Inputs */
+#employee-time-log-modal label,
+#employee-time-log-modal .col-form-label {
+    color: rgba(27, 70, 27, 0.88) !important;
+    font-weight: 600 !important;
+    font-size: 11.5px !important;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
 #employee-time-log-modal .form-control {
-    background: rgba(255, 255, 255, 0.55) !important;
+    background: rgba(255, 255, 255, 0.58) !important;
     border: 1.5px solid #4caf50 !important;
     border-radius: 10px !important;
-    color: #000000 !important;
+    color: #2d4a2d !important;
     font-size: 13.5px !important;
     padding: 9px 13px !important;
     transition: all 0.2s ease !important;
     -webkit-text-fill-color: #000000 !important;
     opacity: 1 !important;
+    box-shadow: 0 1px 3px rgba(46,125,50,0.06) inset !important;
 }
 
     #employee-time-log-modal .form-control:focus {
         background: rgba(255, 255, 255, 0.75) !important;
-        border-color: #2e7d32 !important;
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.18) !important;
+        border: 1.5px solid #43a047 !important;
+        box-shadow: 0 0 0 3.5px rgba(46, 125, 50, 0.16), 0 1px 3px rgba(46,125,50,0.08) inset !important;
         outline: none !important;
     }
 
     #employee-time-log-modal .form-control:disabled {
-        background: rgba(255, 255, 255, 0.30) !important;
-        border: 1.5px solid #a5d6a7 !important;
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
+        background: rgba(255, 255, 255, 0.20) !important;
+        border: 1.5px solid rgba(165, 214, 167, 0.5) !important;
+        color: #35383d !important;
         opacity: 1 !important;
     }
 
     #employee-time-log-modal .form-control::placeholder {
-        color: #000000 !important;
+        color: rgba(80, 100, 80, 0.55) !important;
         opacity: 1 !important;
     }
 
-/* Select2 */
 #employee-time-log-modal .select2-container--default .select2-selection--multiple,
 #employee-time-log-modal .select2-container--default .select2-selection--single {
-    background: rgba(255,255,255,0.55) !important;
+    background: rgba(255,255,255,0.58) !important;
     border: 1.5px solid #4caf50 !important;
     border-radius: 10px !important;
     min-height: 40px !important;
+    box-shadow: none !important;
 }
 
 #employee-time-log-modal .select2-container .select2-selection__rendered {
-    color: #000000 !important;
+    color: #2d4a2d !important;
     padding: 4px 10px !important;
 }
 
 #employee-time-log-modal .select2-container .select2-selection__choice {
-    background: rgba(46,125,50,0.65) !important;
+    background: linear-gradient(135deg, rgba(46,125,50,0.75), rgba(27,94,32,0.80)) !important;
     border: none !important;
     color: #fff !important;
     border-radius: 6px !important;
-    padding: 2px 8px !important;
+    padding: 3px 10px !important;
+    font-size: 12px !important;
+    box-shadow: 0 1px 4px rgba(46,125,50,0.20) !important;
 }
 
-/* Shift Details border box */
 #employee-time-log-modal .form-border {
-    border: 1.5px solid rgba(255,255,255,0.5) !important;
+    border: 1.5px solid rgba(200, 230, 200, 0.5) !important;
     border-radius: 10px !important;
-    background: rgba(255,255,255,0.15) !important;
+    background: rgba(255,255,255,0.18) !important;
     padding: 10px !important;
 }
 
-/* Checkboxes labels */
 #employee-time-log-modal .text-white {
-    color: #000000 !important;
+    color: rgba(27, 70, 27, 0.88) !important;
 }
 
-/* Form group spacing */
 #employee-time-log-modal .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
-/* Footer */
+
 #employee-time-log-modal .modal-footer {
-    background: rgba(255,255,255,0.30) !important;
-    border-top: 1px solid rgba(255,255,255,0.22) !important;
-    padding: 14px 24px;
+    background: rgba(255,255,255,0.12) !important;
+    border-top: 1px solid rgba(200, 230, 200, 0.30) !important;
+    padding: 14px 26px;
     border-radius: 0 0 20px 20px !important;
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    flex-shrink: 0 !important;
 }
 
-/* Cancel button */
+
 #employee-time-log-modal .cancel-button {
-    background: rgba(255,255,255,0.50) !important;
-    border: 1.5px solid #4caf50 !important;
-    color: #000000 !important;
+    background: rgba(255,255,255,0.25) !important;
+    border: 1.5px solid rgba(76,175,80,0.6) !important;
+    color: #2d4a2d !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
     font-size: 13px !important;
     padding: 8px 22px !important;
     transition: all 0.18s ease !important;
+    backdrop-filter: blur(4px);
 }
 
     #employee-time-log-modal .cancel-button:hover {
-        background: rgba(255,255,255,0.75) !important;
-        color: #000000 !important;
+        background: rgba(255,255,255,0.45) !important;
+        border-color: #4caf50 !important;
+        color: #1b5e20 !important;
     }
 
-/* Add button */
+
 #employee-time-log-modal .btn-primary,
 #employee-time-log-modal #borrower-modal-btn {
-    background: rgba(46,125,50,0.88) !important;
-    border: 1px solid rgba(46,125,50,0.6) !important;
+    background: linear-gradient(135deg, rgba(46,125,50,0.92), rgba(27,94,32,0.96)) !important;
+    border: 1px solid rgba(46,125,50,0.5) !important;
     color: #fff !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
     font-size: 13px !important;
     padding: 8px 26px !important;
-    transition: all 0.18s ease !important;
-    box-shadow: 0 2px 8px rgba(46,125,50,0.28) !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 3px 10px rgba(46,125,50,0.30) !important;
+    letter-spacing: 0.2px;
 }
 
     #employee-time-log-modal .btn-primary:hover,
     #employee-time-log-modal #borrower-modal-btn:hover {
-        background: rgba(27,94,32,0.95) !important;
-        box-shadow: 0 4px 14px rgba(46,125,50,0.40) !important;
+        background: linear-gradient(135deg, rgba(27,94,32,0.98), rgba(21,72,25,1)) !important;
+        box-shadow: 0 5px 18px rgba(46,125,50,0.42) !important;
         transform: translateY(-1px);
     }
 
-/* Validation */
+    #employee-time-log-modal .btn-primary:active,
+    #employee-time-log-modal #borrower-modal-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(46,125,50,0.22) !important;
+    }
+
 #employee-time-log-modal .text-danger {
-    color: #c62828 !important;
+    color: #e53935 !important;
     font-size: 11.5px;
+    font-family: 'Inter', sans-serif;
+    margin-top: 4px;
+    display: block;
 }
 
-/* Modal backdrop */
+
 .modal-backdrop {
-    background-color: rgba(20, 60, 20, 0.45) !important;
+    background-color: rgba(15, 50, 15, 0.50) !important;
+    backdrop-filter: blur(3px) !important;
 }
 
-/* Page wrapper */
+
 .employee-timelog-page-wrapper {
-    background: #ffffff !important;
-    border-radius: 12px !important;
-    border: 1px solid #c8e6c9;
-    box-shadow: 0 2px 12px rgba(40,100,40,0.08);
-    padding: 24px 28px 28px;
+    background: rgba(255, 255, 255, 0.78) !important;
+    backdrop-filter: blur(24px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+    border-radius: 16px;
+    border: 1px solid rgba(200, 230, 200, 0.6);
+    box-shadow: 0 4px 24px rgba(40, 100, 40, 0.10), 0 1px 0 rgba(255,255,255,0.9) inset;
+    padding: 28px 32px 32px;
     margin-bottom: 40px;
     width: 100%;
     box-sizing: border-box;
     overflow: hidden;
     font-family: 'Inter', sans-serif !important;
+    transition: box-shadow 0.2s ease;
 }
+
+    .employee-timelog-page-wrapper:hover {
+        box-shadow: 0 6px 32px rgba(40, 100, 40, 0.13), 0 1px 0 rgba(255,255,255,0.9) inset;
+    }
+
 
     .employee-timelog-page-wrapper .left-header-container {
         display: flex !important;
         align-items: center !important;
         gap: 14px;
         color: #1b5e20 !important;
-        margin-bottom: 20px !important;
-        padding-bottom: 18px !important;
-        border-bottom: 1px solid #e8f5e9;
+        margin-bottom: 22px !important;
+        padding-bottom: 20px !important;
+        border-bottom: 1.5px solid rgba(200, 230, 200, 0.55);
         margin-top: 0 !important;
         padding-top: 0 !important;
     }
-    .employee-timelog-page-wrapper .left-header-container .icon {
-        width: 46px !important;
-        height: 46px !important;
-        margin-bottom: 0 !important;
-    }
 
-    .employee-timelog-page-wrapper .left-header-container h1.title {
-        display: inline !important;
+        .employee-timelog-page-wrapper .left-header-container .icon {
+            width: 46px !important;
+            height: 46px !important;
+            margin-bottom: 0 !important;
+            filter: drop-shadow(0 2px 6px rgba(46,125,50,0.18));
+        }
+
+        .employee-timelog-page-wrapper .left-header-container h1.title {
+            display: inline !important;
+            color: #1b5e20 !important;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 !important;
+            letter-spacing: -0.3px;
+        }
+
+
+    .employee-timelog-page-wrapper .form-label {
         color: #1b5e20 !important;
-        font-size: 22px;
-        font-weight: 700;
-        margin: 0 !important;
+        font-weight: 600;
     }
 
-.employee-timelog-page-wrapper .form-label {
-    color: #1b5e20 !important;
-    font-weight: 600;
-}
+    .employee-timelog-page-wrapper .form-control {
+        border: 1.5px solid #c8e6c9;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        height: 34px !important;
+    }
 
-.employee-timelog-page-wrapper .form-control {
-    border: 1px solid #c8e6c9;
-    border-radius: 8px;
-}
+        .employee-timelog-page-wrapper .form-control:focus {
+            border-color: #4caf50 !important;
+            box-shadow: 0 0 0 3px rgba(46,125,50,0.15) !important;
+            outline: none !important;
+        }
 
-.employee-timelog-page-wrapper .dataTables_length label,
-.employee-timelog-page-wrapper .dataTables_filter label,
-.employee-timelog-page-wrapper .dataTables_info label {
-    color: #555 !important;
-}
+    .employee-timelog-page-wrapper .dataTables_length label,
+    .employee-timelog-page-wrapper .dataTables_filter label,
+    .employee-timelog-page-wrapper .dataTables_info label {
+        color: #555 !important;
+        font-size: 13px !important;
+        font-family: 'Inter', sans-serif !important;
+    }
 
-.employee-timelog-page-wrapper .dataTables_wrapper {
-    border-top: 1px solid #e8f5e9;
-    margin-top: 20px;
-}
+    .employee-timelog-page-wrapper .dataTables_wrapper {
+        border-top: 1px solid rgba(200, 230, 200, 0.4);
+        margin-top: 20px;
+    }
 
 #content-container .dataTables_paginate .paginate_button {
-    border-radius: 6px !important;
+    border-radius: 7px !important;
     border: 1px solid #c8e6c9 !important;
     color: #2e7d32 !important;
     font-size: 12px;
     font-family: 'Inter', sans-serif !important;
+    transition: all 0.15s ease !important;
 }
 
     #content-container .dataTables_paginate .paginate_button.current,
     #content-container .dataTables_paginate .paginate_button:hover {
-        background: #2e7d32 !important;
+        background: linear-gradient(135deg, #2e7d32, #1b5e20) !important;
         color: #fff !important;
         border-color: #2e7d32 !important;
+        box-shadow: 0 2px 8px rgba(46,125,50,0.25) !important;
     }
 
-
 #employee-time-log-grid_filter label,
-#employee-time-log-grid_filter select{
+#employee-time-log-grid_filter select {
     font-size: 12px !important;
     color: #555 !important;
     font-weight: normal !important;
@@ -290,39 +336,58 @@
 #employee-time-log-grid_filter input[type=search] {
     width: 250px !important;
     height: 36px !important;
-    font-size: 18px !important;
+    font-size: 13px !important;
     padding: 4px 8px !important;
-    border: 1px solid #c8e6c9 !important;
-    border-radius: 6px !important;
+    border: 1.5px solid #c8e6c9 !important;
+    border-radius: 8px !important;
     outline: none !important;
     color: #333 !important;
+    transition: all 0.2s ease !important;
 }
 
     #employee-time-log-grid_filter input[type=search]:focus {
         border-color: #4caf50 !important;
-        box-shadow: 0 0 0 2px rgba(46,125,50,0.15) !important;
+        box-shadow: 0 0 0 3px rgba(46,125,50,0.15) !important;
     }
 
-/*DataTable Header*/
+
 #employee-time-log-grid thead th {
-    background: #4caf50 !important;
+    background: linear-gradient(135deg, #43a047, #2e7d32) !important;
     color: #fff !important;
     font-size: 13px;
     font-weight: 600;
     font-family: 'Inter', sans-serif !important;
     border: none !important;
-    padding: 11px 14px;
+    padding: 12px 16px;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.12);
 }
 
-#employee-time-log-grid tbody tr:hover {
-    background: #f1f8f1 !important;
+    #employee-time-log-grid thead th:first-child {
+        border-radius: 8px 0 0 0;
+    }
+
+    #employee-time-log-grid thead th:last-child {
+        border-radius: 0 8px 0 0;
+    }
+
+#employee-time-log-grid tbody tr {
+    transition: background 0.15s ease;
 }
+
+    #employee-time-log-grid tbody tr:hover {
+        background: rgba(232, 245, 233, 0.7) !important;
+    }
+
+    #employee-time-log-grid tbody tr:nth-child(even) {
+        background: rgba(248, 253, 248, 0.5);
+    }
 
 #employee-time-log-grid tbody td {
     font-size: 13px;
-    color: #333;
-    border-bottom: 1px solid #e8f5e9 !important;
-    padding: 10px 14px;
+    color: #2d3a2d;
+    border-bottom: 1px solid rgba(200, 230, 200, 0.4) !important;
+    padding: 11px 16px;
     vertical-align: middle;
 }
 
@@ -333,25 +398,17 @@
     justify-content: center !important;
 }
 
-#employee-time-log-grid td.actions i {
-    font-size: 16px;
-    flex-shrink: 0;
-}
+    #employee-time-log-grid td.actions i {
+        font-size: 16px;
+        flex-shrink: 0;
+        transition: color 0.15s, transform 0.15s;
+        cursor: pointer;
+    }
 
-.employee-timelog-page-wrapper {
-    background: rgba(255, 255, 255, 0.75) !important;
-    backdrop-filter: blur(20px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
-    border-radius: 12px;
-    border: 1px solid #c8e6c9;
-    box-shadow: 0 2px 12px rgba(40,100,40,0.08);
-    padding: 24px 28px 28px;
-    margin-bottom: 40px;
-    width: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
-    font-family: 'Inter', sans-serif !important;
-}
+        #employee-time-log-grid td.actions i:hover {
+            color: #1b5e20 !important;
+            transform: scale(1.15);
+        }
 
 #employee-time-log-grid_info {
     color: #555 !important;

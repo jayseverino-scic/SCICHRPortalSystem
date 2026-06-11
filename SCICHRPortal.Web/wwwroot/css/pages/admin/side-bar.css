@@ -5,7 +5,6 @@
     /* Layout heights — keep in sync with _layout.css */
     --navbar-height: 70px;
     --footer-height: 32px;
-    /* Colors */
     --sidebar-bg: #ffffff;
     --sidebar-border: #e5e7eb;
     --sidebar-text: #374151;
@@ -16,11 +15,9 @@
     --sidebar-active-text: #16a34a;
     --sidebar-active-border: #22c55e;
     --sidebar-shadow: rgba(0, 0, 0, 0.1);
-    /* Transitions */
     --transition-speed: 0.3s;
     --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
     --transition-fast: 0.15s;
-    /* Z-index layers */
     --z-sidebar: 1000;
     --z-tooltip: 1001;
     --z-overlay: 999;
@@ -55,7 +52,8 @@ body {
 }
 
     #admin-sidebar.sidebar-collapsed {
-        width: var(--sidebar-width-collapsed);
+        width: var(--sidebar-width-collapsed) !important;
+        align-items: center;
         box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
     }
 
@@ -246,14 +244,19 @@ body {
 
 /* Collapsed state - center alignment */
 #admin-sidebar.sidebar-collapsed .sidebar-nav-link {
-    justify-content: center;
-    padding: 12px 0;
-    gap: 0;
+    justify-content: center !important;
+    padding: 12px 0 !important;
+    padding-left: 0 !important;
+    gap: 0 !important;
 }
 
     #admin-sidebar.sidebar-collapsed .sidebar-nav-link:hover {
         padding-left: 0;
     }
+
+#admin-sidebar.sidebar-collapsed .nav-icon {
+    margin: 0 auto !important;
+}
 
 .nav-icon {
     width: 24px;
@@ -399,7 +402,7 @@ body {
     padding: 0;
     flex-shrink: 0;
     margin-top: auto;
-    background: linear-gradient(to top, #fafafa 0%, #ffffff 100%);
+    background: linear-gradient(to top, #89d68f 0%, #ffffff 100%);
 }
 
 .content-sign-out-btn {
@@ -432,9 +435,10 @@ body {
     }
 
 #admin-sidebar.sidebar-collapsed .content-sign-out-btn {
-    justify-content: center;
-    padding: 12px 0;
-    gap: 0;
+    justify-content: center !important;
+    padding: 12px 0 !important;
+    padding-left: 0 !important;
+    gap: 0 !important;
 }
 
     #admin-sidebar.sidebar-collapsed .content-sign-out-btn:hover {
@@ -502,14 +506,14 @@ body.sidebar-collapsed .page-wrapper {
     margin-left: var(--sidebar-width-collapsed);
 }
 
-/* Content constraints */
+
 .page-wrapper .container-fluid {
     max-width: 100%;
     padding-left: 15px;
     padding-right: 15px;
 }
 
-/* Tables responsive */
+
 .page-wrapper table {
     width: 100%;
     max-width: 100%;
@@ -554,7 +558,7 @@ body.sidebar-collapsed .page-wrapper {
     outline-offset: 2px;
 }
 
-/* Reduce motion for users who prefer it */
+
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
@@ -649,3 +653,16 @@ body.sidebar-collapsed .page-wrapper {
 #admin-sidebar.sidebar-collapsed .nav-badge {
     opacity: 0;
 }
+
+#admin-sidebar.sidebar-collapsed #v-pills-tab,
+#admin-sidebar.sidebar-collapsed .user-side-panel,
+#admin-sidebar.sidebar-collapsed .nav-panel {
+    width: 100% !important;
+}
+
+
+    #admin-sidebar.sidebar-collapsed #v-pills-tab > li {
+        width: 100% !important;
+        display: flex;
+        justify-content: center;
+    }

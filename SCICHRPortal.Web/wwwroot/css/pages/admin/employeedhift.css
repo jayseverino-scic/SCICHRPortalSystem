@@ -12,6 +12,7 @@
     width: 100%;
     box-sizing: border-box;
     overflow: hidden;
+    font-family: 'Inter', sans-serif !important;
 }
 
 #content-container .left-header-container {
@@ -60,7 +61,8 @@
     color: #fff !important;
     border-radius: 8px !important;
     font-family: 'Inter', sans-serif !important;
-    margin-top: 0 !important;
+    margin-top: 13px !important;
+    margin-left: 6px !important;
 }
 
     #content-container .btn-primary:hover,
@@ -106,6 +108,7 @@
     border: 1px solid #c8e6c9 !important;
     color: #2e7d32 !important;
     font-size: 12px;
+    font-family: 'Inter', sans-serif !important;
 }
 
     #employee-shift-grid_paginate .paginate_button.current,

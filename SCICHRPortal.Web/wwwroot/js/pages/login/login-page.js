@@ -1,38 +1,28 @@
 ﻿(function ($) {
-   
+
     const CLICK_EVENT = 'click';
     const LOAD_EVENT = 'load';
 
-   
+
     const _apiHelper = new ApiHelper();
     const _formHelper = new FormHelper();
     const _cookieHelper = new CookieHelper();
     const _stringHelper = new StringHelper();
 
-    
+
     let attachEvents = () => {
-        // Tab buttons — call global switchTab defined in cshtml
-        $('#tabSignIn').on(CLICK_EVENT, function (e) { e.stopPropagation(); switchTab('signin'); });
-        $('#tabSignUp').on(CLICK_EVENT, function (e) { e.stopPropagation(); switchTab('signup'); });
 
-        // Footer links handled via onclick in cshtml (switchTab called directly)
-
-        // Forms
+        /* $('#tabSignIn').on(CLICK_EVENT, function (e) { e.stopPropagation(); switchTab('signin'); }); */
+        /* $('#tabSignUp').on(CLICK_EVENT, function (e) { e.stopPropagation(); switchTab('signup'); }); */
         $('#log-in-form').on('submit', onLogInSubmitted);
         $('#register-form').on('submit', onRegisterFormSubmit);
-
-        // Password toggle – uses data-target attribute on each eye button
         $(document).on(CLICK_EVENT, '.eye-icon', onTogglePassword);
-
-        // Reset password form (if present on page)
         $('#reset-password-form').on('submit', onResetPasswordSubmitted);
         $('#cancel-reset-pass').on('click', onCancelClicked);
-
-        // jQuery Validation setup
         setupValidation();
+        generateAvatarColors();
     };
 
-    // ─── Tab Switching ────────────────────────────────────────────────────────
     window.switchTab = function (tab) {
         const $signInForm = $('#formSignIn');
         const $signUpForm = $('#formSignUp');
@@ -75,10 +65,6 @@
         $('#register-form')[0].reset();
     };
 
-    // Password Toggle
-    // - Empty field:    eye-slash (hidden, nothing to show)
-    // - Has value:      eye-slash shown, click reveals password (eye-open) and shows text
-    // - Click eye-open: hides password again (eye-slash)
     let onTogglePassword = (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -92,7 +78,6 @@
         const $icon = $btn.find('i');
 
         if ($input.attr('type') === 'password') {
-            // Only reveal if the field has a value
             if ($input.val().length === 0) return;
             $input.attr('type', 'text');
             $icon.removeClass('fa-eye-slash').addClass('fa-eye');
@@ -102,23 +87,20 @@
         }
     };
 
-    // Update eye icon state as user types — slash when empty, slash when has value (ready to reveal)
     let onPasswordInput = (event) => {
         const $input = $(event.target);
         const $wrapper = $input.closest('.input-field-wrapper');
         const $icon = $wrapper.find('.eye-icon i');
 
         if ($input.val().length === 0) {
-            // Empty — force back to password type and show slash (nothing to reveal)
             $input.attr('type', 'password');
             $icon.removeClass('fa-eye').addClass('fa-eye-slash');
         } else {
-            // Has value — show slash (click to reveal)
             $icon.removeClass('fa-eye').addClass('fa-eye-slash');
         }
     };
 
-    
+
     let onRegisterSuccess = () => {
         $('#formSignIn').removeClass('hidden');
         $('#formSignUp').addClass('hidden');
@@ -129,7 +111,7 @@
         $('#success-register-container').removeClass('d-none');
     };
 
-    
+
     let onRegisterFormSubmit = async (event) => {
         event.preventDefault();
         $('.user-validation').removeClass('d-none');
@@ -138,7 +120,7 @@
 
         if ($form.valid()) {
             let data = _formHelper.toJsonString(event.target);
-            data.roleId = 3; // Default role: Parents
+            data.roleId = 3;
 
             const response = await _apiHelper.post({
                 url: 'Authenticated/User/Register',
@@ -156,7 +138,7 @@
         }
     };
 
-   
+
     let onLogInSubmitted = async (event) => {
         event.preventDefault();
         const form = document.getElementById('log-in-form');
@@ -197,7 +179,7 @@
         }
     };
 
-    
+
     let onResetPasswordSubmitted = async (event) => {
         event.preventDefault();
         $('.unmatched-password-validation').addClass('d-none');
@@ -222,12 +204,12 @@
         }
     };
 
-    
+
     let onCancelClicked = () => {
         window.location = '/Home/Index';
     };
 
-    
+
     let removeValidation = () => {
         $('.field-validation-error')
             .removeClass('field-validation-error')
@@ -237,20 +219,19 @@
     };
 
     let setupValidation = () => {
-        // Sign-In form validation
+
         $('#log-in-form').validate({
             submitHandler: function (form) {
                 const $btn = $(form).find('.shape-login');
                 $btn.prop('disabled', true).html('<span class="login-text">Logging in...</span>');
-                $(form).trigger('submit');   // re-trigger so onLogInSubmitted fires
+                $(form).trigger('submit');
             }
         });
 
-        // Sign-Up form validation
         $('#register-form').validate({
             rules: {
                 ConfirmPassword: {
-                    equalTo: '#signupPassword'   // FIX: matches actual input id (lowercase 'p')
+                    equalTo: '#signupPassword'
                 }
             },
             messages: {
@@ -259,14 +240,14 @@
                 }
             },
             submitHandler: function (form) {
-                const $btn = $(form).find('.shape-login');  // FIX: added '.' selector
+                const $btn = $(form).find('.shape-login');
                 $btn.prop('disabled', true).html('<span class="login-text">Creating account...</span>');
-                $(form).trigger('submit');   // re-trigger so onRegisterFormSubmit fires
+                $(form).trigger('submit');
             }
         });
     };
 
-    
+
     let onWindowLoaded = () => {
         attachEvents();
     };

@@ -27,7 +27,6 @@
 
     <div class="sign-in-container">
 
-        <!-- Background -->
         <div class="scic-logo-wrapper">
             <div class="scic-logo-content">
                 <div class="scic-logo-overflow">
@@ -37,30 +36,25 @@
             </div>
         </div>
 
-        <!-- Login Card -->
         <div class="login-border" id="login-border">
 
-            <!-- Tab toggle: Sign In / Sign Up -->
             <div class="sign-border">
                 <div class="tab-indicator" id="tabIndicator"></div>
-                <button type="button" class="tab-btn sign-in-text active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
-                <button type="button" class="tab-btn sign-up-text" id="tabSignUp" onclick="switchTab('signup')">Sign Up</button>
+                <div class="tab-btn sign-in-text active" id="tabSignIn">Sign In</div>
+                <div class="tab-btn sign-up-text" id="tabSignUp">Sign Up</div>
             </div>
 
-            <!-- Sign In Form -->
             <div id="formSignIn" class="tab-form">
                 <form id="log-in-form" novalidate>
                     @Html.AntiForgeryToken()
                     <input asp-for="IsLogin" hidden />
 
-                    <!-- Email Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="Email" class="sr-only"></label>
                         <input type="text" asp-for="Email" class="input-field-control lowercase" placeholder="Email Address" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
-                    <!-- Password Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="Password" class="sr-only"></label>
                         <input type="password" asp-for="Password" id="signInPassword" class="input-field-control" placeholder="Password" />
@@ -70,74 +64,63 @@
                         </button>
                     </div>
 
-                    <!-- Forgot Password -->
                     <div class="forgot-password-wrapper">
                         <a asp-area="" asp-controller="User" asp-action="SendEmail" class="forgot-password-link">
                             <span>Forgot password?</span>
                         </a>
                     </div>
 
-                    <!-- Submit button -->
                     <button type="submit" class="shape-login">
                         <span class="login-text">Login</span>
                     </button>
                 </form>
 
-                <!-- Footer -->
                 <p class="account-text">
                     Don't have an account yet?
                     <a href="javascript:void(0)" class="sign-up-link" id="goToSignUp" onclick="switchTab('signup'); return false;">Sign up here</a>
                 </p>
             </div>
 
-            <!-- Sign Up Form -->
             <div id="formSignUp" class="tab-form hidden">
                 <form id="register-form" novalidate>
                     @Html.AntiForgeryToken()
 
-                    <!-- Username Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="UserName" class="sr-only"></label>
                         <input type="text" asp-for="UserName" class="input-field-control" placeholder="Username" />
                         <span asp-validation-for="UserName" class="text-danger"></span>
                     </div>
 
-                    <!-- Last Name Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="LastName" class="sr-only"></label>
                         <input type="text" asp-for="LastName" class="input-field-control" placeholder="Last Name" />
                         <span asp-validation-for="LastName" class="text-danger"></span>
                     </div>
 
-                    <!-- First Name Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="FirstName" class="sr-only"></label>
                         <input type="text" asp-for="FirstName" class="input-field-control" placeholder="First Name" />
                         <span asp-validation-for="FirstName" class="text-danger"></span>
                     </div>
 
-                    <!-- Middle Name Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="MiddleName" class="sr-only"></label>
                         <input type="text" asp-for="MiddleName" class="input-field-control" placeholder="Middle Name" />
                         <span asp-validation-for="MiddleName" class="text-danger"></span>
                     </div>
 
-                    <!-- Email Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="Email" class="sr-only"></label>
                         <input type="text" asp-for="Email" class="input-field-control lowercase" placeholder="Email Address" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
-                    <!-- Contact Number Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="ContactNumber" class="sr-only"></label>
                         <input type="text" asp-for="ContactNumber" class="input-field-control" placeholder="Contact Number" />
                         <span asp-validation-for="ContactNumber" class="text-danger"></span>
                     </div>
 
-                    <!-- Password Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="Password" class="sr-only"></label>
                         <input type="password" asp-for="Password" id="signupPassword" class="input-field-control" placeholder="Password" />
@@ -147,7 +130,6 @@
                         </button>
                     </div>
 
-                    <!-- Confirm Password Field -->
                     <div class="input-field-wrapper">
                         <label asp-for="ConfirmPassword" class="sr-only"></label>
                         <input type="password" asp-for="ConfirmPassword" id="confirmPassword" class="input-field-control" placeholder="Confirm Password" />
@@ -157,7 +139,6 @@
                         </button>
                     </div>
 
-                    <!-- Submit button -->
                     <button type="submit" class="shape-login">
                         <span class="login-text">Create an Account</span>
                     </button>
@@ -169,10 +150,9 @@
                 </p>
             </div>
 
-        </div> <!-- login-border -->
+        </div>
 
-    </div> <!-- sign-in-container -->
-    <!-- Global switchTab — must be defined before any onclick calls it -->
+    </div>
     <script>
             function switchTab(tab) {
                 var signInForm  = document.getElementById('formSignIn');
