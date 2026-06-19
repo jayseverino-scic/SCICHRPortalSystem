@@ -78,14 +78,34 @@
             let daysOfWeek = selectedAssignmentDays;
             let data = _formHelper.toJsonString(event.target);
             let currentTabTitle = $('.tab-pane.active .title').text();
-            let shiftStartFormat = moment().format('YYYY-MM-DD') + 'T' + data.ShiftStart;
-            let shiftEndFormat = moment().format('YYYY-MM-DD') + 'T' + data.ShiftEnd;
-            const breakStartFormat = data.BreakStart ? moment().format('YYYY-MM-DD') + 'T' + data.BreakStart : null;
-            const breakEndFormat = data.BreakEnd ? moment().format('YYYY-MM-DD') + 'T' + data.BreakEnd : null;
-            data.ShiftStart = shiftStartFormat;
-            data.ShiftEnd = shiftEndFormat;
-            data.BreakStart = breakStartFormat;
-            data.BreakEnd = breakEndFormat;
+            let mondayShiftStartFormat = data.MondayShiftStart ? moment().format('YYYY-MM-DD') + 'T' + data.MondayShiftStart : null;
+            let mondayShiftEndFormat = data.MondayShiftEnd ? moment().format('YYYY-MM-DD') + 'T' + data.MondayShiftEnd : null;
+            let tuesdayShiftStartFormat = data.TuesdayShiftStart ? moment().format('YYYY-MM-DD') + 'T' + data.TuesdayShiftStart : null;
+            let tuesdayShiftEndFormat = data.TuesdayShiftEnd ? moment().format('YYYY-MM-DD') + 'T' + data.TuesdayShiftEnd : null;
+            let wednesdayShiftStartFormat = data.WednesdayShiftStart ? moment().format('YYYY-MM-DD') + 'T' + data.WednesdayShiftStart : null;
+            let wednesdayShiftEndFormat = data.WednesdayShiftEnd ? moment().format('YYYY-MM-DD') + 'T' + data.WednesdayShiftEnd : null;
+            let thursdayShiftStartFormat = data.ThursdayShiftStart ? moment().format('YYYY-MM-DD') + 'T' + data.ThursdayShiftStart : null;
+            let thursdayShiftEndFormat = data.ThursdayShiftEnd ? moment().format('YYYY-MM-DD') + 'T' + data.ThursdayShiftEnd : null;
+            let fridayShiftStartFormat = data.FridayShiftStart ? moment().format('YYYY-MM-DD') + 'T' + data.FridayShiftStart : null;
+            let fridayShiftEndFormat = data.FridayShiftEnd ? moment().format('YYYY-MM-DD') + 'T' + data.FridayShiftEnd : null;
+            let saturdayShiftStartFormat = data.SaturdayShiftStart ? moment().format('YYYY-MM-DD') + 'T' + data.SaturdayShiftStart : null;
+            let saturdayShiftEndFormat = data.SaturdayShiftEnd ? moment().format('YYYY-MM-DD') + 'T' + data.SaturdayShiftEnd : null;
+            let sundayShiftStartFormat = data.SundayShiftStart ? moment().format('YYYY-MM-DD') + 'T' + data.SundayShiftStart : null;
+            let sundayShiftEndFormat = data.SundayShiftEnd ? moment().format('YYYY-MM-DD') + 'T' + data.SundayShiftEnd : null;
+            data.MondayShiftStart = mondayShiftStartFormat;
+            data.MondayShiftEnd = mondayShiftEndFormat;
+            data.TuesdayShiftStart = tuesdayShiftStartFormat;
+            data.TuesdayShiftEnd = tuesdayShiftEndFormat;
+            data.WednesdayShiftStart = wednesdayShiftStartFormat;
+            data.WednesdayShiftEnd = wednesdayShiftEndFormat;
+            data.ThursdayShiftStart = thursdayShiftStartFormat;
+            data.ThursdayShiftEnd = thursdayShiftEndFormat;
+            data.FridayShiftStart = fridayShiftStartFormat;
+            data.FridayShiftEnd = fridayShiftEndFormat;
+            data.SaturdayShiftStart = saturdayShiftStartFormat;
+            data.SaturdayShiftEnd = saturdayShiftEndFormat;
+            data.SundayShiftStart = sundayShiftStartFormat;
+            data.SundayShiftEnd = sundayShiftEndFormat;
             data.RestDays = daysOfWeek.join(';');
             data.DepartmentId = data.DepartmentId ? data.DepartmentId : null;
 
@@ -143,19 +163,48 @@
     let populateForm = (form, data) => {
         $(form).find(':submit').text('Update');
         _formHelper.populateForm(form, data);
-        if (data.shiftStart) {
-            $(form).find('#ShiftStart').val(moment(data.shiftStart).format('HH:mm'));
+        if (data.mondayShiftStart) {
+            $(form).find('#MondayShiftStart').val(moment(data.mondayShiftStart).format('HH:mm'));
         }
-        if (data.shiftEnd) {
-            $(form).find('#ShiftEnd').val(moment(data.shiftEnd).format('HH:mm'));
+        if (data.mondayShiftEnd) {
+            $(form).find('#MondayShiftEnd').val(moment(data.mondayShiftEnd).format('HH:mm'));
         }
-        if (data.breakStart) {
-            $(form).find('#BreakStart').val(moment(data.breakStart).format('HH:mm'));
+        if (data.tuesdayShiftStart) {
+            $(form).find('#TuesdayShiftStart').val(moment(data.tuesdayShiftStart).format('HH:mm'));
         }
-        if (data.breakEnd) {
-            $(form).find('#BreakEnd').val(moment(data.breakEnd).format('HH:mm'));
+        if (data.tuesdayShiftEnd) {
+            $(form).find('#TuesdayShiftEnd').val(moment(data.tuesdayShiftEnd).format('HH:mm'));
         }
-
+        if (data.wednesdayShiftStart) {
+            $(form).find('#WednesdayShiftStart').val(moment(data.wednesdayShiftStart).format('HH:mm'));
+        }
+        if (data.wednesdayShiftEnd) {
+            $(form).find('#WednesdayShiftEnd').val(moment(data.wednesdayShiftEnd).format('HH:mm'));
+        }
+        if (data.thursdayShiftStart) {
+            $(form).find('#ThursdayShiftStart').val(moment(data.thursdayShiftStart).format('HH:mm'));
+        }
+        if (data.thursdayShiftEnd) {
+            $(form).find('#ThursdayShiftEnd').val(moment(data.thursdayShiftEnd).format('HH:mm'));
+        }
+        if (data.fridayShiftStart) {
+            $(form).find('#FridayShiftStart').val(moment(data.fridayShiftStart).format('HH:mm'));
+        }
+        if (data.fridayShiftEnd) {
+            $(form).find('#FridayShiftEnd').val(moment(data.fridayShiftEnd).format('HH:mm'));
+        }
+        if (data.saturdayShiftStart) {
+            $(form).find('#SaturdayShiftStart').val(moment(data.saturdayShiftStart).format('HH:mm'));
+        }
+        if (data.saturdayShiftEnd) {
+            $(form).find('#SaturdayShiftEnd').val(moment(data.saturdayShiftEnd).format('HH:mm'));
+        }
+        if (data.sundayShiftStart) {
+            $(form).find('#SundayShiftStart').val(moment(data.sundayShiftStart).format('HH:mm'));
+        }
+        if (data.sundayShiftEnd) {
+            $(form).find('#SundayShiftEnd').val(moment(data.sundayShiftEnd).format('HH:mm'));
+        }
     }
 
     let initializeGrid = async () => {
@@ -168,7 +217,7 @@
             serverSide: true,
             targets: 'no-sort',
             bSort: false,
-            scrollY: "350px",
+            scrollY: true,
             scrollX: true,
             order: [1, 'asc'],
             ajax: async function (params, success, settings) {
@@ -216,7 +265,7 @@
             {
                 title: 'No.',
                 data: "shiftId",
-                width: "1.5em",
+                width: "0.1em",
                 className: 'noVis dt-center',
                 render: (data, type, row, meta) => {
                     let rowNumber = Number(meta.row) + 1;
@@ -226,38 +275,124 @@
             {
                 title: "Shift Name",
                 data: "shiftName",
+                width: "5em",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return data
                 },
             },
             {
-                title: "Shift Start",
-                data: "shiftStart",
+                title: "Rest Day(s)",
+                data: "restDays",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "Mon Shift Start",
+                data: "mondayShiftStart",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return _dateHelper.formatLocalShortTime(data);
                 },
             },
             {
-                title: "Shift End",
-                data: "shiftEnd",
+                title: "Mon Shift End",
+                data: "mondayShiftEnd",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return _dateHelper.formatLocalShortTime(data);
                 },
             },
             {
-                title: "Break Start",
-                data: "breakStart",
+                title: "Tue Shift Start",
+                data: "tuesdayShiftStart",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return _dateHelper.formatLocalShortTime(data);
                 },
             },
             {
-                title: "Break End",
-                data: "breakEnd",
+                title: "Tue Shift End",
+                data: "tuesdayShiftEnd",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Wed Shift Start",
+                data: "wednesdayShiftStart",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Wed Shift End",
+                data: "wednesdayShiftEnd",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Thu Shift Start",
+                data: "thursdayShiftStart",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Thu Shift End",
+                data: "thursdayShiftEnd",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Fri Shift Start",
+                data: "fridayShiftStart",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Fri Shift End",
+                data: "fridayShiftEnd",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Sat Shift Start",
+                data: "saturdayShiftStart",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Sat Shift End",
+                data: "saturdayShiftEnd",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Sun Shift Start",
+                data: "sundayShiftStart",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Sun Shift End",
+                data: "sundayShiftEnd",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return _dateHelper.formatLocalShortTime(data);
@@ -269,18 +404,8 @@
                 className: 'noVis dt-center'
             },
             {
-                title: "Break Late Minute Grace Period",
-                data: "breakLateMinuteGracePeriod",
-                className: 'noVis dt-center'
-            },
-            {
                 title: "Shift Late Total Minute Limit",
                 data: "shiftLateTotalMinuteLimit",
-                className: 'noVis dt-center'
-            },
-            {
-                title: "Break Late Total Minute Limit",
-                data: "breakLateTotalMinuteLimit",
                 className: 'noVis dt-center'
             },
             {
@@ -293,11 +418,6 @@
                 data: "noLeaveAbsentCountLimit",
                 className: 'noVis dt-center'
             },
-            {
-                title: "Rest Day(s)",
-                data: "restDays",
-                className: 'noVis dt-center'
-            }
         ];
         let lastColumn = {
             data: "shiftId",

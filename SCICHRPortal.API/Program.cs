@@ -110,6 +110,18 @@ builder.Services.AddDbContext<TimekeepingContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(30),
             errorNumbersToAdd: null)));
 
+//builder.Services.AddDbContext<XscribeContext>(options =>
+//    options.UseMySQL(builder.Configuration.GetConnectionString("XscribeConnection"), sqlOptions => sqlOptions.EnableRetryOnFailure(
+//            maxRetryCount: 5,
+//            maxRetryDelay: TimeSpan.FromSeconds(30),
+//            errorNumbersToAdd: null)));
+
+string mySql2ConnectionStr = builder.Configuration.GetConnectionString("XscribeConnection");
+builder.Services.AddDbContext<XscribeContext>(options =>
+    options.UseMySQL(mySql2ConnectionStr,
+     //ServerVersion.AutoDetect(mySqlConnectionStr),
+     options => options.MigrationsAssembly("SCICHRPortal.Repository")));
+
 builder.Services.AddCors(options =>
            options.AddDefaultPolicy(
                b =>

@@ -15,14 +15,20 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
         public int DepartmentId { get; set; }
         [Required(ErrorMessage ="Shift date is required.")]
         public DateTime ShiftDate { get; set; }
-        [Required(ErrorMessage ="Shift start is required.")]
-        public DateTime ShiftStart { get; set; }
-        [Required(ErrorMessage ="Shift end is required.")]
-        public DateTime ShiftEnd { get; set; }
-        [Required(ErrorMessage ="Break Start is required.")]
-        public DateTime BreakStart { get; set; }
-        [Required(ErrorMessage ="Break End is required.")]
-        public DateTime BreakEnd { get; set; }
+        public DateTime? MondayShiftStart { get; set; }
+        public DateTime? MondayShiftEnd { get; set; }
+        public DateTime? TuesdayShiftStart { get; set; }
+        public DateTime? TuesdayShiftEnd { get; set; }
+        public DateTime? WednesdayShiftStart { get; set; }
+        public DateTime? WednesdayShiftEnd { get; set; }
+        public DateTime? ThursdayShiftStart { get; set; }
+        public DateTime? ThursdayShiftEnd { get; set; }
+        public DateTime? FridayShiftStart { get; set; }
+        public DateTime? FridayShiftEnd { get; set; }
+        public DateTime? SaturdayShiftStart { get; set; }
+        public DateTime? SaturdayShiftEnd { get; set; }
+        public DateTime? SundayShiftStart { get; set; }
+        public DateTime? SundayShiftEnd { get; set; }
         public Boolean IsAssigned { get; set; }
     }
 }

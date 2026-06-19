@@ -80,26 +80,6 @@
                 orderable: false
             },
             {
-                title: "Break Out",
-                data: "breakOut",
-                className: 'dt-center',
-                render: (data) => {
-                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
-                    return _dateHelper.formatShortLocalDate(data) + ' ' + _dateHelper.formatLocalShortTime(data);
-                },
-                orderable: false
-            },
-            {
-                title: "Break In",
-                data: "breakIn",
-                className: 'dt-center',
-                render: (data) => {
-                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
-                    return _dateHelper.formatShortLocalDate(data) + ' ' + _dateHelper.formatLocalShortTime(data);
-                },
-                orderable: false
-            },
-            {
                 title: "Shift Start",
                 data: "shiftStart",
                 className: 'dt-center',
@@ -120,40 +100,11 @@
                 orderable: false
             },
             {
-                title: 'Break Start',
-                data: "breakStart",
-                className: 'dt-center',
-                render: (data) => {
-                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
-                    return _dateHelper.formatShortLocalDate(data) + ' ' + _dateHelper.formatLocalShortTime(data);
-                },
-                orderable: false
-            },
-            {
-                title: 'Break End',
-                data: "breakEnd",
-                className: 'dt-center',
-                render: (data) => {
-                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
-                    return _dateHelper.formatShortLocalDate(data) + ' ' + _dateHelper.formatLocalShortTime(data);
-                },
-                orderable: false
-            },
-            {
                 title: "Flexible Shift",
                 data: "isFlexibleShift",
                 className: 'noVis dt-center',
                 render: function (data, type, row, meta) {
                     return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
-                },
-                orderable: false
-            },
-            {
-                title: "Flexible Break",
-                data: "isFlexibleBreak",
-                className: 'noVis dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isFlexibleBreak" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
                 },
                 orderable: false
             },
@@ -226,30 +177,6 @@
             {
                 title: "Undertime",
                 data: "shiftUndertime",
-                className: 'dt-center',
-                orderable: false,
-                render: (data, type, row) => {
-                    if (data === 0) {
-                        return '0';
-                    }
-                    return _numberHelper.formatCommaSeperator(data);
-                }
-            },
-            {
-                title: "Break Undertime",
-                data: "breakUndertime",
-                className: 'dt-center',
-                orderable: false,
-                render: (data, type, row) => {
-                    if (data === 0) {
-                        return '0';
-                    }
-                    return _numberHelper.formatCommaSeperator(data);
-                }
-            },
-            {
-                title: "Break Late",
-                data: "breakLate",
                 className: 'dt-center',
                 orderable: false,
                 render: (data, type, row) => {
@@ -425,14 +352,9 @@
                     <th>Timelog Id</th>
                     <th>Time In</th>
                     <th>Time Out</th>
-                    <th>Break Out</th>
-                    <th>Break In</th>
                     <th>Shift Start</th>
                     <th>Shift End</th>
-                    <th>Break Start</th>
-                    <th>Break End</th>
                     <th>Flexible Shift</th>
-                    <th>Flexible Break</th>
                     <th>No Shift</th>
                     <th>No Break</th>
                     <th>Shift Hours</th>

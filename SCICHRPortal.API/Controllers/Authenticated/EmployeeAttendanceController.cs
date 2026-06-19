@@ -94,8 +94,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.EmployeeAttendanceId,
                 d.ShiftStart,
                 d.ShiftEnd,
-                d.BreakStart,
-                d.BreakEnd,
                 d.EmployeeId,
                 EmployeeName = $"{d.Employee!.LastName}, {d.Employee!.FirstName}",
                 OrderNumber = orderNumber++
@@ -137,8 +135,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             double totalLoggedHours = 0;
                             double shiftLateTotalMinutes = 0;
                             double shiftUndertimeTotalMinutes = 0;
-                            double breakUndertimeTotalMinutes = 0;
-                            double breakLateTotalMinutes = 0;
                             double overtimeTotalHours = 0;
                             double nightDifferentialTotalHours = 0;
                             double holidayTotalHours = 0;
@@ -167,8 +163,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                                 totalLoggedHours += attendance.TotalLoggedHours;
                                 shiftLateTotalMinutes += attendance.ShiftLate;
                                 shiftUndertimeTotalMinutes += attendance.ShiftUndertime;
-                                breakUndertimeTotalMinutes += attendance.BreakUndertime;
-                                breakLateTotalMinutes += attendance.BreakLate;
                                 overtimeTotalHours += attendance.ApprovedOT ? attendance.OTHours : 0;
                                 nightDifferentialTotalHours += attendance.NDHours;
                                 holidayTotalHours += attendance.ApprovedHoliday ? (isHoliday ? attendance.RegularHour : 0) : 0;
@@ -190,8 +184,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                                 TotalLoggedHours = totalLoggedHours,
                                 ShiftLateTotalMinutes = shiftLateTotalMinutes,
                                 ShiftUndertimeTotalMinutes = shiftUndertimeTotalMinutes,
-                                BreakUndertimeTotalMinutes = breakUndertimeTotalMinutes,
-                                BreakLateTotalMinutes = breakLateTotalMinutes,
                                 OvertimeTotalHours = overtimeTotalHours,
                                 NightDifferentialTotalHours = nightDifferentialTotalHours,
                                 HolidayTotalHours = holidayTotalHours,
@@ -244,14 +236,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     TimeLogId = x.Left.TimeLogId,
                     TimeIn = x.Left.TimeIn,
                     TimeOut = x.Left.TimeOut,
-                    BreakIn = x.Left.BreakIn,
-                    BreakOut = x.Left.BreakOut,
                     ShiftStart = x.Left.ShiftStart,
                     ShiftEnd = x.Left.ShiftEnd,
-                    BreakStart = x.Left.BreakStart,
-                    BreakEnd = x.Left.BreakEnd,
                     IsFlexibleShift = x.Left.IsFlexibleShift,
-                    IsFlexibleBreak = x.Left.IsFlexibleBreak,
                     IsNoShift = x.Left.IsNoShift,
                     IsNoBreak = x.Left.IsNoBreak,
                     Employee = x.Left.Employee
@@ -272,14 +259,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             TimeLogId = employee.TimeLogId,
                             TimeIn = (DateTime)employee.TimeIn!.Value,
                             TimeOut = (DateTime)employee.TimeOut!.Value,
-                            BreakIn = employee.IsNoBreak ? null : (DateTime)employee.BreakIn!.Value,
-                            BreakOut = employee.IsNoBreak ? null : (DateTime)employee.BreakOut!.Value,
                             ShiftStart = employee.ShiftStart,
                             ShiftEnd = employee.ShiftEnd,
-                            BreakStart = employee.IsNoBreak ? null : employee.BreakStart,
-                            BreakEnd = employee.IsNoBreak ? null : employee.BreakEnd,
                             IsFlexibleShift = employee.IsFlexibleShift,
-                            IsFlexibleBreak = employee.IsFlexibleBreak,
                             IsNoShift = employee.IsNoShift,
                             IsNoBreak = employee.IsNoBreak,
                             Employee = employee.Employee,
@@ -299,14 +281,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     EmployeeName = $"{employeeAttendance.Employee?.LastName}, {employeeAttendance.Employee?.FirstName}",
                     TimeIn = employeeAttendance.TimeIn,
                     TimeOut = employeeAttendance.TimeOut,
-                    BreakIn = employeeAttendance.IsNoBreak ? null : employeeAttendance.BreakIn,
-                    BreakOut = employeeAttendance.IsNoBreak ? null : employeeAttendance.BreakOut,
                     ShiftStart = employeeAttendance.ShiftStart,
                     ShiftEnd = employeeAttendance.ShiftEnd,
-                    BreakStart= employeeAttendance.IsNoBreak ? null : employeeAttendance.BreakStart,
-                    BreakEnd= employeeAttendance.IsNoBreak ? null : employeeAttendance.BreakEnd,
                     IsFlexibleShift = employeeAttendance.IsFlexibleShift,
-                    IsFlexibleBreak = employeeAttendance.IsFlexibleBreak,
                     IsNoShift = employeeAttendance.IsNoShift,
                     IsNoBreak = employeeAttendance.IsNoBreak,
                     ShiftHours = employeeAttendance.ShiftHours,
@@ -317,8 +294,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     NDHours = employeeAttendance.NDHours,
                     ShiftUndertime = employeeAttendance.ShiftUndertime,
                     ShiftLate = employeeAttendance.ShiftLate,
-                    BreakUndertime = employeeAttendance.BreakUndertime,
-                    BreakLate = employeeAttendance.BreakLate,
                     ApprovedHoliday = employeeAttendance.ApprovedHoliday,
                     ApprovedHolidayOT = employeeAttendance.ApprovedHolidayOT,
                     ApprovedSPHoliday = employeeAttendance.ApprovedSPHoliday,
@@ -339,14 +314,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 EmployeeName = $"{d.Employee?.LastName}, {d.Employee?.FirstName}",
                 d.TimeIn,
                 d.TimeOut,
-                d.BreakIn,
-                d.BreakOut,
                 d.ShiftStart,
                 d.ShiftEnd,
-                d.BreakStart,
-                d.BreakEnd,
                 d.IsFlexibleShift,
-                d.IsFlexibleBreak,
                 d.IsNoShift,
                 d.IsNoBreak,
                 d.ShiftHours,
@@ -357,8 +327,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.NDHours,
                 d.ShiftUndertime,
                 d.ShiftLate,
-                d.BreakUndertime,
-                d.BreakLate,
                 d.ApprovedHoliday,
                 d.ApprovedHolidayOT,
                 d.ApprovedSPHoliday,
@@ -396,7 +364,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     if (shift != null)
                     {
                         shiftLateGracePeriod = Convert.ToDouble(shift.ShiftLateMinuteGracePeriod) / 60;
-                        breakLateMinuteGracePeriod = Convert.ToDouble(shift.BreakLateMinuteGracePeriod) / 60;
                     }
                 }
                 if (item.TimeIn >= ndStart && item.TimeIn <= ndEnd)
@@ -434,14 +401,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     EmployeeId = item.EmployeeId,
                     TimeIn = item.TimeIn,
                     TimeOut = item.TimeOut,
-                    BreakIn = item.IsNoBreak ? null : item.BreakIn,
-                    BreakOut = item.IsNoBreak ? null : item.BreakOut,
                     ShiftStart = item.ShiftStart,
                     ShiftEnd = item.ShiftEnd,
-                    BreakStart = item.IsNoBreak ? null : item.BreakStart,
-                    BreakEnd = item.IsNoBreak ? null : item.BreakEnd,
                     IsFlexibleShift = item.IsFlexibleShift,
-                    IsFlexibleBreak = item.IsFlexibleBreak,
                     IsNoShift = item.IsNoShift,
                     IsNoBreak = item.IsNoBreak,
                     ShiftHours = ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value),
@@ -452,8 +414,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     NDHours = withND == true ? ComputeHours(ndLogStart, ndLogEnd) : 0,
                     ShiftUndertime = item.TimeOut < item.ShiftEnd ? ComputeHours(item.TimeOut, item.ShiftEnd.Value) : 0,
                     ShiftLate = item.TimeIn > item.ShiftStart ? (ComputeHours(item.ShiftStart.Value, item.TimeIn) > shiftLateGracePeriod ? ComputeHours(item.ShiftStart.Value, item.TimeIn) : 0) : 0,
-                    BreakUndertime = item.IsNoBreak ? 0 : ComputeHours(item.BreakOut!.Value, item.BreakStart!.Value),
-                    BreakLate = item.IsNoBreak ? 0 : ComputeHours(item.BreakOut!.Value, item.BreakEnd!.Value.AddMinutes(breakLateMinuteGracePeriod)),
                     ApprovedHoliday = item.ApprovedHoliday,
                     ApprovedHolidayOT = item.ApprovedHolidayOT,
                     ApprovedSPHoliday = item.ApprovedSPHoliday,

@@ -9,10 +9,6 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
         {
             entityBuilder.HasKey(x => x.ShiftId);
             entityBuilder.Property(x => x.ShiftName).HasMaxLength(100).IsRequired();
-            entityBuilder.Property(x => x.ShiftStart).IsRequired();
-            entityBuilder.Property(x => x.ShiftEnd).IsRequired();
-
-
             //entityBuilder.HasData(new Shift[] {
             //    new Shift {
             //        ShiftId = 1,

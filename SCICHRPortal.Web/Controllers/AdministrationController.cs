@@ -90,5 +90,10 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View();
         }
+        public IActionResult CompanyBranch()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
     }
 }

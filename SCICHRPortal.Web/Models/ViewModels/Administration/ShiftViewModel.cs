@@ -7,16 +7,22 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
         [MaxLength(100)]
         [Required(ErrorMessage = "Shift Name required.")]
         public string? ShiftName { get; set; }
-        [Required(ErrorMessage = "Shift Start is required.")]
-        public DateTime? ShiftStart { get; set; }
-        [Required(ErrorMessage = "Shift End is required.")]
-        public DateTime? ShiftEnd { get; set; }
-        public DateTime? BreakStart { get; set; }
-        public DateTime? BreakEnd { get; set; }
+        public DateTime? MondayShiftStart { get; set; }
+        public DateTime? MondayShiftEnd { get; set; }
+        public DateTime? TuesdayShiftStart { get; set; }
+        public DateTime? TuesdayShiftEnd { get; set; }
+        public DateTime? WednesdayShiftStart { get; set; }
+        public DateTime? WednesdayShiftEnd { get; set; }
+        public DateTime? ThursdayShiftStart { get; set; }
+        public DateTime? ThursdayShiftEnd { get; set; }
+        public DateTime? FridayShiftStart { get; set; }
+        public DateTime? FridayShiftEnd { get; set; }
+        public DateTime? SaturdayShiftStart { get; set; }
+        public DateTime? SaturdayShiftEnd { get; set; }
+        public DateTime? SundayShiftStart { get; set; }
+        public DateTime? SundayShiftEnd { get; set; }
         public int ShiftLateMinuteGracePeriod { get; set; }
-        public int BreakLateMinuteGracePeriod { get; set; }
         public int ShiftLateTotalMinuteLimit { get; set; }
-        public int BreakLateTotalMinuteLimit { get; set; }
         public int NoTimeLogCountLimit { get; set; }
         public int NoLeaveAbsentCountLimit { get; set; }
         public string? RestDays {  get; set; }

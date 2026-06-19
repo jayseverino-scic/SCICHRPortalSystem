@@ -90,20 +90,6 @@
                 orderable: false
             },
             {
-                title: "Break Undertime Total Minutes",
-                data: "breakUndertimeTotalMinutes",
-                className: 'dt-right',
-                render: (data) => data ? _numberHelper.formatCommaSeperator(data) : 0,
-                orderable: false
-            },
-            {
-                title: "Break Late Total Minutes",
-                data: "breakLateTotalMinutes",
-                className: 'dt-right',
-                render: (data) => data ? _numberHelper.formatCommaSeperator(data) : 0,
-                orderable: false
-            },
-            {
                 title: "Overtime Total Hours",
                 data: "overtimeTotalHours",
                 className: 'dt-right',

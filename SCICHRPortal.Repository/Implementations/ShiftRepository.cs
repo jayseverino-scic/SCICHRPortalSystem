@@ -74,7 +74,6 @@ namespace SCICHRPortal.Repository.Implementations
             var duplicatedMessage = shifts.Any(t => announcementMessage.ToLower() == t.ShiftName!.ToLower().StringSplitThenJoin());
             var duplicatedDate = shifts.Any(t => t.CreatedAt.Date == DateTime.Now.Date);
 
-            var duplicatedShiftTime = shifts.Any(t => t.ShiftStart!.Value.TimeOfDay == shift.ShiftStart!.Value.TimeOfDay && t.ShiftEnd!.Value.TimeOfDay == shift.ShiftEnd!.Value.TimeOfDay);
 
             if (duplicatedDate && duplicatedTitle)
             {
@@ -84,12 +83,8 @@ namespace SCICHRPortal.Repository.Implementations
             {
                 message.Message = "Shift Name Duplicated";
             }
-            else if (duplicatedShiftTime)
-            {
-                message.Message = "Shift Time Duplicated";
-            }
             else
-                message.IsDuplicated = (duplicatedTitle || duplicatedMessage) && duplicatedDate && duplicatedShiftTime;
+                message.IsDuplicated = (duplicatedTitle || duplicatedMessage) && duplicatedDate;
             return message;
         }
 

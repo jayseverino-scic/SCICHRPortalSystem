@@ -38,30 +38,40 @@
                     }
 
                     // Nullify shift start and end times
-                    rowData.shiftStart = null;
-                    rowData.shiftEnd = null;
-                    rowData.breakStart = null;
-                    rowData.breakEnd = null;
+                    rowData.mondayShiftStart = null;
+                    rowData.mondayShiftEnd = null;
+                    rowData.tuesdayShiftStart = null;
+                    rowData.tuesdayShiftEnd = null;
+                    rowData.wednesdayShiftStart = null;
+                    rowData.wednesdayShiftEnd = null;
+                    rowData.thursdayShiftStart = null;
+                    rowData.thursdayShiftEnd = null;
+                    rowData.fridayShiftStart = null;
+                    rowData.fridayShiftEnd = null;
+                    rowData.saturdayShiftStart = null;
+                    rowData.saturdayShiftEnd = null;
+                    rowData.sundayShiftStart = null;
+                    rowData.sundayShiftEnd = null;
 
                     console.log(`No Shift selected - cleared shift times for row ${rowIndex}`);
                 }
                 break;
 
-            case 'isNoBreak':
-                if (rowData.isNoBreak) {
-                    // If "No Break" is checked, uncheck other break-related options AND nullify break times
-                    if (rowData.isFlexibleBreak) {
-                        rowData.isFlexibleBreak = false;
-                        updatedColumns.push('isFlexibleBreak');
-                    }
+            // case 'isNoBreak':
+            //     if (rowData.isNoBreak) {
+            //         // If "No Break" is checked, uncheck other break-related options AND nullify break times
+            //         if (rowData.isFlexibleBreak) {
+            //             rowData.isFlexibleBreak = false;
+            //             updatedColumns.push('isFlexibleBreak');
+            //         }
 
-                    // Nullify break times only
-                    rowData.breakStart = null;
-                    rowData.breakEnd = null;
+            //         // Nullify break times only
+            //         rowData.breakStart = null;
+            //         rowData.breakEnd = null;
 
-                    console.log(`No Break selected - cleared break times for row ${rowIndex}`);
-                }
-                break;
+            //         console.log(`No Break selected - cleared break times for row ${rowIndex}`);
+            //     }
+            //     break;
 
             case 'isFlexibleShift':
                 if (rowData.isFlexibleShift && rowData.isNoShift) {
@@ -70,12 +80,12 @@
                 }
                 break;
 
-            case 'isFlexibleBreak':
-                if (rowData.isFlexibleBreak && rowData.isNoBreak) {
-                    rowData.isNoBreak = false;
-                    updatedColumns.push('isNoBreak');
-                }
-                break;
+            // case 'isFlexibleBreak':
+            //     if (rowData.isFlexibleBreak && rowData.isNoBreak) {
+            //         rowData.isNoBreak = false;
+            //         updatedColumns.push('isNoBreak');
+            //     }
+            //     break;
 
             case 'isAssigned':
                 if (rowData.isAssigned && rowData.isNoShift) {
@@ -85,12 +95,24 @@
                 break;
 
             // Handle when shift times are manually set - this might indicate a shift is being assigned
-            case 'shiftStart':
-            case 'shiftEnd':
-            case 'breakStart':
-            case 'breakEnd':
+            case 'mondayShiftStart':
+            case 'mondayShiftEnd':
+            case 'tuesdayShiftStart':
+            case 'tuesdayShiftEnd':
+            case 'wednesdayShiftStart':
+            case 'wednesdayShiftEnd':
+            case 'thursdayShiftStart':
+            case 'thursdayShiftEnd':
+            case 'fridayShiftStart':
+            case 'fridayShiftEnd':
+            case 'saturdayShiftStart':
+            case 'saturdayShiftEnd':
+            case 'sundayShiftStart':
+            case 'sundayShiftEnd':
+            // case 'breakStart':
+            // case 'breakEnd':
                 // If any time is set and "No Shift" is checked, uncheck "No Shift"
-                if ((rowData.shiftStart || rowData.shiftEnd || rowData.breakStart || rowData.breakEnd) && rowData.isNoShift) {
+                if ((rowData.shiftStart || rowData.shiftEnd ) && rowData.isNoShift) {
                     rowData.isNoShift = false;
                     updatedColumns.push('isNoShift');
                     console.log(`Time value set - automatically unchecked No Shift for row ${rowIndex}`);
@@ -201,8 +223,8 @@
                 render: (data) => data ? _stringHelper.capitalize(data) : '-'
             },
             {
-                title: "Shift Start",
-                data: "shiftStart",
+                title: "Mon Shift Start",
+                data: "mondayShiftStart",
                 className: 'dt-center',
                 render: (data) => {
                     if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
@@ -210,8 +232,8 @@
                 }
             },
             {
-                title: 'Shift End',
-                data: "shiftEnd",
+                title: 'Mon Shift End',
+                data: "mondayShiftEnd",
                 className: 'dt-center',
                 render: (data) => {
                     if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
@@ -219,8 +241,8 @@
                 }
             },
             {
-                title: 'Break Start',
-                data: "breakStart",
+                title: "Tue Shift Start",
+                data: "tuesdayShiftStart",
                 className: 'dt-center',
                 render: (data) => {
                     if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
@@ -228,8 +250,98 @@
                 }
             },
             {
-                title: 'Break End',
-                data: "breakEnd",
+                title: 'Tue Shift End',
+                data: "tuesdayShiftEnd",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: "Wed Shift Start",
+                data: "wednesdayShiftStart",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: 'Wed Shift End',
+                data: "wednesdayShiftEnd",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: "Thu Shift Start",
+                data: "thursdayShiftStart",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: 'Thu Shift End',
+                data: "thursdayShiftEnd",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: "Fri Shift Start",
+                data: "fridayShiftStart",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: 'Fri Shift End',
+                data: "fridayShiftEnd",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: "Sat Shift Start",
+                data: "saturdayShiftStart",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: 'Sat Shift End',
+                data: "saturdayShiftEnd",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: "Sun Shift Start",
+                data: "sundayShiftStart",
+                className: 'dt-center',
+                render: (data) => {
+                    if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
+                    return _dateHelper.formatLocalShortTime(data);
+                }
+            },
+            {
+                title: 'Sun Shift End',
+                data: "sundayShiftEnd",
                 className: 'dt-center',
                 render: (data) => {
                     if (!data || _dateHelper.formatShortLocalDate(data) === '01/01/0001') return '-';
@@ -243,16 +355,6 @@
                 className: 'dt-center',
                 render: function (data, type, row, meta) {
                     return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="isFlexibleBreak" type="checkbox"> Is Flexible Break',
-                data: "isFlexibleBreak",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isFlexibleBreak" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
                 },
                 orderable: false
             },
@@ -333,16 +435,36 @@
         const data = dataTable.rows().data().toArray();
         console.log(data);
         let shiftDate = data.ShiftDate ? data.DateShiftDate : null;
-        const shiftStart = data.ShiftStart ? data.ShiftStart : null;
-        const shiftEnd = data.ShiftEnd ? data.ShiftEnd : null;
-        const breakStart = data.BreakStart ? data.BreakStart : null;
-        const breakEnd = data.BreakEnd ? data.BreakEnd : null;
+        const mondayShiftStart = data.MondayShiftStart ? data.MondayShiftStart : null;
+        const mondayShiftEnd = data.MondayShiftEnd ? data.MondayShiftEnd : null;
+        const tuesdayShiftStart = data.TuesdayShiftStart ? data.TuesdayShiftStart : null;
+        const tuesdayShiftEnd = data.TuesdayShiftEnd ? data.TuesdayShiftEnd : null;
+        const wednesdayShiftStart = data.WednesdayShiftStart ? data.WednesdayShiftStart : null;
+        const wednesdayShiftEnd = data.WednesdayShiftEnd ? data.WednesdayShiftEnd : null;
+        const thursdayShiftStart = data.ThursdayShiftStart ? data.ThursdayShiftStart : null;
+        const thursdayShiftEnd = data.ThursdayShiftEnd ? data.ThursdayShiftEnd : null;
+        const fridayShiftStart = data.FridayShiftStart ? data.FridayShiftStart : null;
+        const fridayShiftEnd = data.FridayShiftEnd ? data.FridayShiftEnd : null;
+        const saturdayShiftStart = data.SaturdayShiftStart ? data.SaturdayShiftStart : null;
+        const saturdayShiftEnd = data.SaturdayShiftEnd ? data.SaturdayShiftEnd : null;
+        const sundayShiftStart = data.SundayShiftStart ? data.SundayShiftStart : null;
+        const sundayShiftEnd = data.SundayShiftEnd ? data.SundayShiftEnd : null;
 
         data.ShiftDate = shiftDate;
-        data.ShiftStart = shiftStart;
-        data.ShiftEnd = shiftEnd;
-        data.BreakStart = breakStart;
-        data.BreakEnd = breakEnd;
+        data.MondayShiftStart = mondayShiftStart;
+        data.MondayShiftEnd = mondayShiftEnd;
+        data.TuesdayShiftStart = tuesdayShiftStart;
+        data.TuesdayShiftEnd = tuesdayShiftEnd;
+        data.WednesdayShiftStart = wednesdayShiftStart;
+        data.WednesdayShiftEnd = wednesdayShiftEnd;
+        data.ThursdayShiftStart = thursdayShiftStart;
+        data.ThursdayShiftEnd = thursdayShiftEnd;
+        data.FridayShiftStart = fridayShiftStart;
+        data.FridayShiftEnd = fridayShiftEnd;
+        data.SaturdayShiftStart = saturdayShiftStart;
+        data.SaturdayShiftEnd = saturdayShiftEnd;
+        data.SundayShiftStart = sundayShiftStart;
+        data.SundayShiftEnd = sundayShiftEnd;
 
         console.log('Submitting data:', data);
 
@@ -394,12 +516,21 @@
                 <tr>
                     <th>No.</th>
                     <th>Employee</th>
-                    <th>Shift Start</th>
-                    <th>Shift End</th>
-                    <th>Break Start</th>
-                    <th>Break End</th>
+                    <th>Monday Shift Start</th>
+                    <th>Monday Shift End</th>
+                    <th>Tuesday Shift Start</th>
+                    <th>Tuesday Shift End</th>
+                    <th>Wednesday Shift Start</th>
+                    <th>Wednesday Shift End</th>
+                    <th>Thursday Shift Start</th>
+                    <th>Thursday Shift End</th>
+                    <th>Friday Shift Start</th>
+                    <th>Friday Shift End</th>
+                    <th>Saturday Shift Start</th>
+                    <th>Saturday Shift End</th>
+                    <th>Sunday Shift Start</th>
+                    <th>Sunday Shift End</th>
                     <th>Is Flexible Shift</th>
-                    <th>Is Flexible Break</th>
                     <th>Is No Shift</th>
                     <th>Is No Break</th>
                     <th>Shift</th>
@@ -643,7 +774,6 @@
         setTimeout(() => {
             updateSelectAllCheckbox();
             updateSelectAllCheckboxForColumn('isFlexibleShift');
-            updateSelectAllCheckboxForColumn('isFlexibleBreak');
             updateSelectAllCheckboxForColumn('isNoShift');
             updateSelectAllCheckboxForColumn('isNoBreak');
         }, 100);

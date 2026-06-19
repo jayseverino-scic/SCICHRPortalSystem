@@ -13,8 +13,6 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public double TotalLoggedHours { get; set; }
         public double ShiftLateTotalMinutes { get; set; }
         public double ShiftUndertimeTotalMinutes { get; set; }
-        public double BreakUndertimeTotalMinutes { get; set; }
-        public double BreakLateTotalMinutes { get; set; }
         public double OvertimeTotalHours { get; set; }
         public double NightDifferentialTotalHours { get; set; }
         public double HolidayTotalHours { get; set; }

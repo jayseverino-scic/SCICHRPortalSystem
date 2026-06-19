@@ -15,14 +15,21 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public int DepartmentId { get; set; }
         
         public DateTime? ShiftDate { get; set; }
-        
-        public DateTime? ShiftStart { get; set; }
-        
-        public DateTime? ShiftEnd { get; set; }
-        public DateTime? BreakStart { get; set; }
-        public DateTime? BreakEnd { get; set; }
+        public DateTime? MondayShiftStart { get; set; }
+        public DateTime? MondayShiftEnd { get; set; }
+        public DateTime? TuesdayShiftStart { get; set; }
+        public DateTime? TuesdayShiftEnd { get; set; }
+        public DateTime? WednesdayShiftStart { get; set; }
+        public DateTime? WednesdayShiftEnd { get; set; }
+        public DateTime? ThursdayShiftStart { get; set; }
+        public DateTime? ThursdayShiftEnd { get; set; }
+        public DateTime? FridayShiftStart { get; set; }
+        public DateTime? FridayShiftEnd { get; set; }
+        public DateTime? SaturdayShiftStart { get; set; }
+        public DateTime? SaturdayShiftEnd { get; set; }
+        public DateTime? SundayShiftStart { get; set; }
+        public DateTime? SundayShiftEnd { get; set; }
         public bool IsFlexibleShift { get; set; }
-        public bool IsFlexibleBreak { get; set; }
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
         public Boolean? IsAssigned { get; set; }

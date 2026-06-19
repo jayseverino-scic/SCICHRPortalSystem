@@ -15,8 +15,6 @@ namespace SCICHRPortal.Data.Mappings
             entityBuilder.Property(e => e.TimeLogId).IsRequired();
             entityBuilder.Property(e => e.TimeIn).IsRequired();
             entityBuilder.Property(e => e.TimeOut).IsRequired();
-            entityBuilder.Property(e => e.ShiftStart).IsRequired();
-            entityBuilder.Property(e => e.ShiftEnd).IsRequired();
 
             entityBuilder.HasOne(e => e.Employee)
                .WithMany()

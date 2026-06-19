@@ -13,9 +13,6 @@ namespace SCICHRPortal.Data.Mappings
             entityBuilder.Property(e => e.EmployeeId).IsRequired();
             entityBuilder.Property(e => e.DepartmentId).IsRequired();
             entityBuilder.Property(e => e.ShiftDate).IsRequired();
-            entityBuilder.Property(e => e.ShiftStart).IsRequired();
-            entityBuilder.Property(e => e.ShiftEnd).IsRequired();
-
             entityBuilder.HasOne(e => e.Employee)
                .WithMany()
                .HasForeignKey(u => u.EmployeeId)

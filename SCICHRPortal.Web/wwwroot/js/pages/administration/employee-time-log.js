@@ -106,14 +106,9 @@
             var shift = _.filter(_employeeShift, function (o) { return o.employeeId == id });
             $('#employee-time-log-form #timeIn').val(moment(shift[0].shiftStart).format('HH:mm'));
             $('#employee-time-log-form #timeOut').val(moment(shift[0].shiftEnd).format('HH:mm'));
-            $('#employee-time-log-form #breakOut').val(moment(shift[0].breakStart).format('HH:mm'));
-            $('#employee-time-log-form #breakIn').val(moment(shift[0].breakEnd).format('HH:mm'));
             $('#employee-time-log-form #shiftStart').val(moment(shift[0].shiftStart).format('HH:mm'));
             $('#employee-time-log-form #shiftEnd').val(moment(shift[0].shiftEnd).format('HH:mm'));
-            $('#employee-time-log-form #breakStart').val(moment(shift[0].breakStart).format('HH:mm'));
-            $('#employee-time-log-form #breakEnd').val(moment(shift[0].breakEnd).format('HH:mm'));
             $('#employee-time-log-form #isFlexibleShift').prop("checked", shift[0].isFlexibleShift);
-            $('#employee-time-log-form #isFlexibleBreak').prop("checked", shift[0].isFlexibleBreak);
             $('#employee-time-log-form #isNoShift').prop("checked", shift[0].isNoShift);
             $('#employee-time-log-form #isNoBreak').prop("checked", shift[0].isNoBreak);
             $('#employee-time-log-form #employeeNo').val(id).trigger('change.select2');
@@ -127,14 +122,9 @@
             console.log(shift);
             $('#employee-time-log-form #timeIn').val(moment(shift[0].shiftStart).format('HH:mm'));
             $('#employee-time-log-form #timeOut').val(moment(shift[0].shiftEnd).format('HH:mm'));
-            $('#employee-time-log-form #breakOut').val(moment(shift[0].breakStart).format('HH:mm'));
-            $('#employee-time-log-form #breakIn').val(moment(shift[0].breakEnd).format('HH:mm'));
             $('#employee-time-log-form #shiftStart').val(moment(shift[0].shiftStart).format('HH:mm'));
             $('#employee-time-log-form #shiftEnd').val(moment(shift[0].shiftEnd).format('HH:mm'));
-            $('#employee-time-log-form #breakStart').val(moment(shift[0].breakStart).format('HH:mm'));
-            $('#employee-time-log-form #breakEnd').val(moment(shift[0].breakEnd).format('HH:mm'));
             $('#employee-time-log-form #isFlexibleShift').prop("checked", shift[0].isFlexibleShift);
-            $('#employee-time-log-form #isFlexibleBreak').prop("checked", shift[0].isFlexibleBreak);
             $('#employee-time-log-form #isNoShift').prop("checked", shift[0].isNoShift);
             $('#employee-time-log-form #isNoBreak').prop("checked", shift[0].isNoBreak);
             $('#employee-time-log-form #employeeName').val(id).trigger('change.select2');
@@ -165,23 +155,15 @@
                 const timeIn = data.DateIn + 'T' + data.TimeIn;
                 const shiftStart = data.ShiftStart ? data.DateIn + 'T' + data.ShiftStart : null;
                 const shiftEnd = data.ShiftEnd ? data.DateIn + 'T' + data.ShiftEnd : null;
-                const breakStart = data.BreakStart ? data.DateIn + 'T' + data.BreakStart : null;
-                const breakEnd = data.BreakIn ? data.DateIn + 'T' + data.BreakEnd : null;
+
                 let timeOut = data.TimeOut ? data.DateIn + 'T' + data.TimeOut : null;
-                const breakOut = data.DateBreakOut && data.BreakOut ? data.DateBreakOut + 'T' + data.BreakOut : null;
-                let breakIn = data.DateBreakIn && data.BreakIn ? data.DateBreakIn + 'T' + data.BreakIn : null;
 
                 data.TimeIn = timeIn;
                 data.TimeOut = timeOut;
-                data.BreakOut = breakOut;
-                data.BreakIn = breakIn;
                 data.ShiftStart = shiftStart;
                 data.ShiftEnd = shiftEnd;
-                data.BreakStart = breakStart;
-                data.BreakEnd = breakEnd;
                 data.employeeId = $('#employee-time-log-form #employeeNo').val();
                 data.IsFlexibleShift = $("#isFlexibleShift").is(':checked');
-                data.IsFlexibleBreak = $("#isFlexibleBreak").is(':checked');
                 data.IsNoShift = $("#isNoShift").is(':checked');
                 data.IsNoBreak = $("#isNoBreak").is(':checked');
 
@@ -260,14 +242,9 @@
         _formHelper.populateForm(form, data);
         let dateIn = moment(data.dateIn).format('YYYY-MM-DD');
         let dateOut = moment(data.dateOut).format('YYYY-MM-DD');
-        let dateBreakOut = moment(data.dateBreakOut).format('YYYY-MM-DD');
-        let dateBreakIn = moment(data.dateBreakIn).format('YYYY-MM-DD');
         $(form).find('#dateIn').val(dateIn);
         $(form).find('#dateOut').val(dateOut);
-        $(form).find('#dateBreakOut').val(dateBreakOut);
-        $(form).find('#dateBreakIn').val(dateBreakIn);
         $(form).find('#isFlexibleShift').prop("checked", data.isFlexibleShift);
-        $(form).find('#isFlexibleBreak').prop("checked", data.isFlexibleBreak);
         $(form).find('#isNoShift').prop("checked", data.isNoShift);
         $(form).find('#isNoBreak').prop("checked", data.isNoBreak);
         console.log(data);
@@ -277,25 +254,12 @@
         if (data.timeOut) {
             $(form).find('#timeOut').val(moment(data.timeOut).format('HH:mm'));
         }
-        if (data.breakOut) {
-            $(form).find('#breakOut').val(moment(data.breakOut).format('HH:mm'));
-        }
-        if (data.breakIn) {
-            $(form).find('#breakIn').val(moment(data.breakIn).format('HH:mm'));
-        }
-        if (data.shiftStart) {
+        if (data.mondayShiftStart) {
             $(form).find('#shiftStart').val(moment(data.shiftStart).format('HH:mm'));
         }
-        if (data.shiftEnd) {
+        if (data.mondayShiftEnd) {
             $(form).find('#shiftEnd').val(moment(data.shiftEnd).format('HH:mm'));
         }
-        if (data.breakStart) {
-            $(form).find('#breakStart').val(moment(data.breakStart).format('HH:mm'));
-        }
-        if (data.breakEnd) {
-            $(form).find('#breakEnd').val(moment(data.breakEnd).format('HH:mm'));
-        }
-
         if (data.employeeId) {
             $(form).find('#employeeNo').val(data.employeeId).trigger('change.select2');
             $(form).find('#employeeName').val(data.employeeId).trigger('change.select2');
@@ -421,12 +385,8 @@
             let form = $('#employee-time-log-form');
             let dateIn = moment(rowData.dateIn).format('YYYY-MM-DD');
             let dateOut = moment(rowData.dateOut).format('YYYY-MM-DD');
-            let dateBreakOut = moment(rowData.dateBreakOut).format('YYYY-MM-DD');
-            let dateBreakIn = moment(rowData.dateBreakIn).format('YYYY-MM-DD');
             form.find('#dateIn').val(dateIn);
             form.find('#dateOut').val(dateOut);
-            form.find('#dateBreakOut').val(dateBreakOut);
-            form.find('#dateBreakIn').val(dateBreakIn);
 
             populateForm(form, rowData);
             hideShowColumnBaseOnAction(false);
@@ -446,7 +406,7 @@
     let hideShowColumnBaseOnAction = function (isAdd) {
         if (isAdd) {
             $('.borrow-initial').prop('disabled', false);
-            $('#shiftStart, #shiftEnd, #breakStart, #breakEnd').prop('disabled', true);
+            $('#shiftStart, #shiftEnd').prop('disabled', true);
             $('.return-container').addClass('d-none');
         } else {
             $('.borrow-initial').prop('disabled', true);
@@ -515,38 +475,6 @@
                 },
             },
             {
-                title: "Date Break Out",
-                data: "dateBreakOut",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatShortLocalDate(data);
-                },
-            },
-            {
-                title: "Break Out",
-                data: "breakOut",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatLocalShortTime(data);
-                },
-            },
-            {
-                title: "Date Break In",
-                data: "dateBreakIn",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatShortLocalDate(data);
-                },
-            },
-            {
-                title: "Break In",
-                data: "breakIn",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatLocalShortTime(data);
-                },
-            },
-            {
                 title: "Shift Start",
                 data: "shiftStart",
                 className: 'noVis dt-center',
@@ -563,33 +491,8 @@
                 },
             },
             {
-                title: "Break Start",
-                data: "breakStart",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatLocalShortTime(data);
-                },
-            },
-            {
-                title: "Break End",
-                data: "breakEnd",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatLocalShortTime(data);
-                },
-            },
-            {
                 title: "Flexible Shift",
                 data: "isFlexibleShift",
-                className: 'noVis dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
-                },
-                orderable: false
-            },
-            {
-                title: "Flexible Break",
-                data: "isFlexibleBreak",
                 className: 'noVis dt-center',
                 render: function (data, type, row, meta) {
                     return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
@@ -640,8 +543,6 @@
         $('#employee-time-log-modal').modal({ backdrop: 'static', keyboard: false });
         $('#employee-time-log-form #dateIn').attr('value', moment().format('YYYY-MM-DD'));
         $('#employee-time-log-form #dateOut').attr('value', moment().format('YYYY-MM-DD'));
-        $('#employee-time-log-form #dateBreakOut').attr('value', moment().format('YYYY-MM-DD'));
-        $('#employee-time-log-form #dateBreakIn').attr('value', moment().format('YYYY-MM-DD'));
     };
 
     let initializeGrids = e => {
