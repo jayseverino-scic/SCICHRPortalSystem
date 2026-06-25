@@ -58,5 +58,7 @@ namespace SCICHRPortal.Data.XscribeTables
         public int? Location_Address_Location_Area_Id {  get; set; }
         public int? Location_Address_Location_Country_Id { get; set; }
         public string? Location_Address_Zip {  get; set; }
+        public Department? Department { get; set; }
+        public Company_Branch? Company_Branch { get; set; }
     }
 }
