@@ -10,8 +10,8 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class LeaveTypeRepository : Repository, ILeaveTypeRepository
     {
-        public LeaveTypeRepository(ApplicationContext context)
-    : base(context)
+        public LeaveTypeRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteAsync(int typeId)

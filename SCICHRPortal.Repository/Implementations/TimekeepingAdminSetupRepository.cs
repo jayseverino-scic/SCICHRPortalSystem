@@ -7,8 +7,8 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class TimekeepingAdminSetupRepository : Repository, ITimekeepingAdminSetupRepository
     {
-        public TimekeepingAdminSetupRepository(ApplicationContext context)
-: base(context)
+        public TimekeepingAdminSetupRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+: base(context, xscribeContext, timekeepingContext)
         {
         }
 

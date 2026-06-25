@@ -11,8 +11,8 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class DepartmentRepository : Repository, IDepartmentRepository
     {
-        public DepartmentRepository(ApplicationContext context)
-    : base(context)
+        public DepartmentRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteAsync(int departmentId)

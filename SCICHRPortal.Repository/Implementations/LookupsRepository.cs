@@ -10,7 +10,7 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class LookupsRepository : Repository, ILookupsRepository
     {
-        public LookupsRepository(ApplicationContext context) : base(context)
+        public LookupsRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext) : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteModuleTypeAsync(int moduleId)

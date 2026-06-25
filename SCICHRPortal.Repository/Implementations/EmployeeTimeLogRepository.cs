@@ -9,8 +9,8 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class EmployeeTimeLogRepository : Repository, IEmployeeTimeLogRepository
     {
-        public EmployeeTimeLogRepository(ApplicationContext context)
-    : base(context)
+        public EmployeeTimeLogRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteAsync(int id)

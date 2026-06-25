@@ -10,8 +10,8 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class HolidayRepository : Repository, IHolidayRepository
     {
-        public HolidayRepository(ApplicationContext context)
-    : base(context)
+        public HolidayRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteAsync(int holidayId)

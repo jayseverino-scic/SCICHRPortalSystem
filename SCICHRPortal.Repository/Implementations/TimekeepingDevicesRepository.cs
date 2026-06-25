@@ -11,11 +11,9 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class TimekeepingDevicesRepository : Repository, ITimekeepingDevicesRepository
     {
-        private TimekeepingContext TimekeepingContext { get; set; }
-        public TimekeepingDevicesRepository(ApplicationContext context, TimekeepingContext timekeepingContext)
-    : base(context)
+        public TimekeepingDevicesRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
-            TimekeepingContext = timekeepingContext;
         }
         public async Task<bool> DeleteAsync(int Id)
         {

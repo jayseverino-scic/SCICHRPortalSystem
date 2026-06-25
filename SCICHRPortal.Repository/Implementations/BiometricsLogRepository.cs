@@ -11,11 +11,11 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class BiometricsLogRepository : Repository, IBiometricsLogRepository
     {
-        private TimekeepingContext TimekeepingContext { get; set; }
-        public BiometricsLogRepository(ApplicationContext context, TimekeepingContext timekeepingContext)
-    : base(context)
+
+        public BiometricsLogRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
-            TimekeepingContext = timekeepingContext;
+           
         }
         
         public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)

@@ -9,7 +9,7 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class EmployeeShiftRepository : Repository, IEmployeeShiftRepository
     {
-        public EmployeeShiftRepository(ApplicationContext context) : base(context)
+        public EmployeeShiftRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext) : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteAsync(int id)

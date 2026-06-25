@@ -6,7 +6,7 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class UserRoleRepository : Repository, IUserRoleRepository
     {
-        public UserRoleRepository(ApplicationContext context) : base(context)
+        public UserRoleRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext) : base(context, xscribeContext, timekeepingContext)
         {
         }
 

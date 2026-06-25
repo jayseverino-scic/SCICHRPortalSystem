@@ -10,8 +10,8 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class CutOffRepository : Repository, ICutOffRepository
     {
-        public CutOffRepository(ApplicationContext context)
-    : base(context)
+        public CutOffRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteAsync(int cutOffId)

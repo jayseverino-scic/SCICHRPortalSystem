@@ -10,7 +10,7 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class EmployeeAttendanceRepository : Repository, IEmployeeAttendanceRepository
     {
-        public EmployeeAttendanceRepository(ApplicationContext context) : base(context)
+        public EmployeeAttendanceRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext) : base(context, xscribeContext, timekeepingContext)
         {
         }
 

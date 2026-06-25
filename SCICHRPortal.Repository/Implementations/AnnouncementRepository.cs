@@ -10,8 +10,8 @@ namespace SCICHRPortal.Repository.Implementations
     public class AnnouncementRepository : Repository, IAnnouncementRepository
     {
 
-        public AnnouncementRepository(ApplicationContext context)
-            : base(context)
+        public AnnouncementRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+            : base(context, xscribeContext, timekeepingContext)
         {
         }
 

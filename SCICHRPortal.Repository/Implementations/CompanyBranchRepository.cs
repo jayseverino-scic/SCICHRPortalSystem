@@ -11,11 +11,10 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class CompanyBranchRepository : Repository, ICompanyBranchRepository
     {
-        private XscribeContext XscribeContext { get; set; }
-        public CompanyBranchRepository(ApplicationContext context, XscribeContext xscribeContext)
-    : base(context)
+        public CompanyBranchRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
-            XscribeContext = xscribeContext;
+
         }
         public async Task<Tuple<IEnumerable<Company_Branch>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {

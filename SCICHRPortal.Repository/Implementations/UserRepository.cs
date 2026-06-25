@@ -7,8 +7,8 @@ namespace SCICHRPortal.Repository.Implementations
     public class UserRepository : Repository, IUserRepository
     {
 
-        public UserRepository(ApplicationContext context)
-            : base(context)
+        public UserRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+            : base(context, xscribeContext, timekeepingContext)
         {
         }
 

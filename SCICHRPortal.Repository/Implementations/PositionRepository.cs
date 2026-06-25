@@ -11,8 +11,8 @@ namespace SCICHRPortal.Repository.Implementations
 {
     public class PositionRepository : Repository, IPositionRepository
     {
-        public PositionRepository(ApplicationContext context)
-    : base(context)
+        public PositionRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
         }
         public async Task<bool> DeleteAsync(int categoryId)

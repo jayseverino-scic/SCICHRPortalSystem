@@ -7,8 +7,8 @@ namespace SCICHRPortal.Repository.Implementations
     public class AuditRepository : Repository, IAuditRepository
     {
 
-        public AuditRepository(ApplicationContext context)
-            : base(context)
+        public AuditRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+            : base(context, xscribeContext, timekeepingContext)
         {
         }
 
