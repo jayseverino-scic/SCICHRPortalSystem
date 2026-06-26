@@ -15,7 +15,7 @@ namespace SCICHRPortal.Repository.Implementations
         {
         }
 
-        public async Task<Tuple<IEnumerable<Department>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
+        public async Task<Tuple<IEnumerable<XDepartment>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             var departments = XscribeContext.Department!
               .Where(e => e._Deleted == false);
@@ -34,17 +34,17 @@ namespace SCICHRPortal.Repository.Implementations
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
 
-            return new Tuple<IEnumerable<Department>, int>(await departments.ToListAsync(), total);
+            return new Tuple<IEnumerable<XDepartment>, int>(await departments.ToListAsync(), total);
         }
 
-        public async Task<IEnumerable<Department>> GetAllAsync()
+        public async Task<IEnumerable<XDepartment>> GetAllAsync()
         {
             var departments = await XscribeContext.Department!.Where(s => !s._Deleted)
               .ToListAsync();
             return departments;
         }
 
-        public async Task<Department> GetAsync(int id)
+        public async Task<XDepartment> GetAsync(int id)
         {
             var department = await XscribeContext.Department!
                     .SingleOrDefaultAsync(s => s.Id == id && !s._Deleted);

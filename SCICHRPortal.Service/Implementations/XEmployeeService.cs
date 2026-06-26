@@ -14,31 +14,31 @@ namespace SCICHRPortal.Service.Implementations
             EmployeeRepository = employeeRepository;
         }
 
-        public Task<IEnumerable<Employee>> FilterAsync(string filter)
+        public Task<IEnumerable<XEmployee>> FilterAsync(string filter)
         {
             throw new NotImplementedException();
         }
-        public async Task<IEnumerable<Employee>> GetAllAsync()
+        public async Task<IEnumerable<XEmployee>> GetAllAsync()
         {
             return await EmployeeRepository.GetAllAsync();
         }
 
-        public async Task<Employee> GetAsync(int id)
+        public async Task<XEmployee> GetAsync(int id)
         {
             return await EmployeeRepository.GetAsync(id);
         }
 
-        public async Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
+        public async Task<Tuple<IEnumerable<XEmployee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             return await EmployeeRepository.FilterAsync(pageNumber, pageSize, searchKeyword);
         }
 
-        public async Task<IEnumerable<Employee>> GetEmployeeByDepartment(int departmentId)
+        public async Task<IEnumerable<XEmployee>> GetEmployeeByDepartment(int departmentId)
         {
             return await EmployeeRepository.GetEmployeeByDepartment(departmentId);
         }
 
-        public async Task<Employee> GetByEmployeeNoAsync(string employeeNo)
+        public async Task<XEmployee> GetByEmployeeNoAsync(string employeeNo)
         {
             return await EmployeeRepository.GetByEmployeeNoAsync(employeeNo);
         }

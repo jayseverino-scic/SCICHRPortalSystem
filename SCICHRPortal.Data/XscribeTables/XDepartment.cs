@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SCICHRPortal.Data.XscribeTables
 {
-    public class Department
+    public class XDepartment
     {
         public int Id { get; set; }
         public int Company_Id { get; set; }

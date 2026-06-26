@@ -7,9 +7,9 @@ namespace SCICHRPortal.Service.Interfaces
 {
     public interface IXDepartmentService :
         IScopedService,
-         IRetriever<Department, int>,
-         IListRetriever<Department>
+         IRetriever<XDepartment, int>,
+         IListRetriever<XDepartment>
     {
-        Task<Tuple<IEnumerable<Department>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
+        Task<Tuple<IEnumerable<XDepartment>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
     }
 }

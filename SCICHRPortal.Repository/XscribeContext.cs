@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.Repository
@@ -13,8 +12,8 @@ namespace SCICHRPortal.Repository
 
         // DbSets for the tables you want to read from SQL Server
         public DbSet<Company_Branch> Company_Branch { get; set; }
-        public DbSet<Department> Department { get; set; }
-        public DbSet<Employee> Employee { get; set; }
+        public DbSet<XDepartment> Department { get; set; }
+        public DbSet<XEmployee> Employee { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,12 +22,12 @@ namespace SCICHRPortal.Repository
                 entity.ToTable("Company_Branch");
                 entity.HasKey(e =>e.Id);
             });
-            modelBuilder.Entity<Department>(entity =>
+            modelBuilder.Entity<XDepartment>(entity =>
             {
                 entity.ToTable("Department");
                 entity.HasKey(e => e.Id);
             });
-            modelBuilder.Entity<Employee>(entity =>
+            modelBuilder.Entity<XEmployee>(entity =>
             {
                 entity.ToTable("Employee");
                 entity.HasKey(e => e.Id);

@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OfficeOpenXml;
 using Org.BouncyCastle.Asn1.Ocsp;
-using SCICHRPortal.Data.Entities;
-using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;

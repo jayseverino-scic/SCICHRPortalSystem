@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace SCICHRPortal.Data.XscribeTables
 {
-    public class Employee
+    public class XEmployee
     {
         public int Id { get; set; }
-        public string Last_Name { get; set; }
-        public string First_Name { get; set; }
+        public string? Last_Name { get; set; }
+        public string? First_Name { get; set; }
         public string? Middle_Name { get; set; }
         public string? Suffix { get; set; }
         public string? Display_Name { get; set; }
@@ -17,6 +18,7 @@ namespace SCICHRPortal.Data.XscribeTables
         public string? Blood_Type { get; set; }
         public int Company_Id { get; set; }
         public int Company_Branch_Id { get; set; }
+        //[Column("DepartmentId")]
         public int? Department_Id { get; set; }
         public string? Position { get; set; }
         public string? Employment_Status { get; set; }
@@ -58,7 +60,7 @@ namespace SCICHRPortal.Data.XscribeTables
         public int? Location_Address_Location_Area_Id {  get; set; }
         public int? Location_Address_Location_Country_Id { get; set; }
         public string? Location_Address_Zip {  get; set; }
-        public Department? Department { get; set; }
+        public XDepartment? Department { get; set; }
         public Company_Branch? Company_Branch { get; set; }
     }
 }

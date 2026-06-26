@@ -16,7 +16,6 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
-    const _uploadDownloadModalHelper = new UploadDownloadModalHelper(_config);
     const SYSTEM = 'scicportal';
 
     let _department = [];
@@ -175,7 +174,8 @@
             }
         });
 
-        console.log(_department)
+        console.log(_department);
+        console.log(_position);
     }
 
 

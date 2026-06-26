@@ -15,22 +15,22 @@ namespace SCICHRPortal.Service.Implementations
             DepartmentRepository = departmentRepository;
         }
 
-        public Task<IEnumerable<Department>> FilterAsync(string filter)
+        public Task<IEnumerable<XDepartment>> FilterAsync(string filter)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Department>> GetAllAsync()
+        public async Task<IEnumerable<XDepartment>> GetAllAsync()
         {
             return await DepartmentRepository.GetAllAsync();
         }
 
-        public async Task<Department> GetAsync(int id)
+        public async Task<XDepartment> GetAsync(int id)
         {
             return await DepartmentRepository.GetAsync(id);
         }
 
-        public async Task<Tuple<IEnumerable<Department>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
+        public async Task<Tuple<IEnumerable<XDepartment>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             return await DepartmentRepository.FilterAsync(pageNumber, pageSize, searchKeyword);
         }
