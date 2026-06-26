@@ -18,7 +18,6 @@ namespace SCICHRPortal.Data.XscribeTables
         public string? Blood_Type { get; set; }
         public int Company_Id { get; set; }
         public int Company_Branch_Id { get; set; }
-        //[Column("DepartmentId")]
         public int? Department_Id { get; set; }
         public string? Position { get; set; }
         public string? Employment_Status { get; set; }
@@ -33,7 +32,7 @@ namespace SCICHRPortal.Data.XscribeTables
         public double? Height_M { get; set; }
         public int? Birth_Place_City_Id { get; set; }
         public string? Marital_Status { get; set; }
-        public int? Religtion_Id { get; set; }
+        public int? Religion_Id { get; set; }
         public int? Citizenship_Id { get; set; }
         public int? Company_Position_Id { get; set; }
         public int? Num_Employments { get; set; }
@@ -62,5 +61,6 @@ namespace SCICHRPortal.Data.XscribeTables
         public string? Location_Address_Zip {  get; set; }
         public XDepartment? Department { get; set; }
         public Company_Branch? Company_Branch { get; set; }
+        public XCompany_Position? Company_Position { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace SCICHRPortal.Repository.Implementations
         public async Task<Tuple<IEnumerable<XEmployee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             var employees = XscribeContext.Employee!
-              .Where(e => e._Deleted == false).Take(10);
+              .Where(e => e._Deleted == false);
 
             if (!String.IsNullOrWhiteSpace(searchKeyword))
             {
@@ -25,8 +25,12 @@ namespace SCICHRPortal.Repository.Implementations
                         e.Last_Name!.ToLower().Contains(searchKeyword.ToLower()));
             }
 
-            employees.Select(e => e.Position).Load();
-            employees.Select(e => e.Department).Load();
+            employees.Select(e => e.Department!).Load();
+            employees.Select(e => e.Company_Position!).Load();
+            employees.Select(e => e.Company_Branch!).Load();
+            //employees.Include(e => e.Company_Position);
+            //employees.Include(e => e.Department);
+            //employees.Include(e => e.Company_Branch);
 
             var total = employees.Count();
 

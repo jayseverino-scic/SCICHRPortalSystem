@@ -77,6 +77,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.Id,
                 d.Department_Id,
                 d.Company_Position_Id,
+                d.Company_Branch_Id,
                 d.Employee_code,
                 d.Last_Name,
                 d.First_Name,
@@ -86,7 +87,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.Email,
                 d.Mobile,
                 d.Department,
-                d.Position,
+                d.Company_Branch,
+                d.Company_Position,
                 OrderNumber = orderNumber++
             });
 

@@ -61,7 +61,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("AnnouncementId");
 
-                    b.ToTable("Announcement");
+                    b.ToTable("Announcement", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Audit", b =>
@@ -104,7 +104,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.BiometricsLog", b =>
@@ -156,7 +156,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("BiometricsLogId");
 
-                    b.ToTable("BiometricsLog");
+                    b.ToTable("BiometricsLog", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeAttendance", b =>
@@ -260,7 +260,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasIndex("TimeLogId");
 
-                    b.ToTable("EmployeeAttendance");
+                    b.ToTable("EmployeeAttendance", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeShift", b =>
@@ -360,7 +360,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasIndex("ShiftId");
 
-                    b.ToTable("EmployeeShift");
+                    b.ToTable("EmployeeShift", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeShiftDevice", b =>
@@ -458,7 +458,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasIndex("ShiftId");
 
-                    b.ToTable("EmployeeShiftDevice");
+                    b.ToTable("EmployeeShiftDevice", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeTimeLog", b =>
@@ -524,7 +524,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("EmployeeTimeLog");
+                    b.ToTable("EmployeeTimeLog", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.LeaveRequest", b =>
@@ -582,7 +582,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasIndex("LeaveTypeId");
 
-                    b.ToTable("LeaveRequest");
+                    b.ToTable("LeaveRequest", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.CutOff", b =>
@@ -622,7 +622,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("CutOffId");
 
-                    b.ToTable("CutOff");
+                    b.ToTable("CutOff", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Department", b =>
@@ -663,7 +663,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("DepartmentId");
 
-                    b.ToTable("Department");
+                    b.ToTable("Department", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Employee", b =>
@@ -750,7 +750,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Employee");
+                    b.ToTable("Employee", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Holiday", b =>
@@ -796,7 +796,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("HolidayId");
 
-                    b.ToTable("Holiday");
+                    b.ToTable("Holiday", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.LeaveType", b =>
@@ -838,7 +838,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("LeaveTypeId");
 
-                    b.ToTable("LeaveType");
+                    b.ToTable("LeaveType", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Module", b =>
@@ -876,7 +876,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("ModuleId");
 
-                    b.ToTable("Module");
+                    b.ToTable("Module", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Position", b =>
@@ -912,7 +912,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("PositionId");
 
-                    b.ToTable("Position");
+                    b.ToTable("Position", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Shift", b =>
@@ -1005,7 +1005,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("ShiftId");
 
-                    b.ToTable("Shift");
+                    b.ToTable("Shift", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.TimekeepingAdminSetup", b =>
@@ -1041,7 +1041,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("SetupId");
 
-                    b.ToTable("TimekeepingAdminSetup");
+                    b.ToTable("TimekeepingAdminSetup", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.TimekeepingDevices", b =>
@@ -1083,7 +1083,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TimekeepingDevices");
+                    b.ToTable("TimekeepingDevices", (string)null);
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Role", b =>
@@ -1126,7 +1126,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("Role");
+                    b.ToTable("Role", (string)null);
 
                     b.HasData(
                         new
@@ -1232,7 +1232,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
 
                     b.HasData(
                         new
@@ -1295,7 +1295,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRole");
+                    b.ToTable("UserRole", (string)null);
 
                     b.HasData(
                         new

@@ -50,7 +50,7 @@
                         recordsTotal: total,
                         data: json.data
                     });
-
+                    console.log(json.data);
                 } else {
                     success(null);
                 }
@@ -75,7 +75,7 @@
             },
             {
                 title: 'Employee No',
-                data: "employee_code",
+                data: "id",
                 className: 'noVis dt-center',
                 render: (data, type, row, meta) => {
                     return data;
@@ -114,10 +114,20 @@
                 },
             },
             {
-                title: "Position",
-                data: "position.positionName",
+                title: "Project",
+                data: "company_Branch.name",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
+                    if (data == null) {return "-" }
+                    return data
+                },
+            },
+            {
+                title: "Position",
+                data: "company_Position.name",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    if (data == null) {return "-" }
                     return data
                 },
             },
@@ -126,6 +136,7 @@
                 data: "department.name",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
+                    if (data == null) { return "-" }
                     return data
                 },
             },
@@ -150,7 +161,7 @@
                 url: `Authenticated/XDepartment`
             }),
             _apiHelper.get({
-                url: `Authenticated/Position`
+                url: `Authenticated/XCompanyPosition`
             }),
         ]);
 
@@ -169,8 +180,8 @@
         });
         _position = _.map(positionComponent, (s) => {
             return {
-                positionId: s.positionId,
-                positionName: s.positionName
+                id: s.id,
+                name: s.name
             }
         });
 

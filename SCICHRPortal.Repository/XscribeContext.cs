@@ -14,6 +14,7 @@ namespace SCICHRPortal.Repository
         public DbSet<Company_Branch> Company_Branch { get; set; }
         public DbSet<XDepartment> Department { get; set; }
         public DbSet<XEmployee> Employee { get; set; }
+        public DbSet<XCompany_Position> Company_Position { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -31,7 +32,28 @@ namespace SCICHRPortal.Repository
             {
                 entity.ToTable("Employee");
                 entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Department)
+                      .WithMany()
+                      .HasForeignKey(e => e.Department_Id)
+                      .HasConstraintName("FK_XEmployee_Department");
+
+                entity.HasOne(e => e.Company_Branch)
+                      .WithMany()
+                      .HasForeignKey(e => e.Company_Branch_Id) // Use the property with underscore
+                      .HasConstraintName("FK_XEmployee_Company_Branch");
+
+                entity.HasOne(e => e.Company_Position)
+                      .WithMany()
+                      .HasForeignKey(e => e.Company_Position_Id)
+                      .HasConstraintName("FK_XEmployee_Company_Position");
             });
+            modelBuilder.Entity<XCompany_Position>(entity =>
+            {
+                entity.ToTable("Company_Position");
+                entity.HasKey(e => e.Id);
+            });
+
             base.OnModelCreating(modelBuilder);
         }
     }
