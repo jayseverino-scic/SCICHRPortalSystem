@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SCICHRPortal.Data.TimekeepingTables
 {
-    public class TimeLogs
+    public class STimeLogs
     {
         public Guid Id { get; set; }
         public DateTimeOffset DateCreated { get; set; }

@@ -10,11 +10,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SCICHRPortal.Service.Implementations
 {
-    public class CompanyBranchService : ICompanyBranchService
+    public class XCompanyBranchService : IXCompanyBranchService
     {
-        private ICompanyBranchRepository CompanyBranchRepository { get; }
+        private IXCompanyBranchRepository CompanyBranchRepository { get; }
 
-        public CompanyBranchService(ICompanyBranchRepository companyBranchRepository)
+        public XCompanyBranchService(IXCompanyBranchRepository companyBranchRepository)
         {
             CompanyBranchRepository = companyBranchRepository;
         }

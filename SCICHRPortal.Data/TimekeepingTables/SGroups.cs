@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SCICHRPortal.Data.TimekeepingTables
 {
-    public class Groups
+    public class SGroups
     {
         public int Id { get; set; }
         public DateTime DateCreated { get; set; }

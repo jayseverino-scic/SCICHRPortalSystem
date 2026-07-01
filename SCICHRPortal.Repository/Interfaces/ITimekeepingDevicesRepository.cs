@@ -19,7 +19,7 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<bool> UpdateAsync(TimekeepingDevices timekeepingDevices);
         Task<Tuple<IEnumerable<TimekeepingDevices>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
         Task<DuplicateMessage> HasDuplicateName(TimekeepingDevices timekeepingDevices);
-        Task<IEnumerable<ZKDevices>> GetDevices();
+        Task<IEnumerable<SZKDevices>> GetDevices();
         Task<TimekeepingDevices> GetBySerialNumber(string?  serialNumber);
     }
 }

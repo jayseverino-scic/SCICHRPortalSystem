@@ -109,9 +109,9 @@ namespace SCICHRPortal.Repository.Implementations
             await Context.SaveChangesAsync();
             return true;
         }
-        public async Task<IEnumerable<ZKDevices>> GetDevices()
+        public async Task<IEnumerable<SZKDevices>> GetDevices()
         {
-            IEnumerable<ZKDevices> devices;
+            IEnumerable<SZKDevices> devices;
 
             devices = await TimekeepingContext.ZKDevices!.ToListAsync();
 

@@ -127,9 +127,9 @@ namespace SCICHRPortal.Repository.Implementations
             await Context.SaveChangesAsync();
             return true;
         }
-        public async Task<IEnumerable<TimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
+        public async Task<IEnumerable<STimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
         {
-            IEnumerable<TimeLogs> biometricsLogs;
+            IEnumerable<STimeLogs> biometricsLogs;
             if (startDate.HasValue && endDate.HasValue)
                 biometricsLogs = await TimekeepingContext.TimeLogs!.Where(b => b.RecordDate >= startDate && b.RecordDate <= endDate && b.DeviceSerialNumber == serialNumber).ToListAsync();
             else

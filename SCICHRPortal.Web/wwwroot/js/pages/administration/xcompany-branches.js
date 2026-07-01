@@ -36,7 +36,7 @@
                 let searchKeyword = params.search.value;
                 let pageSize = params.length;
                 let response = await _apiHelper.get({
-                    url: `Authenticated/CompanyBranch/Filter?pageNumber=${gridInfo.page + 1}&pageSize=${pageSize}&searchKeyword=${searchKeyword}`,
+                    url: `Authenticated/XCompanyBranch/Filter?pageNumber=${gridInfo.page + 1}&pageSize=${pageSize}&searchKeyword=${searchKeyword}`,
                 });
 
                 if (response.ok) {

@@ -56,7 +56,7 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await BiometricsLogRepository.GetAllAsync();
         }
-        public async Task<IEnumerable<TimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
+        public async Task<IEnumerable<STimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
         {
             return await BiometricsLogRepository.ImportDbDateRange(startDate, endDate, serialNumber);
         }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SCICHRPortal.Data.TimekeepingTables
 {
-    public class ZKDevices
+    public class SZKDevices
     {
         public Guid Id { get; set; }
         public DateTimeOffset DateCreated { get; set; }

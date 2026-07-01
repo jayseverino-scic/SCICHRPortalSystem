@@ -11,31 +11,31 @@ namespace SCICHRPortal.Repository
         public TimekeepingContext(DbContextOptions<TimekeepingContext> options) : base(options) { }
 
         // DbSets for the tables you want to read from SQL Server
-        public DbSet<TimeLogs> TimeLogs { get; set; }
-        public DbSet<Personnels> Personnels { get; set; }
-        public DbSet<ZKDevices> ZKDevices { get; set; }
+        public DbSet<STimeLogs> TimeLogs { get; set; }
+        public DbSet<SPersonnels> Personnels { get; set; }
+        public DbSet<SZKDevices> ZKDevices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configure the entity to map to existing SQL Server tables
-            modelBuilder.Entity<TimeLogs>(entity =>
+            modelBuilder.Entity<STimeLogs>(entity =>
             {
                 entity.ToTable("TimeLogs", "dbo");
                 entity.HasKey(e => e.Id);
                 // Configure other properties
             });
-            modelBuilder.Entity<Personnels>(entity =>
+            modelBuilder.Entity<SPersonnels>(entity =>
             {
                 entity.ToTable("Personnels", "dbo");
                 entity.HasKey(e => e.Id);
                 // Configure other properties
             });
-            modelBuilder.Entity<ZKDevices>(entity =>
+            modelBuilder.Entity<SZKDevices>(entity =>
             {
                 entity.ToTable("ZKDevices", "dbo");
                 entity.HasKey(e =>e.Id);
             });
-            modelBuilder.Entity<ZKDevices>(entity =>
+            modelBuilder.Entity<SZKDevices>(entity =>
             {
                 entity.ToTable("Groups", "dbo");
                 entity.HasKey(e => e.Id);

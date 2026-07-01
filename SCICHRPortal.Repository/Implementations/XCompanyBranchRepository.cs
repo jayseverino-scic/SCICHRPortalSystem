@@ -9,9 +9,9 @@ using System.Text;
 
 namespace SCICHRPortal.Repository.Implementations
 {
-    public class CompanyBranchRepository : Repository, ICompanyBranchRepository
+    public class XCompanyBranchRepository : Repository, IXCompanyBranchRepository
     {
-        public CompanyBranchRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+        public XCompanyBranchRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
     : base(context, xscribeContext, timekeepingContext)
         {
 

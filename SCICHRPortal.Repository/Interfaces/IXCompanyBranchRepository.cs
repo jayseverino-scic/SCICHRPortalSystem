@@ -1,14 +1,15 @@
 ﻿using SCICHRPortal.Core.Interfaces;
+using SCICHRPortal.Data.DTOs;
+using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.XscribeTables;
-using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Interface;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SCICHRPortal.Service.Interfaces
+namespace SCICHRPortal.Repository.Interfaces
 {
-    public interface ICompanyBranchService : 
+    public interface IXCompanyBranchRepository : IRepository,
         IScopedService,
          IRetriever<XCompany_Branch, int>,
          IListRetriever<XCompany_Branch>

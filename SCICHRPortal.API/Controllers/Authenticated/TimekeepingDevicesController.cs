@@ -107,7 +107,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [HttpPost("ImportDevices")]
         public async Task<IActionResult> ImportDevices()
         {
-            IEnumerable<ZKDevices> devices = await TimekeepingDevicesService.GetDevices();
+            IEnumerable<SZKDevices> devices = await TimekeepingDevicesService.GetDevices();
 
             foreach (var device in devices)
             {

@@ -68,7 +68,7 @@ namespace SCICHRPortal.Service.Implementations
             return await TimekeepingDevicesRepository.HasDuplicateName(timekeepingDevices);
         }
 
-        public async Task<IEnumerable<ZKDevices>> GetDevices()
+        public async Task<IEnumerable<SZKDevices>> GetDevices()
         {
             return await TimekeepingDevicesRepository.GetDevices();
         }

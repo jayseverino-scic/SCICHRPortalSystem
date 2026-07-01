@@ -17,10 +17,10 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     [Authorize]
     [Route("api/Authenticated/[controller]")]
     [ApiController]
-    public class CompanyBranchController : ControllerBase
+    public class XCompanyBranchController : ControllerBase
     {
-        private ICompanyBranchService CompanyBranchService { get; }
-        public CompanyBranchController(ICompanyBranchService companyBranchService)
+        private IXCompanyBranchService CompanyBranchService { get; }
+        public XCompanyBranchController(IXCompanyBranchService companyBranchService)
         {
             CompanyBranchService = companyBranchService;
         }
