@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SCICHRPortal.Repository;
@@ -11,9 +12,11 @@ using SCICHRPortal.Repository;
 namespace SCICHRPortal.Repository.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20260629003631_ChangedFromCompanyBranchToXCompanyBranch")]
+    partial class ChangedFromCompanyBranchToXCompanyBranch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,14 +148,8 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<string>("PersonnelId")
                         .HasColumnType("text");
 
-                    b.Property<string>("ProjectName")
-                        .HasColumnType("text");
-
                     b.Property<DateTime?>("Time")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<int?>("TimekeepingDevicesId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
@@ -160,14 +157,7 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<int?>("XCompany_BranchId")
-                        .HasColumnType("integer");
-
                     b.HasKey("BiometricsLogId");
-
-                    b.HasIndex("TimekeepingDevicesId");
-
-                    b.HasIndex("XCompany_BranchId");
 
                     b.ToTable("BiometricsLog");
                 });
@@ -200,9 +190,6 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<bool>("ApprovedSPHolidayOT")
                         .HasColumnType("boolean");
-
-                    b.Property<int?>("Company_BranchId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -261,9 +248,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<DateTime>("TimeOut")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int?>("TimekeepingDevicesId")
-                        .HasColumnType("integer");
-
                     b.Property<double>("TotalLoggedHours")
                         .HasColumnType("double precision");
 
@@ -275,13 +259,9 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("EmployeeAttendanceId");
 
-                    b.HasIndex("Company_BranchId");
-
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("TimeLogId");
-
-                    b.HasIndex("TimekeepingDevicesId");
 
                     b.ToTable("EmployeeAttendance");
                 });
@@ -293,9 +273,6 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AssignedShiftId"));
-
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -360,9 +337,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<DateTime?>("ThursdayShiftStart")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int?>("TimekeepingDevicesId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("TuesdayShiftEnd")
                         .HasColumnType("timestamp without time zone");
 
@@ -383,15 +357,11 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("AssignedShiftId");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("ShiftId");
-
-                    b.HasIndex("TimekeepingDevicesId");
 
                     b.ToTable("EmployeeShift");
                 });
@@ -403,9 +373,6 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AssignedShiftId"));
-
-                    b.Property<int?>("BranchId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -470,9 +437,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<DateTime?>("ThursdayShiftStart")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int?>("TimekeepingDevicesId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("TuesdayShiftEnd")
                         .HasColumnType("timestamp without time zone");
 
@@ -493,13 +457,9 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("AssignedShiftId");
 
-                    b.HasIndex("BranchId");
-
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("ShiftId");
-
-                    b.HasIndex("TimekeepingDevicesId");
 
                     b.ToTable("EmployeeShiftDevice");
                 });
@@ -557,25 +517,15 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<DateTime?>("TimeOut")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int?>("TimekeepingDevicesId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<int?>("XCompany_BranchId")
-                        .HasColumnType("integer");
-
                     b.HasKey("TimeLogId");
 
                     b.HasIndex("EmployeeId");
-
-                    b.HasIndex("TimekeepingDevicesId");
-
-                    b.HasIndex("XCompany_BranchId");
 
                     b.ToTable("EmployeeTimeLog");
                 });
@@ -1362,377 +1312,9 @@ namespace SCICHRPortal.Repository.Migrations
                         });
                 });
 
-            modelBuilder.Entity("SCICHRPortal.Data.XscribeTables.XCompany_Branch", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("Addr_Area_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Addr_City_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Addr_Country_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Addr_Line1")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Addr_Line2")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Addr_Zip")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Authorized_Tax_Representative_Employee_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("Authorized_Tax_Representative_Identification_Expiration_Date")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime?>("Authorized_Tax_Representative_Identification_Issuance_Date")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Authorized_Tax_Representative_Identification_Number")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Company_Branch_Code")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Company_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Cost_Center")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("Creation_Date")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<bool?>("Disabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Division")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Group")
-                        .HasColumnType("text");
-
-                    b.Property<string>("LandLine")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Mobile")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Num_Employees")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Pagibig_Number")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Philhealth_Number")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Rdo_Code")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Registered_Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SSS_Number")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Segment")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Tin")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("text");
-
-                    b.Property<bool?>("Vat")
-                        .HasColumnType("boolean");
-
-                    b.Property<double?>("Vat_Ratio")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("Website")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("_Deleted")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("XCompany_Branch");
-                });
-
-            modelBuilder.Entity("SCICHRPortal.Data.XscribeTables.XCompany_Position", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Company_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Rank")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("XCompany_Position");
-                });
-
-            modelBuilder.Entity("SCICHRPortal.Data.XscribeTables.XDepartment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Company_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("_Deleted")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("XDepartment");
-                });
-
-            modelBuilder.Entity("SCICHRPortal.Data.XscribeTables.XEmployee", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("Birth_Date")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int?>("Birth_Place_City_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Blood_Type")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Business_Unit_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Citizenship_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Company_BranchId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Company_Branch_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Company_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Company_Job_Class_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Company_Job_Grade_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Company_Job_Rank_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Company_Location_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Company_PositionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Company_Position_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Default_Hr_Payroll_Record_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("DepartmentId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Department_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Display_Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Employee_Classification_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Employee_Group_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Employee_code")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Employment_Status")
-                        .HasColumnType("text");
-
-                    b.Property<bool?>("Expat")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("First_Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Gender")
-                        .HasColumnType("text");
-
-                    b.Property<double?>("Height_M")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("LandLine")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Last_Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Location_Address_Line1")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Location_Address_Line2")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Location_Address_Location_Area_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Location_Address_Location_Building_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Location_Address_Location_City_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Location_Address_Location_Country_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Location_Address_Location_Zone_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Location_Address_Zip")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Marital_Status")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Middle_Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Mobile")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Nationality_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("NickName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Num_201_Files")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Num_Employments")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Position")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Religion_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("SubDepartment_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Suffix")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Timekeeping_Device_Identifier")
-                        .HasColumnType("text");
-
-                    b.Property<double?>("Weight_Kg")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("X_Point_Of_Contact")
-                        .HasColumnType("text");
-
-                    b.Property<string>("X_Seat_Class")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("_Deleted")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Company_BranchId");
-
-                    b.HasIndex("Company_PositionId");
-
-                    b.HasIndex("DepartmentId");
-
-                    b.ToTable("XEmployee");
-                });
-
-            modelBuilder.Entity("SCICHRPortal.Data.Entities.BiometricsLog", b =>
-                {
-                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.TimekeepingDevices", "TimekeepingDevices")
-                        .WithMany()
-                        .HasForeignKey("TimekeepingDevicesId");
-
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "XCompany_Branch")
-                        .WithMany()
-                        .HasForeignKey("XCompany_BranchId");
-
-                    b.Navigation("TimekeepingDevices");
-
-                    b.Navigation("XCompany_Branch");
-                });
-
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeAttendance", b =>
                 {
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "Company_Branch")
-                        .WithMany()
-                        .HasForeignKey("Company_BranchId");
-
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1744,32 +1326,20 @@ namespace SCICHRPortal.Repository.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.TimekeepingDevices", "TimekeepingDevices")
-                        .WithMany()
-                        .HasForeignKey("TimekeepingDevicesId");
-
-                    b.Navigation("Company_Branch");
-
                     b.Navigation("Employee");
 
                     b.Navigation("EmployeeTimeLog");
-
-                    b.Navigation("TimekeepingDevices");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeShift", b =>
                 {
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId");
-
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XDepartment", "Department")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1780,29 +1350,17 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasForeignKey("ShiftId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.TimekeepingDevices", "TimekeepingDevices")
-                        .WithMany()
-                        .HasForeignKey("TimekeepingDevicesId");
-
-                    b.Navigation("Company");
 
                     b.Navigation("Department");
 
                     b.Navigation("Employee");
 
                     b.Navigation("Shift");
-
-                    b.Navigation("TimekeepingDevices");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeShiftDevice", b =>
                 {
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId");
-
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1814,40 +1372,20 @@ namespace SCICHRPortal.Repository.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.TimekeepingDevices", "TimekeepingDevices")
-                        .WithMany()
-                        .HasForeignKey("TimekeepingDevicesId");
-
-                    b.Navigation("Branch");
-
                     b.Navigation("Employee");
 
                     b.Navigation("Shift");
-
-                    b.Navigation("TimekeepingDevices");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeTimeLog", b =>
                 {
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.TimekeepingDevices", "TimekeepingDevices")
-                        .WithMany()
-                        .HasForeignKey("TimekeepingDevicesId");
-
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "XCompany_Branch")
-                        .WithMany()
-                        .HasForeignKey("XCompany_BranchId");
-
                     b.Navigation("Employee");
-
-                    b.Navigation("TimekeepingDevices");
-
-                    b.Navigation("XCompany_Branch");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.LeaveRequest", b =>
@@ -1909,27 +1447,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SCICHRPortal.Data.XscribeTables.XEmployee", b =>
-                {
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "Company_Branch")
-                        .WithMany()
-                        .HasForeignKey("Company_BranchId");
-
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Position", "Company_Position")
-                        .WithMany()
-                        .HasForeignKey("Company_PositionId");
-
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XDepartment", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentId");
-
-                    b.Navigation("Company_Branch");
-
-                    b.Navigation("Company_Position");
-
-                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.User", b =>

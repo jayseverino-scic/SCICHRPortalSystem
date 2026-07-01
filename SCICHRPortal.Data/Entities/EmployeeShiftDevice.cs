@@ -1,4 +1,5 @@
 ﻿using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -29,7 +30,9 @@ namespace SCICHRPortal.Data.Entities
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
         public string? Devicename { get; set; }
-        public Employee? Employee { get; set; }
+        public XEmployee? Employee { get; set; }
+        public XCompany_Branch? Branch { get; set; }
+        public TimekeepingDevices? TimekeepingDevices { get; set; }
         public Shift? Shift { get; set; }
     }
 }

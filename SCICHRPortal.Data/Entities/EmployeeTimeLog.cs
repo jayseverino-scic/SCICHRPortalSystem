@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.Data.Entities
 {
@@ -21,6 +22,8 @@ namespace SCICHRPortal.Data.Entities
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
         public string? SystemRemarks { get; set; }
-        public Employee? Employee { get; set; }
+        public XEmployee? Employee { get; set; }
+        public TimekeepingDevices? TimekeepingDevices { get; set; }
+        public XCompany_Branch? XCompany_Branch { get; set; }
     }
 }

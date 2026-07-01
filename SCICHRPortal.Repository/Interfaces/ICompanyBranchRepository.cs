@@ -11,10 +11,10 @@ namespace SCICHRPortal.Repository.Interfaces
 {
     public interface ICompanyBranchRepository : IRepository,
         IScopedService,
-         IRetriever<Company_Branch, int>,
-         IListRetriever<Company_Branch>
+         IRetriever<XCompany_Branch, int>,
+         IListRetriever<XCompany_Branch>
     {
-        Task<Tuple<IEnumerable<Company_Branch>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
-        Task<IEnumerable<Company_Branch>> GetBranches();
+        Task<Tuple<IEnumerable<XCompany_Branch>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
+        Task<IEnumerable<XCompany_Branch>> GetBranches();
     }
 }

@@ -6,6 +6,7 @@ using System;
 using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
 
@@ -17,10 +18,10 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class EmployeeShiftController : ControllerBase
     {
         private IEmployeeShiftService EmployeeShiftService { get; }
-        private IEmployeeService EmployeeService { get; }
+        private IXEmployeeService EmployeeService { get; }
         private IShiftService ShiftService { get; }
-        private IDepartmentService DepartmentService { get; }
-        public EmployeeShiftController(IEmployeeShiftService employeeShiftService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService)
+        private IXDepartmentService DepartmentService { get; }
+        public EmployeeShiftController(IEmployeeShiftService employeeShiftService, IXEmployeeService employeeService, IShiftService shiftService, IXDepartmentService departmentService)
         {
             EmployeeShiftService = employeeShiftService;
             EmployeeService = employeeService;
@@ -45,38 +46,38 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var orderNumber = maxOrderNumber - pageSize + 1;
             IEnumerable<EmployeeShift> employeeShiftsList = await EmployeeShiftService.GetAllAsync();
             List<EmployeeShift> employeeShifts = employeeShiftsList.ToList();
-            IEnumerable<Employee> employees = await EmployeeService.GetAllAsync();
-            IEnumerable<Department> departments = await DepartmentService.GetAllAsync();
+            IEnumerable<XEmployee> employees = await EmployeeService.GetAllAsync();
+            IEnumerable<XDepartment> departments = await DepartmentService.GetAllAsync();
             IEnumerable<Shift> shifts = await ShiftService.GetAllAsync();
 
-            List<Employee> mergedList = employees
+            List<XEmployee> mergedList = employees
             .GroupJoin(
-                tuple.Item1, left => left.EmployeeId, right => right.EmployeeId,
+                tuple.Item1, left => left.Id, right => right.EmployeeId,
                 (x, y) => new { Left = x, Rights = y }
             )
             .SelectMany(
                 x => x.Rights.DefaultIfEmpty(),
-                (x, y) => new Employee
+                (x, y) => new XEmployee
                 {
-                    EmployeeId = x.Left.EmployeeId,
-                    DepartmentId = x.Left.DepartmentId,
-                    LastName = x.Left.LastName,
-                    FirstName = x.Left.FirstName
+                    Id = x.Left.Id,
+                    Department_Id = x.Left.Department_Id,
+                    Last_Name = x.Left.Last_Name,
+                    First_Name = x.Left.First_Name
                 }
             ).ToList();
 
             if (mergedList != null)
             {
-                foreach(Employee employee in mergedList)
+                foreach(XEmployee employee in mergedList)
                 {
                     EmployeeShift employeeShift = new EmployeeShift
                     {
                         AssignedShiftId = 0,
                         ShiftId = 0,
-                        EmployeeId = employee.EmployeeId,
-                        DepartmentId = (int)employee.DepartmentId,
+                        EmployeeId = employee.Id,
+                        DepartmentId = (int)employee.Department_Id,
                         Employee = employee,
-                        Department = departments.Where(d => d.DepartmentId == employee.DepartmentId).SingleOrDefault()
+                        Department = departments.Where(d => d.Id == employee.Department_Id).SingleOrDefault()
                     };
                     employeeShifts.Add(employeeShift);
                 }
@@ -104,9 +105,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.IsNoBreak,
                 d.IsNoShift,
                 d.EmployeeId,
-                EmployeeName = $"{d.Employee!.LastName}, {d.Employee!.FirstName}",
+                EmployeeName = $"{d.Employee!.Last_Name}, {d.Employee!.First_Name}",
                 d.DepartmentId,
-                DepartmentName = d.Department?.DepartmentName,
+                DepartmentName = d.Department?.Name,
                 d.ShiftId,
                 ShiftName = d.Shift?.ShiftName,
                 OrderNumber = orderNumber++
@@ -126,7 +127,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {           
             IEnumerable<EmployeeShift>? employeeShiftsList = null;
             List<EmployeeShiftUpdateRequestModel> listToDisplay = new List<EmployeeShiftUpdateRequestModel>();
-            IEnumerable<Employee>? employees = null;
+            IEnumerable<XEmployee>? employees = null;
             if (filterType == "Assigned")
             {
                 employeeShiftsList = await EmployeeShiftService.EmployeeShiftFilter(departmentId, shiftId);
@@ -171,45 +172,45 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 int[] assignedIds = employeeShiftsList.Select(x => x.EmployeeId).ToArray();
 
                 List<EmployeeShift> employeeShifts = new List<EmployeeShift>();
-                IEnumerable<Department> departmentList = await DepartmentService.GetAllAsync();
-                List<Department> departments = departmentList.ToList();
+                IEnumerable<XDepartment> departmentList = await DepartmentService.GetAllAsync();
+                List<XDepartment> departments = departmentList.ToList();
                 employees = await EmployeeService.GetAllAsync();
-                employees = employees.Where(item => !assignedIds.Any(x => x == item.EmployeeId)).ToList();
+                employees = employees.Where(item => !assignedIds.Any(x => x == item.Id)).ToList();
                 if (departmentId != 0)
                 {
-                    employees = employees.Where(e => e.DepartmentId == departmentId);
+                    employees = employees.Where(e => e.Department_Id == departmentId);
                 }
-                List<Employee> mergedList = employees
+                List<XEmployee> mergedList = employees
                 .GroupJoin(
-                    employeeShifts, left => left.EmployeeId, right => right.EmployeeId,
+                    employeeShifts, left => left.Id, right => right.EmployeeId,
                     (x, y) => new { Left = x, Rights = y }
                 )
                 .SelectMany(
                     x => x.Rights.DefaultIfEmpty(),
-                    (x, y) => new Employee
+                    (x, y) => new XEmployee
                     {
-                        EmployeeId = x.Left.EmployeeId,
-                        DepartmentId = x.Left.DepartmentId,
-                        LastName = x.Left.LastName,
-                        FirstName = x.Left.FirstName
+                        Id = x.Left.Id,
+                        Department_Id = x.Left.Department_Id,
+                        Last_Name = x.Left.Last_Name,
+                        First_Name = x.Left.First_Name
                     }
                 ).ToList();
 
                 if (mergedList != null)
                 {
-                    foreach (Employee employee in mergedList)
+                    foreach (XEmployee employee in mergedList)
                     {
-                        EmployeeShift employeeWithShift = await EmployeeShiftService.GetByEmployee(employee.EmployeeId);
+                        EmployeeShift employeeWithShift = await EmployeeShiftService.GetByEmployee(employee.Id);
                         if (employeeWithShift == null)
                         {
                             EmployeeShift employeeShift = new EmployeeShift
                             {
                                 AssignedShiftId = 0,
                                 ShiftId = 0,
-                                EmployeeId = employee.EmployeeId,
-                                DepartmentId = (int)employee.DepartmentId!,
+                                EmployeeId = employee.Id,
+                                DepartmentId = (int)employee.Department_Id!,
                                 Employee = employee,
-                                Department = departments.Where(d => d.DepartmentId == employee.DepartmentId).SingleOrDefault(),
+                                Department = departments.Where(d => d.Id == employee.Department_Id).SingleOrDefault(),
                             };
                             employeeShifts.Add(employeeShift);
                         }
@@ -274,9 +275,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.IsNoShift,
                 d.IsNoBreak,
                 d.EmployeeId,
-                EmployeeName = $"{d.Employee?.LastName}, {d.Employee?.FirstName}",
+                EmployeeName = $"{d.Employee?.Last_Name}, {d.Employee?.First_Name}",
                 d.DepartmentId,
-                DepartmentName = d.Department?.DepartmentName,
+                DepartmentName = d.Department?.Name,
                 d.ShiftId,
                 ShiftName = d.Shift?.ShiftName,
                 d.IsAssigned 

@@ -36,8 +36,8 @@ namespace SCICHRPortal.Repository.Implementations
             {
                 employeeShifts = employeeShifts
                     .Where(e =>
-                        e.Employee!.FirstName!.ToLower().Contains(searchKeyword.ToLower()) ||
-                        e.Employee.LastName!.ToLower().Contains(searchKeyword.ToLower()));
+                        e.Employee!.First_Name!.ToLower().Contains(searchKeyword.ToLower()) ||
+                        e.Employee.Last_Name!.ToLower().Contains(searchKeyword.ToLower()));
 
             }
 

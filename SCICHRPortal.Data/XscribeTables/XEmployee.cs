@@ -60,7 +60,7 @@ namespace SCICHRPortal.Data.XscribeTables
         public int? Location_Address_Location_Country_Id { get; set; }
         public string? Location_Address_Zip {  get; set; }
         public XDepartment? Department { get; set; }
-        public Company_Branch? Company_Branch { get; set; }
+        public XCompany_Branch? Company_Branch { get; set; }
         public XCompany_Position? Company_Position { get; set; }
     }
 }

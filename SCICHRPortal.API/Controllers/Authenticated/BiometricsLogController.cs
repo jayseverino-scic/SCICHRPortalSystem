@@ -69,6 +69,34 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(dto);
         }
 
+        [HttpGet("FilterPerProject")]
+        public async Task<IActionResult> FilterPerProjectAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate, string? projectName)
+        {
+            var tuple = await BiometricsLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startDate, endDate, projectName);
+            var maxOrderNumber = pageNumber * pageSize;
+            var orderNumber = maxOrderNumber - pageSize + 1;
+
+            var data = tuple.Item1.Select(d => new
+            {
+                d.BiometricsLogId,
+                d.PersonnelId,
+                d.LastName,
+                d.FirstName,
+                d.Date,
+                d.Time,
+                d.LogType,
+                d.DeviceName,
+                d.CreatedAt,
+                OrderNumber = orderNumber++
+            });
+
+            var dto = new
+            {
+                Data = data,
+                Total = tuple.Item2
+            };
+            return Ok(dto);
+        }
         [HttpPost()]
         public async Task<IActionResult> InsertAsync(BiometricsLog biometricsLog)
         {

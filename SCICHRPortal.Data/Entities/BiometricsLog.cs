@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,5 +18,8 @@ namespace SCICHRPortal.Data.Entities
         public DateTime? Time {  get; set; }
         public string? LogType { get; set; }
         public string? DeviceName { get; set; }
+        public string? ProjectName { get; set; }
+        public TimekeepingDevices? TimekeepingDevices { get; set; }
+        public XCompany_Branch? XCompany_Branch { get; set; }
     }
 }

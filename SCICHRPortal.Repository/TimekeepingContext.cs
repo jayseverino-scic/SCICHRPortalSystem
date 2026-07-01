@@ -35,6 +35,11 @@ namespace SCICHRPortal.Repository
                 entity.ToTable("ZKDevices", "dbo");
                 entity.HasKey(e =>e.Id);
             });
+            modelBuilder.Entity<ZKDevices>(entity =>
+            {
+                entity.ToTable("Groups", "dbo");
+                entity.HasKey(e => e.Id);
+            });
             base.OnModelCreating(modelBuilder);
         }
     }

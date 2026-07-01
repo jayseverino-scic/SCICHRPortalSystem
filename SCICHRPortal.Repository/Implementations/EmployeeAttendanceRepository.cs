@@ -25,8 +25,8 @@ namespace SCICHRPortal.Repository.Implementations
             {
                 employeeAttendances = employeeAttendances
                     .Where(e =>
-                        e.Employee!.FirstName!.ToLower().Contains(searchKeyword.ToLower()) ||
-                        e.Employee.LastName!.ToLower().Contains(searchKeyword.ToLower()));
+                        e.Employee!.First_Name!.ToLower().Contains(searchKeyword.ToLower()) ||
+                        e.Employee.Last_Name!.ToLower().Contains(searchKeyword.ToLower()));
 
             }
 
@@ -48,7 +48,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeAttendances = await Context.EmployeeAttendance!
                   .Include(t => t.Employee)
                   .Include(t => t.EmployeeTimeLog)
-                  .Where(e => e.Deleted == false && e.Employee!.DepartmentId == departmentId && e.TimeIn.Date == attendanceDate.Date).ToListAsync();
+                  .Where(e => e.Deleted == false && e.Employee!.Department_Id == departmentId && e.TimeIn.Date == attendanceDate.Date).ToListAsync();
             }
             else
             {
@@ -69,7 +69,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeAttendances = await Context.EmployeeAttendance!
                   .Include(t => t.Employee)
                   .Include(t => t.EmployeeTimeLog)
-                  .Where(e => e.Deleted == false && e.Employee!.DepartmentId == departmentId && e.TimeIn.Date >= fromDate.Date && e.TimeIn.Date <= toDate.Date).ToListAsync();
+                  .Where(e => e.Deleted == false && e.Employee!.Department_Id == departmentId && e.TimeIn.Date >= fromDate.Date && e.TimeIn.Date <= toDate.Date).ToListAsync();
             }
             else
             {

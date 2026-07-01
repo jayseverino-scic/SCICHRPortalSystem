@@ -6,6 +6,7 @@ using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
 using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.Repository.Implementations
 {
@@ -37,12 +38,53 @@ namespace SCICHRPortal.Repository.Implementations
 
             return new Tuple<IEnumerable<BiometricsLog>, int>(await biometricsLogs.ToListAsync(), total);
         }
+
+        public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterPerProjectAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? projectName)
+        {
+            XCompany_Branch project = XscribeContext.Company_Branch!.Where(p => p.Name == projectName).FirstOrDefault();
+            List<XEmployee> employees = XscribeContext.Employee!.Where(e => e.Company_Branch_Id == project!.Id).ToList();
+
+            List<BiometricsLog> biometricsLogs1 = new List<BiometricsLog>();
+
+            foreach (XEmployee employee in employees)
+            {
+                var biometricsLogsDB = Context.BiometricsLog.Where(b => b.Deleted == false && b.Date >= startDate && b.Date <= endDate && b.PersonnelId == "SCIC-" + employee.Id.ToString()).AsNoTracking().ToList();
+                biometricsLogs1.AddRange(biometricsLogsDB);
+            }
+
+            IQueryable<BiometricsLog> biometricsLogs = biometricsLogs1.AsQueryable();
+            if (!String.IsNullOrWhiteSpace(searchKeyword))
+            {
+                //items = items
+                //    .Where(e =>
+                //        e.Date!.ToLower().Contains(searchKeyword.ToLower()));
+            }
+            var total = biometricsLogs.Count();
+
+            biometricsLogs = biometricsLogs
+                .OrderByDescending(e => e.BiometricsLogId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            return new Tuple<IEnumerable<BiometricsLog>, int>(await biometricsLogs.ToListAsync(), total);
+        }
         public async Task<IEnumerable<BiometricsLog>> FilterByDateRange(DateTime? startDate, DateTime? endDate, string? deviceName)
         {
             IEnumerable<BiometricsLog> biometricsLogs;
             biometricsLogs = await Context.BiometricsLog!.Where(b => !b.Deleted).ToListAsync();
             if (startDate.HasValue && endDate.HasValue)
                 biometricsLogs = biometricsLogs.Where(b => b.Date >= startDate && b.Date <= endDate && b.DeviceName == deviceName);
+
+
+            return biometricsLogs;
+        }
+
+        public async Task<IEnumerable<BiometricsLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
+        {
+            IEnumerable<BiometricsLog> biometricsLogs;
+            biometricsLogs = await Context.BiometricsLog!.Where(b => !b.Deleted).ToListAsync();
+            if (startDate.HasValue && endDate.HasValue)
+                biometricsLogs = biometricsLogs.Where(b => b.Date >= startDate && b.Date <= endDate && b.ProjectName == projectName);
 
 
             return biometricsLogs;
@@ -95,6 +137,7 @@ namespace SCICHRPortal.Repository.Implementations
             
             return biometricsLogs!;
         }
+
 
     }
 }

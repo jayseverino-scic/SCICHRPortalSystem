@@ -16,7 +16,7 @@ namespace SCICHRPortal.Repository.Implementations
         {
 
         }
-        public async Task<Tuple<IEnumerable<Company_Branch>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
+        public async Task<Tuple<IEnumerable<XCompany_Branch>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             var CompanyBranchs = XscribeContext.Company_Branch!
               .Where(e => e._Deleted == false);
@@ -35,25 +35,25 @@ namespace SCICHRPortal.Repository.Implementations
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
 
-            return new Tuple<IEnumerable<Company_Branch>, int>(await CompanyBranchs.ToListAsync(), total);
+            return new Tuple<IEnumerable<XCompany_Branch>, int>(await CompanyBranchs.ToListAsync(), total);
         }
 
-        public async Task<IEnumerable<Company_Branch>> GetAllAsync()
+        public async Task<IEnumerable<XCompany_Branch>> GetAllAsync()
         {
             var CompanyBranchs = await XscribeContext.Company_Branch!.Where(s => !s._Deleted)
               .ToListAsync();
             return CompanyBranchs;
         }
 
-        public async Task<Company_Branch> GetAsync(int id)
+        public async Task<XCompany_Branch> GetAsync(int id)
         {
             var Company_Branch = await XscribeContext.Company_Branch!.SingleOrDefaultAsync(s => s.Id == id && !s._Deleted);
             return Company_Branch!;
         }
     
-        public async Task<IEnumerable<Company_Branch>> GetBranches()
+        public async Task<IEnumerable<XCompany_Branch>> GetBranches()
         {
-            IEnumerable<Company_Branch> devices;
+            IEnumerable<XCompany_Branch> devices;
 
             devices = await XscribeContext.Company_Branch!.ToListAsync();
 

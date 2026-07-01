@@ -19,27 +19,27 @@ namespace SCICHRPortal.Service.Implementations
             CompanyBranchRepository = companyBranchRepository;
         }
 
-        public Task<IEnumerable<Company_Branch>> FilterAsync(string filter)
+        public Task<IEnumerable<XCompany_Branch>> FilterAsync(string filter)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Company_Branch>> GetAllAsync()
+        public async Task<IEnumerable<XCompany_Branch>> GetAllAsync()
         {
             return await CompanyBranchRepository.GetAllAsync();
         }
 
-        public async Task<Company_Branch> GetAsync(int id)
+        public async Task<XCompany_Branch> GetAsync(int id)
         {
             return await CompanyBranchRepository.GetAsync(id);
         }
 
-        public async Task<Tuple<IEnumerable<Company_Branch>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
+        public async Task<Tuple<IEnumerable<XCompany_Branch>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             return await CompanyBranchRepository.FilterAsync(pageNumber, pageSize, searchKeyword);
         }
 
-        public async Task<IEnumerable<Company_Branch>> GetBranches()
+        public async Task<IEnumerable<XCompany_Branch>> GetBranches()
         {
             return await CompanyBranchRepository.GetBranches();
         }

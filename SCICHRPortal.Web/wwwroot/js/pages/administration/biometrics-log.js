@@ -81,8 +81,8 @@
     let pageSize = 10;
     let searchKeyword = '';
     let dataTable = null;
-    let devices = [];
-    let _currentDevice = '';
+    let projects = [];
+    let _currentproject = '';
 
     let attachEvents = () => {
         $('#end-date-filter').attr('value', moment().format('yyyy-MM-DD'));
@@ -150,19 +150,19 @@
         e.preventDefault();
         let startDate = $('#start-date-filter').val();
         let endDate = $('#end-date-filter').val();
-        _currentDevice = $('#device option:selected').text() || '';
+        _currentproject = $('#project option:selected').text() || '';
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
         if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
             let gridInfo = dataTable.page.info();
             pageNumber = gridInfo.page + 1;
         }
-        if (_currentDevice == '') {
-            alert('Please select the device to be filtered!');
+        if (_currentproject == '') {
+            alert('Please select the project to be filtered!');
             return;
         }
         let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${_currentDevice}`,
+            url: `Authenticated/BiometricsLog/FilterPerProject?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&projectName=${_currentproject}`,
         });
 
         if (response.ok) {
@@ -176,19 +176,19 @@
         e.preventDefault();
         let startDate = $('#start-date-filter').val();
         let endDate = $('#end-date-filter').val();
-        _currentDevice = $('#device').val() || '';
+        _currentproject = $('#project').val() || '';
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
         if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
             let gridInfo = dataTable.page.info();
             pageNumber = gridInfo.page + 1;
         }
-        if (_currentDevice == '') {
-            alert('Please select the device to be filtered!');
+        if (_currentproject == '') {
+            alert('Please select the project to be filtered!');
             return;
         }
         let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&serialNumber=${_currentDevice}`,
+            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&serialNumber=${_currentproject}`,
         });
 
         if (response.ok) {
@@ -215,22 +215,23 @@
                 $select.append('<option value="">No data available</option>');
             }
         };
-        renderSimpleDropdown('#device', devices, 'serialNumber', 'name', 'Select Device');
+        renderSimpleDropdown('#project', projects, 'id', 'name', 'Select project');
     };
 
     let getDropdownData = async () => {
         try {
-            const deviceResponse = await _apiHelper.get({ url: 'Authenticated/TimekeepingDevices' });
+            const projectResponse = await _apiHelper.get({ url: 'Authenticated/CompanyBranch' });
 
-            if (deviceResponse.ok) {
-                devices = await deviceResponse.json();
+            if (projectResponse.ok) {
+                projects = await projectResponse.json();
             } else {
-                devices = [];
+                projects = [];
             }
 
         } catch (error) {
-            devices = [];
+            projects = [];
         }
+        console.log(projects);
     };
 
     let initializeGrid = (gridData) => {
@@ -359,8 +360,8 @@
                 defaultContent: ""
             },
             {
-                title: "Device Name",
-                data: "deviceName",
+                title: "Project",
+                data: "xcompany_branch.name",
                 className: 'noVis dt-center',
                 orderable: false,
                 defaultContent: ""

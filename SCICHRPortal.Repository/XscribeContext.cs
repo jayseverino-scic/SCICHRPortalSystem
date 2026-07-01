@@ -11,14 +11,14 @@ namespace SCICHRPortal.Repository
         public XscribeContext(DbContextOptions<XscribeContext> options) : base(options) { }
 
         // DbSets for the tables you want to read from SQL Server
-        public DbSet<Company_Branch> Company_Branch { get; set; }
+        public DbSet<XCompany_Branch> Company_Branch { get; set; }
         public DbSet<XDepartment> Department { get; set; }
         public DbSet<XEmployee> Employee { get; set; }
         public DbSet<XCompany_Position> Company_Position { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Company_Branch>(entity =>
+            modelBuilder.Entity<XCompany_Branch>(entity =>
             {
                 entity.ToTable("Company_Branch");
                 entity.HasKey(e =>e.Id);

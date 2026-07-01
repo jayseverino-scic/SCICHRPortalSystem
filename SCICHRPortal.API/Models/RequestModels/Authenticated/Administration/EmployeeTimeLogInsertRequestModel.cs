@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
 {
@@ -15,6 +16,6 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public DateTime? ShiftEnd { get; set; }
 
         public String? SystemRemarks { get; set; }
-        public Employee? Employee { get; set; }
+        public XEmployee? Employee { get; set; }
     }
 }

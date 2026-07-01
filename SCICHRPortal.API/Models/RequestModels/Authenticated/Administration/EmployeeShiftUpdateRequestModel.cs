@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualBasic;
 using System.ComponentModel.DataAnnotations;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
 {
@@ -33,8 +34,8 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
         public Boolean? IsAssigned { get; set; }
-        public Employee? Employee { get; set; }
-        public Department? Department { get; set; }
+        public XEmployee? Employee { get; set; }
+        public XDepartment? Department { get; set; }
         public Shift? Shift { get; set; }
     }
 }

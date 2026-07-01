@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Data.Entities.Metadatas;
 
 namespace SCICHRPortal.Data.Entities
@@ -32,8 +33,10 @@ namespace SCICHRPortal.Data.Entities
         public bool IsFlexibleShift { get; set; }
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
-        public Employee? Employee { get; set; }
-        public Department? Department { get; set; }
+        public XEmployee? Employee { get; set; }
+        public XDepartment? Department { get; set; }
+        public XCompany_Branch? Company { get; set; }
+        public TimekeepingDevices? TimekeepingDevices { get; set; }
         public Shift? Shift { get; set; }
     }
 }

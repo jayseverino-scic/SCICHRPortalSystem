@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.Data.Entities
 {
@@ -36,7 +37,9 @@ namespace SCICHRPortal.Data.Entities
         public bool ApprovedSPHolidayOT { get; set; }
         public bool ApprovedRestDay { get; set; }
         public bool ApprovedRestDayOT { get; set; }
-        public Employee? Employee { get; set; }
+        public XEmployee? Employee { get; set; }
+        public XCompany_Branch? Company_Branch { get; set; }
+        public TimekeepingDevices? TimekeepingDevices { get; set; }
         public EmployeeTimeLog? EmployeeTimeLog { get; set; }
     }
 }

@@ -25,9 +25,17 @@ namespace SCICHRPortal.Service.Implementations
             return await BiometricsLogRepository.FilterAsync(pageNumber, pageSize, searchKeyword, startDate,endDate, deviceName);
         }
 
+        public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterPerProjectAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? projectName)
+        {
+            return await BiometricsLogRepository.FilterAsync(pageNumber, pageSize, searchKeyword, startDate, endDate, projectName);
+        }
         public async Task<IEnumerable<BiometricsLog>> FilterByDateRange(DateTime? startDate, DateTime? endDate, string? deviceName)
         {
             return await BiometricsLogRepository.FilterByDateRange(startDate, endDate, deviceName);
+        }
+        public async Task<IEnumerable<BiometricsLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
+        {
+            return await BiometricsLogRepository.FilterByDateRange(startDate, endDate, projectName);
         }
         public async Task<IEnumerable<BiometricsLog>> GetDailyLogAsync(DateTime logDate)
         {

@@ -2,6 +2,7 @@
 
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
 {
@@ -37,7 +38,7 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public bool ApprovedRestDayOT { get; set; }
         public bool ApprovedRestDayND { get; set; }
         public string? Department { get; set; }
-        public Employee? Employee { get; set; }
+        public XEmployee? Employee { get; set; }
         public EmployeeTimeLog? EmployeeTimeLog { get; set; }
     }
 }

@@ -51,7 +51,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeTimeLogs = await Context.EmployeeTimeLog!
                 .Include(t => t.Employee)
                     .ThenInclude(e => e!.Department)
-                .Where(e => e.Deleted == false && e.Employee!.DepartmentId == departmentId && e.DateIn == logDate).AsNoTracking()
+                .Where(e => e.Deleted == false && e.Employee!.Department_Id == departmentId && e.DateIn == logDate).AsNoTracking()
                 .ToListAsync();
             }
             else
