@@ -34,8 +34,9 @@ namespace SCICHRPortal.Repository
             {
                 entity.ToTable("ZKDevices", "dbo");
                 entity.HasKey(e =>e.Id);
+                //entity.Property(e => e.SerialNumber).HasMaxLength(64);
             });
-            modelBuilder.Entity<SZKDevices>(entity =>
+            modelBuilder.Entity<SGroups>(entity =>
             {
                 entity.ToTable("Groups", "dbo");
                 entity.HasKey(e => e.Id);

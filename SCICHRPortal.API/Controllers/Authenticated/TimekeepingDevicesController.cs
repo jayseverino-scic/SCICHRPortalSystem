@@ -43,7 +43,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.Id,
                 d.Name,
                 d.SerialNumber,
-                d.Source,
                 IsTodayAnnouncement = dateToday.Date == d.CreatedAt.Date,
                 d.CreatedAt,
                 OrderNumber = orderNumber++
@@ -69,7 +68,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 return Conflict(hasDuplicate);
             timekeepingDevices.CreatedBy = "manuel";
             timekeepingDevices.CreatedAt = DateTime.Now;
-            timekeepingDevices.Source = "Manual";
             await TimekeepingDevicesService.InsertAsync(timekeepingDevices);
 
             return StatusCode(201, timekeepingDevices.Id);
@@ -118,7 +116,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         Name = device.Name,
                         SerialNumber = device.SerialNumber,
-                        Source = "Imported",
                         CreatedAt = DateTime.Now,
                         CreatedBy = "jun rivas"
                     };
@@ -131,7 +128,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         Id = existingDevice.Id,
                         Name = device.Name,
                         SerialNumber = device.SerialNumber,
-                        Source = "Imported",
                         UpdatedAt = DateTime.Now,
                         UpdatedBy = "jun rivas"
                     };

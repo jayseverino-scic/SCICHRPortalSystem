@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 using System.Text;
 
 namespace SCICHRPortal.Data.TimekeepingTables
 {
+    [Table("ZKDevices")]
     public class SZKDevices
     {
         public Guid Id { get; set; }
@@ -18,18 +20,18 @@ namespace SCICHRPortal.Data.TimekeepingTables
         public string? APIVersion { get; set; }
         public string? RegistryCode { get; set; }
         public string? FirmwareVersion { get; set; }
-        public string? DeviceFunction {  get; set; }
+        public string? DeviceFunction { get; set; }
         public bool FingerprintSupported { get; set; }
         public bool FaceSupported { get; set; }
         public bool PalmSupported { get; set; }
         public int LockOpenDuration { get; set; }
-        public string? DeviceInformation {  get; set; }
-        public string? TimeZone {  get; set; }
-        public int AntiPassback {  get; set; }
-        public bool AntiPassbackOn {  get; set; }
+        public string? DeviceInformation { get; set; }
+        public string? TimeZone { get; set; }
+        public int AntiPassback { get; set; }
+        public bool AntiPassbackOn { get; set; }
         public string? KeyMapping { get; set; }
         public string? SyncStatus { get; set; }
-        public string? Model {  get;}
-        public string? KeyCode { get;}
+        public string? Model { get; }
+        public string? KeyCode { get; }
     }
 }
