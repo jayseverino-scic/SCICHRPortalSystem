@@ -1,6 +1,5 @@
-﻿@model SCICHRPortal.Web.Models.ViewModels.Administration.TimekeepingDevicesViewModel
-@{
-    ViewData["Title"] = "SCIC Portal System";
+﻿@{
+    ViewData["Title"] = "Administration System";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section Styles {
@@ -20,15 +19,13 @@
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 
 }
-
-
 <div id="content-container" class="row">
     <div class="container col-md-12">
         <div class="left-header-container">
-            <img class="icon" src="/images/administration/timekeepingadminsetupbig.png">
-            <h1 class="title">Xscribe Projects</h1>
+            <img class="icon" src="/images/administration/departmentbig.png">
+            <h1 class="title">Sentry Projects</h1>
         </div>
-        <table id="companybranch-grid" class="display stripe" cellspacing="0" width="100%">
+        <table id="group-grid" class="display stripe" cellspacing="0" width="100%">
         </table>
     </div>
 </div>
@@ -51,5 +48,5 @@
     <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
     <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
-    <script src="~/js/pages/administration/xcompany-branches.js"></script>
+    <script src="~/js/pages/administration/sgroups.js"></script>
 }

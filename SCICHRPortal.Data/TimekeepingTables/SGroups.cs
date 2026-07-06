@@ -6,12 +6,12 @@ namespace SCICHRPortal.Data.TimekeepingTables
 {
     public class SGroups
     {
-        public int Id { get; set; }
-        public DateTime DateCreated { get; set; }
+        public Guid Id { get; set; }
+        public DateTimeOffset DateCreated { get; set; }
         public bool IsDeleted { get; set; }
         public string? Code { get; set; }
         public string? Name { get; set; }  
         public string? Description { get; set; }
-        public int GroupTypeId { get; set; }
+        public Guid GroupTypeId { get; set; }
     }
 }
