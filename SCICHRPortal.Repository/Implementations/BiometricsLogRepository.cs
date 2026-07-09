@@ -21,7 +21,7 @@ namespace SCICHRPortal.Repository.Implementations
         
         public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
         {
-            var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false && b.Date >= startDate && b.Date <= endDate && b.DeviceName == deviceName).AsNoTracking();
+            var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false && b.Date >= startDate && b.Date <= endDate && b.ProjectName == deviceName).AsNoTracking();
 
             if (!String.IsNullOrWhiteSpace(searchKeyword))
             {
@@ -129,13 +129,47 @@ namespace SCICHRPortal.Repository.Implementations
         }
         public async Task<IEnumerable<STimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
         {
-            IEnumerable<STimeLogs> biometricsLogs;
-            if (startDate.HasValue && endDate.HasValue)
-                biometricsLogs = await TimekeepingContext.TimeLogs!.Where(b => b.RecordDate >= startDate && b.RecordDate <= endDate && b.DeviceSerialNumber == serialNumber).ToListAsync();
-            else
-                biometricsLogs = null;
-            
-            return biometricsLogs!;
+            // Validate inputs
+            if (!startDate.HasValue || !endDate.HasValue || string.IsNullOrEmpty(serialNumber))
+            {
+                return Enumerable.Empty<STimeLogs>();
+            }
+
+            var devices = TimekeepingContext.SGroups!
+                .Where(e => e.Description != null && e.Description.ToUpper() == serialNumber.ToUpper())
+                .ToList();
+
+            if (!devices.Any())
+            {
+                return Enumerable.Empty<STimeLogs>();
+            }
+
+            var biometricsLogs = new List<STimeLogs>();
+
+            foreach (var device in devices)
+            {
+                // Find the ZK device
+                IEnumerable<SZKDevices> sZKDevices = TimekeepingContext.ZKDevices!.Where(e => e.Name.ToUpper() == device.Name.ToUpper());
+                var sZKDevice = TimekeepingContext.ZKDevices!
+                    .FirstOrDefault(e => e.Name != null && e.Name.ToUpper() == device.Name!.ToUpper());
+
+                // Check if device exists and has a serial number
+                if (sZKDevice == null || string.IsNullOrEmpty(sZKDevice.SerialNumber))
+                {
+                    continue; // Skip this device if no ZK device found
+                }
+
+                // Query logs for this specific device
+                var logs = await TimekeepingContext.TimeLogs!
+                    .Where(b => b.RecordDate >= startDate.Value &&
+                                b.RecordDate <= endDate.Value &&
+                                b.DeviceSerialNumber == sZKDevice.SerialNumber)
+                    .ToListAsync();
+
+                biometricsLogs.AddRange(logs);
+            }
+
+            return biometricsLogs;
         }
 
 

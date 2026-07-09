@@ -38,7 +38,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             var data = tuple.Item1.Select(d => new
             {
-                d.Id,
                 d.Description,
                 OrderNumber = orderNumber++
             });

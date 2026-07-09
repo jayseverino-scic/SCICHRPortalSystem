@@ -25,14 +25,15 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     {
         private IBiometricsLogService BiometricsLogService { get; }
         private IEmployeeService EmployeeService { get; }
+        private ISPersonnelsService PersonnelsService { get; }
         private ITimekeepingDevicesService TimekeepingDevicesService { get; }
 
-        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService, ITimekeepingDevicesService timekeepingDevicesService)
+        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService, ITimekeepingDevicesService timekeepingDevicesService, ISPersonnelsService personnelsService)
         {
             BiometricsLogService = biometricsLogService;
             EmployeeService = employeeService;
             TimekeepingDevicesService = timekeepingDevicesService;
-
+            PersonnelsService = personnelsService;
         }
         [HttpGet()]
         public async Task<IActionResult> GetAsync()
@@ -220,21 +221,25 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 foreach (var timeLog in timeLogs)
                 {
-                    Employee employee = await EmployeeService.GetByEmployeeNoAsync(timeLog.AccessNumber!);
-                    BiometricsLog biometricsLog = new()
+                    SPersonnels employee = await PersonnelsService.GetBySPersonnelsNoAsync(timeLog.AccessNumber!);
+                    if (employee != null)
                     {
-                        PersonnelId = timeLog.AccessNumber,
-                        LastName = employee.LastName,
-                        FirstName =employee.FirstName,
-                        Date = timeLog.RecordDate,
-                        Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
-                        LogType = timeLog.LogType!.ToString(),
-                        DeviceName = deviceName,
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = "Manuel"
-                    };
-                    biometricsLogs.Add(biometricsLog);
-                    await BiometricsLogService.InsertAsync(biometricsLog);
+                        BiometricsLog biometricsLog = new()
+                        {
+                            PersonnelId = timeLog.AccessNumber,
+                            LastName = employee.LastName,
+                            FirstName = employee.FirstName,
+                            Date = timeLog.RecordDate,
+                            Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
+                            LogType = timeLog.LogType!.ToString(),
+                            DeviceName = deviceName,
+                            ProjectName = serialNumber,
+                            CreatedAt = DateTime.Now,
+                            CreatedBy = "Manuel"
+                        };
+                        biometricsLogs.Add(biometricsLog);
+                        await BiometricsLogService.InsertAsync(biometricsLog);
+                    }
                 }
             }
             var dto = new

@@ -12,7 +12,7 @@ namespace SCICHRPortal.Repository
 
         // DbSets for the tables you want to read from SQL Server
         public DbSet<STimeLogs> TimeLogs { get; set; }
-        public DbSet<SPersonnels> Personnels { get; set; }
+        public DbSet<SPersonnels> SPersonnels { get; set; }
         public DbSet<SZKDevices> ZKDevices { get; set; }
         public DbSet<SGroups> SGroups { get; set; }
 

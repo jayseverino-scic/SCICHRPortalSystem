@@ -78,12 +78,11 @@
     const _uploadDownloadModalHelper = new UploadDownloadModalHelper(_config);
 
     let tableName = '#biometrics-log-grid';
-    let pageSize = 10;
     let searchKeyword = '';
     let dataTable = null;
     let projects = [];
     let _currentproject = '';
-
+    let pageSize = 10;
     let attachEvents = () => {
         $('#end-date-filter').attr('value', moment().format('yyyy-MM-DD'));
         $('#start-date-filter').attr('value', moment().format('yyyy-MM-DD'));
@@ -155,6 +154,7 @@
         let pageNumber = 1;
         if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
             let gridInfo = dataTable.page.info();
+            pageSize = dataTable.page.length;
             pageNumber = gridInfo.page + 1;
         }
         if (_currentproject == '') {
@@ -215,12 +215,12 @@
                 $select.append('<option value="">No data available</option>');
             }
         };
-        renderSimpleDropdown('#project', projects, 'id', 'name', 'Select project');
+        renderSimpleDropdown('#project', projects, 'description', 'description', 'Select project');
     };
 
     let getDropdownData = async () => {
         try {
-            const projectResponse = await _apiHelper.get({ url: 'Authenticated/CompanyBranch' });
+            const projectResponse = await _apiHelper.get({ url: 'Authenticated/SGroups' });
 
             if (projectResponse.ok) {
                 projects = await projectResponse.json();

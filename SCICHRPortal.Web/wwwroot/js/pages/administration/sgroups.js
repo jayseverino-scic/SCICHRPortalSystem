@@ -54,7 +54,6 @@
         let columns = [
             {
                 title: 'No.',
-                data: "id",
                 width: "1.5em",
                 className: 'noVis dt-center',
                 render: (data, type, row, meta) => {

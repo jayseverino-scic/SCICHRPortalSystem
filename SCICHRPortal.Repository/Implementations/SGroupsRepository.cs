@@ -18,7 +18,7 @@ namespace SCICHRPortal.Repository.Implementations
         public async Task<Tuple<IEnumerable<SGroups>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             var groups = TimekeepingContext.SGroups!
-              .Where(e => e.IsDeleted == false);
+                .Where(e => e.IsDeleted == false);
 
             if (!String.IsNullOrWhiteSpace(searchKeyword))
             {
@@ -27,21 +27,52 @@ namespace SCICHRPortal.Repository.Implementations
                         e.Description!.ToLower().Contains(searchKeyword.ToLower()));
             }
 
-            var total = groups.Select(e => e.Description).Distinct().Count();
+            // Get distinct descriptions first
+            var distinctDescriptions = groups
+                .Select(e => e.Description)
+                .Distinct();
 
-            groups = groups
+            // For each description, get the first group
+            var query = distinctDescriptions
+                .Select(desc => groups
+                    .Where(e => e.Description == desc)
+                    .OrderBy(e => e.Id)
+                    .FirstOrDefault())
+                .Where(e => e != null);
+
+            var total = await query.CountAsync();
+
+            var pagedGroups = query
                 .OrderByDescending(e => e.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
 
-            return new Tuple<IEnumerable<SGroups>, int>(await groups.ToListAsync(), total);
+            return new Tuple<IEnumerable<SGroups>, int>(
+                await pagedGroups.ToListAsync(),
+                total
+            );
         }
 
         public async Task<IEnumerable<SGroups>> GetAllAsync()
         {
-            var groups = await TimekeepingContext.SGroups!.Where(s => !s.IsDeleted)
-              .ToListAsync();
-            return groups;
+            var groups = TimekeepingContext.SGroups!
+                .Where(e => e.IsDeleted == false);
+
+
+            // Get distinct descriptions first
+            var distinctDescriptions = groups
+                .Select(e => e.Description)
+                .Distinct();
+
+            // For each description, get the first group
+            var query = distinctDescriptions
+                .Select(desc => groups
+                    .Where(e => e.Description == desc)
+                    .OrderBy(e => e.Id)
+                    .FirstOrDefault())
+                .Where(e => e != null);
+
+            return query!;
         }
 
         public async Task<SGroups> GetAsync(Guid id)
