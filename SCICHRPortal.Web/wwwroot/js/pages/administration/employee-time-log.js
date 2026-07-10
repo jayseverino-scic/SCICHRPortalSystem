@@ -11,8 +11,8 @@
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
 
-    let _biometrics = [];
-    let _currentBiometrics = "0";
+    let projects = [];
+    let _currentproject = '';
     let _employee = [];
     let _employeeShift = [];
     let pageSize = 10;
@@ -76,20 +76,23 @@
 
     let onClickFilter = async e => {
         e.preventDefault();
-        _currentBiometrics = $('#biometrics').val() || 0;
+        _currentproject = $('#project option:selected').text() || '';
         let startDate = $('#start-import-filter').val();
         let endDate = $('#end-import-filter').val();
 
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
-
+        if (_currentproject == '') {
+            alert('Please select the project to be filtered!');
+            return;
+        }
         if (isDataTableInitialized && dataTable) {
             let gridInfo = dataTable.page.info();
             pageNumber = gridInfo.page + 1;
         }
 
         let response = await _apiHelper.get({
-            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${deviceName}`,
+            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${_currentproject}`,
         });
 
         if (response.ok) {
@@ -267,30 +270,64 @@
     };
 
     let renderDropDowns = async () => {
+        const renderSimpleDropdown = (elementId, data, valueField, textField, placeholder) => {
+            const $select = $(elementId);
+            $select.empty();
+
+            if (placeholder) {
+                $select.append(`<option value="">${placeholder}</option>`);
+            }
+
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    $select.append(`<option value="${item[valueField]}">${item[textField]}</option>`);
+                });
+            } else {
+                $select.append('<option value="">No data available</option>');
+            }
+        };
+        console.log(projects);
+        renderSimpleDropdown('#project', projects, 'name', 'name', 'Select Project');
         //await getDropdownData();
-        _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeNo', valueName: 'employeeId', data: _employee, text: 'employeeNo', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
-        _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeName', valueName: 'employeeId', data: _employee, text: 'firstName', secondText: 'lastName', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
+        // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeNo', valueName: 'employeeId', data: _employee, text: 'employeeNo', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
+        // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeName', valueName: 'employeeId', data: _employee, text: 'firstName', secondText: 'lastName', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
     };
 
     let getDropdownData = async () => {
-        let [employeeResp, employeeShiftResp] = await Promise.all([
-            _apiHelper.get({
-                url: `Authenticated/Employee`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/EmployeeShift`
-            }),
-        ]);
+        try {
+            const projectResponse = await _apiHelper.get({ url: 'Authenticated/XCompanyBranch' });
 
-        let [employee, employeeShift] = await Promise.all(
-            [
-                employeeResp.json(),
-                employeeShiftResp.json(),
-            ]
-        );
-        _employee = employee;
-        _employeeShift = employeeShift;
+            if (projectResponse.ok) {
+                projects = await projectResponse.json();
+            } else {
+                projects = [];
+            }
+
+        } catch (error) {
+            projects = [];
+        }
+        console.log(projects);
     };
+
+    // let getDropdownData = async () => {
+    //     let [employeeResp, employeeShiftResp] = await Promise.all([
+    //         _apiHelper.get({
+    //             url: `Authenticated/Employee`
+    //         }),
+    //         _apiHelper.get({
+    //             url: `Authenticated/EmployeeShift`
+    //         }),
+    //     ]);
+
+    //     let [employee, employeeShift] = await Promise.all(
+    //         [
+    //             employeeResp.json(),
+    //             employeeShiftResp.json(),
+    //         ]
+    //     );
+    //     _employee = employee;
+    //     _employeeShift = employeeShift;
+    // };
 
     let destroyDataTable = () => {
         if (isDataTableInitialized && dataTable && $.fn.DataTable.isDataTable('#employee-time-log-grid')) {
@@ -545,20 +582,53 @@
         $('#employee-time-log-form #dateOut').attr('value', moment().format('YYYY-MM-DD'));
     };
 
-    let initializeGrids = e => {
-        initializeGrid([]);
-        const button = document.getElementById("filter");
-        if (button) {
-            button.click();
+    let initializeGrids = async () => {
+        try {
+            await getDropdownData();
+            renderDropDowns();
+            // Initialize with empty data first
+            initializeGrid([]);
+
+            // Then trigger filter to load actual data
+            const button = document.getElementById("filter");
+            if (button) {
+                button.click();
+            }
+        }
+        catch (error) {
+            console.error('DataTables initialization error:', error);
         }
     };
+    // let initializeGrids = e => {
+    //     //initializeGrid([]);
+    //     try {
+    //         getDropdownData();
+    //         renderDropDowns();
+            
+    //         // Initialize with empty data first
+    //         initializeGrid([]);
+
+    //         // Then trigger filter to load actual data
+    //         const button = document.getElementById("filter");
+    //         if (button) {
+    //             button.click();
+    //         }
+    //     }
+    //     catch (error) {
+    //         console.error('DataTables initialization error:', error);
+    //     }
+    //     const button = document.getElementById("filter");
+    //     if (button) {
+    //         button.click();
+    //     }
+    // };
 
     $(document).ready(function () {
         if ($('#employee-time-log-grid').length === 0) {
             console.error('Table element not found:', 'employee-time-log-grid');
             return;
         }
-        renderDropDowns();
+        //renderDropDowns();
         initializeGrids();
         attachEvents();
         initializeModals();

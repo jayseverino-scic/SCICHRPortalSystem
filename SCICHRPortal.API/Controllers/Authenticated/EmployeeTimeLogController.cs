@@ -94,7 +94,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             List<string> bioEmployees = new List<string>();
             List<string?> bioDates = new List<string?>();
             bioDates = biometricsLogs.Select(d => d.Date.ToString()).Distinct().ToList(); //tuple.Item1.Select(d => d.Date.ToString()).Distinct().ToList();
-            bioEmployees = biometricsLogs.Select(static d => d.PersonnelId).Distinct().ToList();// tuple.Item1.Select(static d => d.PersonnelId).Distinct().ToList();
+            bioEmployees = biometricsLogs.Select(static d => d.PersonnelId).Distinct().ToList()!;// tuple.Item1.Select(static d => d.PersonnelId).Distinct().ToList();
             IEnumerable<XEmployee> employees = await EmployeeService.GetAllAsync();
             IEnumerable<EmployeeShift> shifts = await EmployeeShiftService.GetAllAsync();
             //var filteredEmployees = employees.Where(e => bioEmployees.Any(b => b == e.EmployeeNo));
