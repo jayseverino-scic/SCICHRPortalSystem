@@ -56,6 +56,16 @@
                                             <span asp-validation-for="TimeIn" class="text-danger"></span>
                                         </div>
                                         <div class="form-group col-md-12">
+                                            <label asp-for="ProjectTimeIn" class="col-form-label">Project In</label>
+                                            <select asp-for="ProjectTimeIn" id="projectTimeIn" style="width:100%;" class="form-control select borrow-initial"></select>
+                                            <span asp-validation-for="ProjectTimeIn" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="DeviceTimeIn" class="col-form-label">Device In</label>
+                                            <select asp-for="DeviceTimeIn" id="deviceTimeIn" style="width:100%;" class="form-control select borrow-initial"></select>
+                                            <span asp-validation-for="DeviceTimeIn" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
                                             <label asp-for="DateOut" class="col-form-label">Date Out</label>
                                             <input type="date" asp-for="DateOut" id="dateOut" class="form-control lowercase borrow-initial">
                                             <span asp-validation-for="DateOut" class="text-danger"></span>
@@ -64,6 +74,16 @@
                                             <label asp-for="TimeOut" class="col-form-label">Time Out</label>
                                             <input type="time" asp-for="TimeOut" id="timeOut" class="form-control lowercase borrow-initial">
                                             <span asp-validation-for="TimeOut" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="ProjectTimeOut" class="col-form-label">Project Out</label>
+                                            <select asp-for="ProjectTimeOut" id="projectTimeOut" style="width:100%;" class="form-control select borrow-initial"></select>
+                                            <span asp-validation-for="ProjectTimeOut" class="text-danger"></span>
+                                        </div>
+                                        <div class="form-group col-md-12">
+                                            <label asp-for="DeviceTimeOut" class="col-form-label">Project Out</label>
+                                            <select asp-for="DeviceTimeOut" id="deviceTimeOut" style="width:100%;" class="form-control select borrow-initial"></select>
+                                            <span asp-validation-for="DeviceTimeOut" class="text-danger"></span>
                                         </div>
                                     </div>
                                 </div>

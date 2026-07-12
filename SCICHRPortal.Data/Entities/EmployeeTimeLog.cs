@@ -22,8 +22,10 @@ namespace SCICHRPortal.Data.Entities
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
         public string? SystemRemarks { get; set; }
-        public string? DeviceName { get; set; }
-        public string? ProjectName { get; set; }
+        public string? DeviceTimeIn { get; set;  }
+        public string? DeviceTimeOut { get; set; }
+        public string? ProjecTimeIn { get; set; }
+        public string? ProjectTimeOut { get; set; }
         public XEmployee? Employee { get; set; }
         public TimekeepingDevices? TimekeepingDevices { get; set; }
         public XCompany_Branch? XCompany_Branch { get; set; }

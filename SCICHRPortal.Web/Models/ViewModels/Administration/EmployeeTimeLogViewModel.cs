@@ -23,5 +23,9 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
         public bool IsFlexibleShift { get; set; }
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
+        public string? ProjectTimeIn { get; set; }
+        public string? ProjectTimeOut { get; set; }
+        public string? DeviceTimeIn { get; set; }
+        public string? DeviceTimeOut { get; set; }
     }
 }

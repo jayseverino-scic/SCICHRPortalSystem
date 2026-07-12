@@ -12,7 +12,9 @@
     const _cookieHelper = new CookieHelper();
 
     let projects = [];
-    let _currentproject = '';
+    let _currentProject = '';
+    let devices = [];
+    let _currentDevice = '';
     let _employee = [];
     let _employeeShift = [];
     let pageSize = 10;
@@ -76,13 +78,13 @@
 
     let onClickFilter = async e => {
         e.preventDefault();
-        _currentproject = $('#project option:selected').text() || '';
+        _currentProject = $('#project option:selected').text() || '';
         let startDate = $('#start-import-filter').val();
         let endDate = $('#end-import-filter').val();
 
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
-        if (_currentproject == '') {
+        if (_currentProject == '') {
             alert('Please select the project to be filtered!');
             return;
         }
@@ -92,7 +94,7 @@
         }
 
         let response = await _apiHelper.get({
-            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&deviceName=${_currentproject}`,
+            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&projectName=${_currentProject}`,
         });
 
         if (response.ok) {
@@ -288,46 +290,50 @@
         };
         console.log(projects);
         renderSimpleDropdown('#project', projects, 'name', 'name', 'Select Project');
+        renderSimpleDropdown('#projectTimeIn', projects, 'name', 'name', 'Select Project');
+        renderSimpleDropdown('#projectTimeOut', projects, 'name', 'name', 'Select Project');
+        renderSimpleDropdown('#deviceTimeIn', devices, 'name', 'name', 'Select Device');
+        renderSimpleDropdown('#deviceTimeOut', devices, 'name', 'name', 'Select Device');
         //await getDropdownData();
         // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeNo', valueName: 'employeeId', data: _employee, text: 'employeeNo', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
         // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeName', valueName: 'employeeId', data: _employee, text: 'firstName', secondText: 'lastName', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
     };
 
-    let getDropdownData = async () => {
-        try {
-            const projectResponse = await _apiHelper.get({ url: 'Authenticated/XCompanyBranch' });
-
-            if (projectResponse.ok) {
-                projects = await projectResponse.json();
-            } else {
-                projects = [];
-            }
-
-        } catch (error) {
-            projects = [];
-        }
-        console.log(projects);
-    };
-
     // let getDropdownData = async () => {
-    //     let [employeeResp, employeeShiftResp] = await Promise.all([
-    //         _apiHelper.get({
-    //             url: `Authenticated/Employee`
-    //         }),
-    //         _apiHelper.get({
-    //             url: `Authenticated/EmployeeShift`
-    //         }),
-    //     ]);
+    //     try {
+    //         const projectResponse = await _apiHelper.get({ url: 'Authenticated/XCompanyBranch' });
 
-    //     let [employee, employeeShift] = await Promise.all(
-    //         [
-    //             employeeResp.json(),
-    //             employeeShiftResp.json(),
-    //         ]
-    //     );
-    //     _employee = employee;
-    //     _employeeShift = employeeShift;
+    //         if (projectResponse.ok) {
+    //             projects = await projectResponse.json();
+    //         } else {
+    //             projects = [];
+    //         }
+
+    //     } catch (error) {
+    //         projects = [];
+    //     }
+    //     console.log(projects);
     // };
+
+    let getDropdownData = async () => {
+        let [projectResp, deviceResp] = await Promise.all([
+            _apiHelper.get({
+                url: `Authenticated/XCompanyBranch`
+            }),
+            _apiHelper.get({
+                url: `Authenticated/SZKDevices`
+            }),
+        ]);
+
+        let [project, device] = await Promise.all(
+            [
+                projectResp.json(),
+                deviceResp.json(),
+            ]
+        );
+        _projects = project;
+        _devices = device;
+    };
 
     let destroyDataTable = () => {
         if (isDataTableInitialized && dataTable && $.fn.DataTable.isDataTable('#employee-time-log-grid')) {
@@ -496,6 +502,16 @@
                 },
             },
             {
+                title: "Project In",
+                data: "projectTimeIn",
+                className: 'noVis dt-center',
+            },
+            {
+                title: "Device In",
+                data: "deviceTimeIn",
+                className: 'noVis dt-center'
+            },
+            {
                 title: "Date Out",
                 data: "dateOut",
                 className: 'noVis dt-center',
@@ -511,6 +527,16 @@
                     return _dateHelper.formatLocalShortTime(data);
                 },
             },
+            {
+                title: "Project Out",
+                data: "projectTimeOut",
+                data: 'noVis dt-center'
+            },
+            {
+                title: "Device Out",
+                data: "deviceTimeOut",
+                className: 'noVis dt-center'
+            }, 
             {
                 title: "Shift Start",
                 data: "shiftStart",
