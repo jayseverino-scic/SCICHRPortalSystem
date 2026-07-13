@@ -8,8 +8,11 @@ namespace SCICHRPortal.Web.Controllers
     {
 
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+
         public IActionResult Index()
         {
+            var token = Request.Cookies["jsonWebToken"];
+
             var loggedIn = User.Identity!.IsAuthenticated;
 
             if (loggedIn)

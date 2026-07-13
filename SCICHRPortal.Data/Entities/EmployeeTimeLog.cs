@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Data.XscribeTables;
 
 namespace SCICHRPortal.Data.Entities
@@ -27,7 +28,7 @@ namespace SCICHRPortal.Data.Entities
         public string? ProjecTimeIn { get; set; }
         public string? ProjectTimeOut { get; set; }
         public XEmployee? Employee { get; set; }
-        public TimekeepingDevices? TimekeepingDevices { get; set; }
         public XCompany_Branch? XCompany_Branch { get; set; }
+        public SZKDevices? SZKDevices { get; set; }
     }
 }

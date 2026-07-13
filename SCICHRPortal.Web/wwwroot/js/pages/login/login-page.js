@@ -20,7 +20,7 @@
         $('#reset-password-form').on('submit', onResetPasswordSubmitted);
         $('#cancel-reset-pass').on('click', onCancelClicked);
         setupValidation();
-        generateAvatarColors();
+        //generateAvatarColors();
     };
 
     window.switchTab = function (tab) {
@@ -158,6 +158,7 @@
 
             if (response.ok) {
                 const token = await response.json();
+                console.log(token);
                 _cookieHelper.set('jsonWebToken', token.accessToken.jsonWebToken);
                 _cookieHelper.set('refreshToken', token.accessToken.refreshToken);
 

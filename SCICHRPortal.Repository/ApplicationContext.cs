@@ -40,8 +40,6 @@ namespace SCICHRPortal.Repository
         public DbSet<LeaveRequest> LeaveRequest { get; set; }
         public DbSet<BiometricsLog> BiometricsLog { get; set; }
         public DbSet<Position> Position { get; set; }
-        public DbSet<TimekeepingAdminSetup> TimekeepingAdminSetup { get; set; }
-        public DbSet<TimekeepingDevices> TimekeepingDevices { get; set; }
         public DbSet<EmployeeShiftDevice> EmployeeShiftDevice { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,8 +61,6 @@ namespace SCICHRPortal.Repository
             new LeaveRequestMap(modelBuilder.Entity<LeaveRequest>());
             new BiometricsLogMap(modelBuilder.Entity<BiometricsLog>());
             new PositionMap(modelBuilder.Entity<Position>());
-            new TimekeepingAdminSetupMap(modelBuilder.Entity<TimekeepingAdminSetup>());
-            new TimekeepingDevicesMap(modelBuilder.Entity<TimekeepingDevices>());
             new EmployeeShiftDeviceMap(modelBuilder.Entity<EmployeeShiftDevice>());
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {

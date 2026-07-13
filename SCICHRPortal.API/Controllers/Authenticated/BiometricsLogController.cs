@@ -26,13 +26,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IBiometricsLogService BiometricsLogService { get; }
         private IEmployeeService EmployeeService { get; }
         private ISPersonnelsService PersonnelsService { get; }
-        private ITimekeepingDevicesService TimekeepingDevicesService { get; }
 
-        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService, ITimekeepingDevicesService timekeepingDevicesService, ISPersonnelsService personnelsService)
+
+        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService, ISPersonnelsService personnelsService)
         {
             BiometricsLogService = biometricsLogService;
             EmployeeService = employeeService;
-            TimekeepingDevicesService = timekeepingDevicesService;
             PersonnelsService = personnelsService;
         }
         [HttpGet()]
@@ -202,52 +201,52 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(dto);
         }
 
-        [HttpGet("ImportDb")]
-        [Authorize]
-        public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport, string? serialNumber)
-        {
-            if (!startImport.HasValue || !endImport.HasValue)
-                return BadRequest(ResponseMessage.BadRequest);
+        //[HttpGet("ImportDb")]
+        //[Authorize]
+        //public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport, string? serialNumber)
+        //{
+        //    if (!startImport.HasValue || !endImport.HasValue)
+        //        return BadRequest(ResponseMessage.BadRequest);
 
-            TimekeepingDevices timekeepingDevice = await TimekeepingDevicesService.GetBySerialNumber(serialNumber);
-            string? deviceName = "";
-            if (timekeepingDevice != null)
-            {
-                deviceName = timekeepingDevice.Name;
-            }
-            var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport, serialNumber);
-            var biometricsLogs = new List<BiometricsLog>();
-            if (timeLogs != null)
-            {
-                foreach (var timeLog in timeLogs)
-                {
-                    SPersonnels employee = await PersonnelsService.GetBySPersonnelsNoAsync(timeLog.AccessNumber!);
-                    if (employee != null)
-                    {
-                        BiometricsLog biometricsLog = new()
-                        {
-                            PersonnelId = timeLog.AccessNumber,
-                            LastName = employee.LastName,
-                            FirstName = employee.FirstName,
-                            Date = timeLog.RecordDate,
-                            Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
-                            LogType = timeLog.LogType!.ToString(),
-                            DeviceName = deviceName,
-                            ProjectName = serialNumber,
-                            CreatedAt = DateTime.Now,
-                            CreatedBy = "Manuel"
-                        };
-                        biometricsLogs.Add(biometricsLog);
-                        await BiometricsLogService.InsertAsync(biometricsLog);
-                    }
-                }
-            }
-            var dto = new
-            {
-                Data = biometricsLogs,
-                Total = biometricsLogs.Count()
-            };
-            return Ok(dto);
-        }
+        //    TimekeepingDevices timekeepingDevice = await TimekeepingDevicesService.GetBySerialNumber(serialNumber);
+        //    string? deviceName = "";
+        //    if (timekeepingDevice != null)
+        //    {
+        //        deviceName = timekeepingDevice.Name;
+        //    }
+        //    var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport, serialNumber);
+        //    var biometricsLogs = new List<BiometricsLog>();
+        //    if (timeLogs != null)
+        //    {
+        //        foreach (var timeLog in timeLogs)
+        //        {
+        //            SPersonnels employee = await PersonnelsService.GetBySPersonnelsNoAsync(timeLog.AccessNumber!);
+        //            if (employee != null)
+        //            {
+        //                BiometricsLog biometricsLog = new()
+        //                {
+        //                    PersonnelId = timeLog.AccessNumber,
+        //                    LastName = employee.LastName,
+        //                    FirstName = employee.FirstName,
+        //                    Date = timeLog.RecordDate,
+        //                    Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
+        //                    LogType = timeLog.LogType!.ToString(),
+        //                    DeviceName = deviceName,
+        //                    ProjectName = serialNumber,
+        //                    CreatedAt = DateTime.Now,
+        //                    CreatedBy = "Manuel"
+        //                };
+        //                biometricsLogs.Add(biometricsLog);
+        //                await BiometricsLogService.InsertAsync(biometricsLog);
+        //            }
+        //        }
+        //    }
+        //    var dto = new
+        //    {
+        //        Data = biometricsLogs,
+        //        Total = biometricsLogs.Count()
+        //    };
+        //    return Ok(dto);
+        //}
     }
 }

@@ -73,7 +73,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         ValidateAudience = false
     };
-    options.ForwardSignIn = "/Login";
+    options.ForwardSignIn = "/Home";
 });
 
 builder.Services.AddHttpContextAccessor();

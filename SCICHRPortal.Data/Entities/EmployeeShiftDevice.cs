@@ -1,4 +1,5 @@
 ﻿using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Data.XscribeTables;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace SCICHRPortal.Data.Entities
         public string? Devicename { get; set; }
         public XEmployee? Employee { get; set; }
         public XCompany_Branch? Branch { get; set; }
-        public TimekeepingDevices? TimekeepingDevices { get; set; }
+        public SZKDevices? SZKDevices { get; set; }
         public Shift? Shift { get; set; }
     }
 }
