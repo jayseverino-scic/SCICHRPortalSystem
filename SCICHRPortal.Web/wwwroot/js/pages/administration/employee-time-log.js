@@ -289,11 +289,11 @@
             }
         };
         console.log(projects);
-        renderSimpleDropdown('#project', projects, 'name', 'name', 'Select Project');
-        renderSimpleDropdown('#projectTimeIn', projects, 'name', 'name', 'Select Project');
-        renderSimpleDropdown('#projectTimeOut', projects, 'name', 'name', 'Select Project');
-        renderSimpleDropdown('#deviceTimeIn', devices, 'name', 'name', 'Select Device');
-        renderSimpleDropdown('#deviceTimeOut', devices, 'name', 'name', 'Select Device');
+        renderSimpleDropdown('#project', _projects, 'name', 'name', 'Select Project');
+        renderSimpleDropdown('#projectTimeIn', _projects, 'name', 'name', 'Select Project');
+        renderSimpleDropdown('#projectTimeOut', _projects, 'name', 'name', 'Select Project');
+        renderSimpleDropdown('#deviceTimeIn', _devices, 'name', 'name', 'Select Device');
+        renderSimpleDropdown('#deviceTimeOut', _devices, 'name', 'name', 'Select Device');
         //await getDropdownData();
         // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeNo', valueName: 'employeeId', data: _employee, text: 'employeeNo', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
         // _formHelper.renderDropdown({ name: 'employee-time-log-form #employeeName', valueName: 'employeeId', data: _employee, text: 'firstName', secondText: 'lastName', placeHolder: '-', isSelect2: true, dropdownParent: '#employee-time-log-modal' });
