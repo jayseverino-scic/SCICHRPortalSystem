@@ -11,5 +11,6 @@ namespace SCICHRPortal.Repository.Interfaces
          IListRetriever<SGroups>
     {
         Task<Tuple<IEnumerable<SGroups>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
+        Task<IEnumerable<SGroups>> FilterGroupAsync(string? groupName);
     }
 }
