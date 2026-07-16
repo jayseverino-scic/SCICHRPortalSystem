@@ -13,7 +13,7 @@ namespace SCICHRPortal.Data.Entities
     {
         public int BiometricsLogId { get; set; }
         public string? PersonnelId { get; set; }
-        public Guid SZKDevicesId { get; set; }
+        public Guid? SZKDevicesId { get; set; }
         public string? LastName { get; set; }
         public string? FirstName { get; set; }
         public DateTime? Date {  get; set; }

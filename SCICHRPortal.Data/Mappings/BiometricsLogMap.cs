@@ -14,6 +14,10 @@ namespace SCICHRPortal.Data.Mappings
         public BiometricsLogMap(EntityTypeBuilder<BiometricsLog> entityBuilder) 
         {
             entityBuilder.HasKey(e => e.BiometricsLogId);
+            entityBuilder.HasOne(e => e.SZKDevices)
+               .WithMany()
+               .HasForeignKey(u => u.SZKDevicesId)
+               .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
