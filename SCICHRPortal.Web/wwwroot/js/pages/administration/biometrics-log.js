@@ -149,7 +149,7 @@
         e.preventDefault();
         let startDate = $('#start-date-filter').val();
         let endDate = $('#end-date-filter').val();
-        _currentproject = $('#project option:selected').text() || '';
+        _currentproject = $('#project').val() || '';
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
         if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
@@ -361,7 +361,7 @@
             },
             {
                 title: "Project",
-                data: "xcompany_branch.name",
+                data: "projectName",
                 className: 'noVis dt-center',
                 orderable: false,
                 defaultContent: ""

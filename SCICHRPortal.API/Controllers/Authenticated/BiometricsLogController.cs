@@ -232,7 +232,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             Date = timeLog.RecordDate,
                             Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
                             LogType = timeLog.LogType!.ToString(),
-                            DeviceName = serialNumber,
+                            DeviceName = timeLog.DeviceSerialNumber,
                             ProjectName = serialNumber,
                             CreatedAt = DateTime.Now,
                             CreatedBy = "Manuel"
