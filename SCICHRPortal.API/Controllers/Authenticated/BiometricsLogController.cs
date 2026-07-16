@@ -26,15 +26,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IBiometricsLogService BiometricsLogService { get; }
         private IEmployeeService EmployeeService { get; }
         private ISPersonnelsService PersonnelsService { get; }
-        private SGroupsService SGroupsService { get; }
 
 
-        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService, ISPersonnelsService personnelsService, SGroupsService sGroupsService)
+
+        public BiometricsLogController(IBiometricsLogService biometricsLogService, IEmployeeService employeeService, ISPersonnelsService personnelsService)
         {
             BiometricsLogService = biometricsLogService;
             EmployeeService = employeeService;
             PersonnelsService = personnelsService;
-            SGroupsService = sGroupsService;
         }
         [HttpGet()]
         public async Task<IActionResult> GetAsync()
@@ -207,15 +206,15 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [Authorize]
         public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport, string? serialNumber)
         {
-            if (!startImport.HasValue || !endImport.HasValue)
-                return BadRequest(ResponseMessage.BadRequest);
+            //if (!startImport.HasValue || !endImport.HasValue)
+            //    return BadRequest(ResponseMessage.BadRequest);
 
-            SGroups timekeepingDevice = await SGroupsService.get .GetBySerialNumber(serialNumber);
-            string? deviceName = "";
-            if (timekeepingDevice != null)
-            {
-                deviceName = timekeepingDevice.Name;
-            }
+            //SGroups timekeepingDevice = await SGroupsService.get .GetBySerialNumber(serialNumber);
+            //string? deviceName = "";
+            //if (timekeepingDevice != null)
+            //{
+            //    deviceName = timekeepingDevice.Name;
+            //}
             var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport, serialNumber);
             var biometricsLogs = new List<BiometricsLog>();
             if (timeLogs != null)
@@ -233,7 +232,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             Date = timeLog.RecordDate,
                             Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
                             LogType = timeLog.LogType!.ToString(),
-                            DeviceName = deviceName,
+                            DeviceName = serialNumber,
                             ProjectName = serialNumber,
                             CreatedAt = DateTime.Now,
                             CreatedBy = "Manuel"

@@ -43,12 +43,12 @@ namespace SCICHRPortal.Repository.Implementations
             var total = await query.CountAsync();
 
             var pagedGroups = query
-                .OrderByDescending(e => e.Id)
+                .OrderByDescending(e => e!.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
 
             return new Tuple<IEnumerable<SGroups>, int>(
-                await pagedGroups.ToListAsync(),
+                await pagedGroups!.ToListAsync(),
                 total
             );
         }
