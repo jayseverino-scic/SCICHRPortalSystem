@@ -147,29 +147,29 @@
 
     let onClickFilter = async e => {
         e.preventDefault();
-        let startDate = $('#start-date-filter').val();
-        let endDate = $('#end-date-filter').val();
-        _currentproject = $('#project').val() || '';
+        // let startDate = $('#start-date-filter').val();
+        // let endDate = $('#end-date-filter').val();
+        // _currentproject = $('#project').val() || '';
         // Check if DataTable exists before trying to get page info
-        let pageNumber = 1;
-        if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
-            let gridInfo = dataTable.page.info();
-            pageSize = dataTable.page.length;
-            pageNumber = gridInfo.page + 1;
-        }
-        if (_currentproject == '') {
-            alert('Please select the project to be filtered!');
-            return;
-        }
-        let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/FilterPerProject?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&projectName=${_currentproject}`,
-        });
-
-        if (response.ok) {
-            let json = await response.json();
-            let dataRetrieved = json.data;
-            initializeGrid(dataRetrieved);
-        }
+        // let pageNumber = 1;
+        // if (dataTable && $.fn.DataTable.isDataTable(tableName)) {
+        //     let gridInfo = dataTable.page.info();
+        //     pageSize = dataTable.page.length;
+        //     pageNumber = gridInfo.page + 1;
+        // }
+        // if (_currentproject == '') {
+        //     alert('Please select the project to be filtered!');
+        //     return;
+        // }
+        // let response = await _apiHelper.get({
+        //     url: `Authenticated/BiometricsLog/FilterPerProject?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&projectName=${_currentproject}`,
+        // });
+        initializeGrid();
+        // if (response.ok) {
+        //     let json = await response.json();
+        //     let dataRetrieved = json.data;
+        //     initializeGrid(dataRetrieved);
+        // }
     };
 
     let onClickDbFilter = async e => {
@@ -266,6 +266,29 @@
                 scrollY: "350px",
                 scrollX: true,
                 order: [[1, 'asc']], // Fixed order syntax
+                ajax: async function (params, success, settings) {
+                    let gridInfo = dataTable.DataTable().page.info();
+                    let searchKeyword = params.search.value;
+                    let pageSize = params.length;
+                    let startDate = $('#start-date-filter').val();
+                    let endDate = $('#end-date-filter').val();
+                    _currentproject = $('#project').val() || '';
+                    let response = await _apiHelper.get({
+                        url: `Authenticated/BiometricsLog/FilterPerProject?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&projectName=${_currentproject}`,
+                    });
+
+                    if (response.ok) {
+                        let json = await response.json();
+                        let total = json.total;
+                        success({
+                            recordsFiltered: total,
+                            recordsTotal: total,
+                            data: json.data
+                        });
+                    } else {
+                        success(null);
+                    }
+                },
                 data: data,
                 columns: columns,
                 pageLength: 5,
