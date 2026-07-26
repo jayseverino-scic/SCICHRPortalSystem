@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Operations;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
-using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Data.Enums;
+using SCICHRPortal.Data.TimekeepingTables;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
@@ -45,7 +46,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 d.TimeLogId,
                 d.EmployeeId,
-                employeeNo = d.Employee!.Employee_code,
+                employeeNo = d.Employee!.Id.ToString(),
                 EmployeeName = d.Employee!.Last_Name + "," + d.Employee.First_Name,
                 d.DateIn,
                 d.DateOut,
@@ -69,19 +70,52 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(dto);
         }
 
-        [HttpPost("Import")]
-        public async Task<IActionResult> ImportAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startImportDate, DateTime? endImportDate, string? projectName)
+        [HttpGet("FilterPerProject")]
+        public async Task<IActionResult> FilterPerProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? deviceName)
         {
-            IEnumerable<BiometricsLog> biometricsLogs = await BiometricsLogService.FilterByDateRange(startImportDate, endImportDate, projectName);
+            var tuple = await EmployeeTimeLogService.FilterByProjectAndDateRange(startDate, endDate, deviceName);
+
+            var data = tuple.Select(d => new
+            {
+                d.TimeLogId,
+                d.EmployeeId,
+                employeeNo = d.Employee!.Id.ToString(),
+                EmployeeName = d.Employee!.Last_Name + "," + d.Employee.First_Name,
+                d.DateIn,
+                d.DateOut,
+                d.TimeIn,
+                d.TimeOut,
+                d.ShiftStart,
+                d.ShiftEnd,
+                d.IsFlexibleShift,
+                d.IsNoShift,
+                d.IsNoBreak,
+                d.SystemRemarks,
+                d.CreatedAt,
+            });
+
+            var dto = new
+            {
+                Data = data,
+                Total = data.Count()
+            };
+            return Ok(dto);
+        }
+
+
+        [HttpPost("Import")]
+        public async Task<IActionResult> ImportAsync(DateTime? startImportDate, DateTime? endImportDate, string? projectName)
+        {
+            IEnumerable<BiometricsLog> biometricsLogs = await BiometricsLogService.FilterByProjectAndDateRange(startImportDate, endImportDate, projectName);
             List<string> bioEmployees = new List<string>();
             List<string?> bioDates = new List<string?>();
             bioDates = biometricsLogs.Select(d => d.Date.ToString()).Distinct().ToList(); //tuple.Item1.Select(d => d.Date.ToString()).Distinct().ToList();
             bioEmployees = biometricsLogs.Select(static d => d.PersonnelId).Distinct().ToList()!;// tuple.Item1.Select(static d => d.PersonnelId).Distinct().ToList();
             IEnumerable<XEmployee> employees = await EmployeeService.GetAllAsync();
             IEnumerable<EmployeeShift> shifts = await EmployeeShiftService.GetAllAsync();
-            var filteredEmployees = from e in employees join b in bioEmployees on e.Employee_code equals b select e;
+            var filteredEmployees = from e in employees join b in bioEmployees on e.Id.ToString() equals b select e;
             List<EmployeeTimeLog> timeLogs = new List<EmployeeTimeLog>();
-            foreach (var employee in employees)
+            foreach (var employee in filteredEmployees)
             {
                 EmployeeShift? shift = shifts.Where(s => s.EmployeeId == employee.Id).FirstOrDefault();
                 foreach (var date in bioDates)
@@ -91,7 +125,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     employeeTimeLog.EmployeeId = employee.Id;
                     employeeTimeLog.DateIn = Convert.ToDateTime(date);
                     employeeTimeLog.DateOut = Convert.ToDateTime(date);
-                    biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date?.ToShortDateString() == Convert.ToDateTime(date).ToShortDateString()).OrderBy(e => e.Date).FirstOrDefault();
+                    biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date?.ToShortDateString() == Convert.ToDateTime(date).ToShortDateString()).OrderBy(e => e.Date).FirstOrDefault();
                     employeeTimeLog.TimeIn = biometricsLog!.Time;
                     employeeTimeLog.ProjecTimeIn = biometricsLog.ProjectName;
                     employeeTimeLog.DeviceTimeIn = biometricsLog.DeviceName;
@@ -99,14 +133,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         if (shift!.MondayShiftEnd < shift.MondayShiftStart)
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.MondayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.MondayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog!.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
                         }
                         else
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog!.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
@@ -118,14 +152,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         if (shift!.TuesdayShiftEnd < shift.TuesdayShiftStart)
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.TuesdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.TuesdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
                         }
                         else
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
@@ -137,14 +171,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         if (shift!.WednesdayShiftEnd < shift.WednesdayShiftStart)
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.WednesdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.WednesdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
                         }
                         else
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
@@ -156,14 +190,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         if (shift!.ThursdayShiftEnd < shift.ThursdayShiftStart)
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.ThursdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.ThursdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
                         }
                         else
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
@@ -175,14 +209,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         if (shift!.FridayShiftEnd < shift.FridayShiftStart)
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.FridayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.FridayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
                         }
                         else
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
@@ -194,14 +228,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         if (shift!.SaturdayShiftEnd < shift.SaturdayShiftStart)
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.SaturdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.SaturdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
                         }
                         else
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
@@ -213,14 +247,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         if (shift!.SundayShiftEnd < shift.SundayShiftStart)
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.SundayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1) + " " + shift.SundayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
                         }
                         else
                         {
-                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Employee_code && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
+                            biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.Id.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
                             employeeTimeLog.TimeOut = biometricsLog!.Time;
                             employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
                             employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
@@ -242,7 +276,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 d.TimeLogId,
                 d.EmployeeId,
-                employeeNo = d.Employee!.Employee_code,
+                employeeNo = d.Employee!.Id.ToString(),
                 EmployeeName = d.Employee!.Last_Name + "," + d.Employee.First_Name,
                 d.DateIn,
                 d.DateOut,

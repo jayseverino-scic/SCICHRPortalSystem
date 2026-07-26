@@ -1,6 +1,7 @@
 ﻿using SCICHRPortal.Core.Interfaces;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Repository.Implementations;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
 
@@ -52,6 +53,10 @@ namespace SCICHRPortal.Service.Implementations
         public async Task<IEnumerable<EmployeeTimeLog>> GetAllAsync()
         {
             return await EmployeeTimeLogRepository.GetAllAsync();
+        }
+        public async Task<IEnumerable<EmployeeTimeLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
+        {
+            return await EmployeeTimeLogRepository.FilterByProjectAndDateRange(startDate, endDate, projectName);
         }
     }
 }

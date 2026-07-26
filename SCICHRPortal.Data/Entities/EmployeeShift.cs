@@ -15,6 +15,7 @@ namespace SCICHRPortal.Data.Entities
         public int ShiftId { get; set; }
         public int EmployeeId { get; set; }
         public int DepartmentId { get; set; }
+        public int ProjectId { get; set; }
         public DateTime? ShiftDate { get; set; }
         public DateTime? MondayShiftStart {  get; set; }
         public DateTime? MondayShiftEnd { get; set; }

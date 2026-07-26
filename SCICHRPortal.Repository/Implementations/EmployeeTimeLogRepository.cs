@@ -109,5 +109,15 @@ namespace SCICHRPortal.Repository.Implementations
             await Context.SaveChangesAsync();
             return true;
         }
+        public async Task<IEnumerable<EmployeeTimeLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
+        {
+            IEnumerable<EmployeeTimeLog> employeeTimeLog;
+            employeeTimeLog = await Context.EmployeeTimeLog!.Where(b => !b.Deleted).ToListAsync();
+            if (startDate.HasValue && endDate.HasValue)
+                employeeTimeLog = employeeTimeLog.Where(b => b.DateIn >= startDate && b.DateIn <= endDate && b.ProjecTimeIn == projectName);
+
+
+            return employeeTimeLog;
+        }
     }
 }

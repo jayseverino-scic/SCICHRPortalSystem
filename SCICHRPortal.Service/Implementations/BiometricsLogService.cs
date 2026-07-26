@@ -35,7 +35,7 @@ namespace SCICHRPortal.Service.Implementations
         }
         public async Task<IEnumerable<BiometricsLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
         {
-            return await BiometricsLogRepository.FilterByDateRange(startDate, endDate, projectName);
+            return await BiometricsLogRepository.FilterByProjectAndDateRange(startDate, endDate, projectName);
         }
         public async Task<IEnumerable<BiometricsLog>> GetDailyLogAsync(DateTime logDate)
         {

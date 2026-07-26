@@ -12,7 +12,7 @@
     const _cookieHelper = new CookieHelper();
 
     let projects = [];
-    let _currentProject = '';
+    let _currentproject = '';
     let devices = [];
     let _currentDevice = '';
     let _employee = [];
@@ -37,12 +37,12 @@
     };
 
     let onClickImport = () => {
-        _currentBiometrics = $('#biometrics').val() || 0;
+        _currentproject = $('#project').val() || '';
         let startImportDate = $('#start-import-filter').val();
-        let endImportDate = $('#end-date-filter').val() + 'T23:59:59' ;
+        let endImportDate = $('#end-import-filter').val() + 'T23:59:59' ;
         let pageNumber = 1;
         var request = _apiHelper.ajaxRequest('POST', {
-            url: `Authenticated/EmployeeTimeLog/Import?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startImportDate=${startImportDate}&endImportDate=${endImportDate}`,
+            url: `Authenticated/EmployeeTimeLog/Import?startImportDate=${startImportDate}&endImportDate=${endImportDate}&projectName=${_currentproject}`,
             xhr: function () {
                 let xhr = new window.XMLHttpRequest();
                 xhr.upload.addEventListener("progress", function (evt) {
@@ -78,13 +78,13 @@
 
     let onClickFilter = async e => {
         e.preventDefault();
-        _currentProject = $('#project option:selected').text() || '';
+        _currentproject = $('#project').val() || '';
         let startDate = $('#start-import-filter').val();
         let endDate = $('#end-import-filter').val();
 
         // Check if DataTable exists before trying to get page info
         let pageNumber = 1;
-        if (_currentProject == '') {
+        if (_currentproject == '') {
             alert('Please select the project to be filtered!');
             return;
         }
@@ -94,7 +94,7 @@
         }
 
         let response = await _apiHelper.get({
-            url: `Authenticated/EmployeeTimeLog/Filter?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&projectName=${_currentProject}`,
+            url: `Authenticated/EmployeeTimeLog/FilterPerProject?startDate=${startDate}&endDate=${endDate}&projectName=${_currentproject}`,
         });
 
         if (response.ok) {

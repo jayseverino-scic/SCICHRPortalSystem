@@ -64,6 +64,7 @@
         $('#shift-form')[0].reset();
         $('#shift-form').find(':submit').text('Add');
         $('#shift-modal').modal('show');
+        $('#shift-form #DaysOfWeek').val(null).trigger('change');
     }
 
     let onFormSubmit = async event => {
@@ -441,6 +442,7 @@
         $('#enrollment-modal').modal({ backdrop: 'static', keyboard: false });
         $('#reasonModal').modal({ backdrop: 'static', keyboard: false });
         $('#viewApprovalRegister').modal({ backdrop: 'static', keyboard: false });
+        daysofWeekSelect2(true);
     }
 
     let initializeGrids = e => {

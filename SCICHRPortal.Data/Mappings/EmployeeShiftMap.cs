@@ -12,6 +12,7 @@ namespace SCICHRPortal.Data.Mappings
             entityBuilder.Property(e => e.ShiftId).IsRequired();
             entityBuilder.Property(e => e.EmployeeId).IsRequired();
             entityBuilder.Property(e => e.DepartmentId).IsRequired();
+            entityBuilder.Property(e => e.ProjectId).IsRequired();
             entityBuilder.Property(e => e.ShiftDate).IsRequired();
             entityBuilder.HasOne(e => e.Employee)
                .WithMany()
@@ -26,6 +27,10 @@ namespace SCICHRPortal.Data.Mappings
             entityBuilder.HasOne(e => e.Shift)
                .WithMany()
                .HasForeignKey(u => u.ShiftId)
+               .OnDelete(DeleteBehavior.NoAction);
+            entityBuilder.HasOne(e => e.Company)
+               .WithMany()
+               .HasForeignKey(u => u.ProjectId)
                .OnDelete(DeleteBehavior.NoAction);
         }
     }

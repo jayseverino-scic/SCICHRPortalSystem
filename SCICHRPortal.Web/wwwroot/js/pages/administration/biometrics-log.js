@@ -162,7 +162,7 @@
             return;
         }
         let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/FilterPerProject?pageNumber=${pageNumber}&pageSize=${pageSize}&searchKeyword=${searchKeyword}&startDate=${startDate}&endDate=${endDate}&projectName=${_currentproject}`,
+            url: `Authenticated/BiometricsLog/FilterPerProject?startDate=${startDate}&endDate=${endDate}&projectName=${_currentproject}`,
         });
 
         if (response.ok) {

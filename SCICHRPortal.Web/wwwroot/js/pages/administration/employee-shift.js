@@ -11,9 +11,11 @@
 
     // State management
     let _department = [];
+    let _projects = [];
     let _shift = [];
     let _currentFilterType = 'All';
     let _currentDepartmentId = 0;
+    let _currentProjectId = 0;
     let _currentShiftId = 0;
     let dataTable = null;
 
@@ -133,7 +135,8 @@
         $('#unAssigned').off(CLICK_EVENT);
         $('#all').off(CLICK_EVENT);
         $('#save').off(CLICK_EVENT);
-        $('#department').off('change');
+        //$('#department').off('change');
+        $('#project').off('change');
         $('#shift').off('change');
 
         $('#assigned').on(CLICK_EVENT, (event) => {
@@ -159,8 +162,12 @@
 
         $('#save').on(CLICK_EVENT, onEmployeeShiftSubmit);
 
-        $('#department').on('change', () => {
-            _currentDepartmentId = $('#department').val() || 0;
+        // $('#department').on('change', () => {
+        //     _currentDepartmentId = $('#department').val() || 0;
+        //     loadEmployeeShiftData();
+        // });
+        $('#project').on('change', () => {
+            _currentProjectId= $('#project').val() || 0;
             loadEmployeeShiftData();
         });
 
@@ -176,18 +183,43 @@
         $('#assigned, #unAssigned, #all').removeClass('active').addClass('btn-outline-secondary');
         $(activeButton).removeClass('btn-outline-secondary').addClass('active btn-primary');
     };
-
     let loadEmployeeShiftData = async () => {
         console.log('Loading employee shift data...');
-        await getEmployeeShiftData(_currentDepartmentId, _currentShiftId, _currentFilterType);
+        await getEmployeeShiftData(_currentProjectId, _currentShiftId, _currentFilterType);
     };
 
-    let getEmployeeShiftData = async (departmentId, shiftId, filterType) => {
+    // let loadEmployeeShiftData = async () => {
+    //     console.log('Loading employee shift data...');
+    //     await getEmployeeShiftData(_currentDepartmentId, _currentShiftId, _currentFilterType);
+    // };
+
+    // let getEmployeeShiftData = async (departmentId, shiftId, filterType) => {
+    //     console.log('Fetching employee shift data...');
+
+    //     try {
+    //         let response = await _apiHelper.get({
+    //             url: `Authenticated/EmployeeShift/ShiftFilter?departmentId=${departmentId}&shiftId=${shiftId}&filterType=${filterType}`,
+    //         });
+
+    //         if (response.ok) {
+    //             let data = await response.json();
+    //             console.log('Employee shift data loaded:', data ? data.length : 0, 'records');
+    //             renderEmployeeShiftGrid(data || []);
+    //         } else {
+    //             console.error('Failed to load employee shift data:', response.status);
+    //             renderEmployeeShiftGrid([]);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error loading employee shift data:', error);
+    //         renderEmployeeShiftGrid([]);
+    //     }
+    // };
+    let getEmployeeShiftData = async (projectId, shiftId, filterType) => {
         console.log('Fetching employee shift data...');
 
         try {
             let response = await _apiHelper.get({
-                url: `Authenticated/EmployeeShift/ShiftFilter?departmentId=${departmentId}&shiftId=${shiftId}&filterType=${filterType}`,
+                url: `Authenticated/EmployeeShift/ShiftFilter?projectId=${projectId}&shiftId=${shiftId}&filterType=${filterType}`,
             });
 
             if (response.ok) {
@@ -384,9 +416,15 @@
                 className: 'dt-center',
                 render: (data) => data ? _stringHelper.capitalize(data) : '-'
             },
+            // {
+            //     title: "Department",
+            //     data: "departmentName",
+            //     className: 'dt-center',
+            //     render: (data) => data ? _stringHelper.capitalize(data) : '-'
+            // },
             {
-                title: "Department",
-                data: "departmentName",
+                title: "Project",
+                data: "projectName",
                 className: 'dt-center',
                 render: (data) => data ? _stringHelper.capitalize(data) : '-'
             },
@@ -415,9 +453,14 @@
                 data: "shiftId",
                 visible: false
             },
+            // {
+            //     title: "Dept. Id",
+            //     data: "departmentId",
+            //     visible: false
+            // }
             {
-                title: "Dept. Id",
-                data: "departmentId",
+                title: "Project Id",
+                data: "projectId",
                 visible: false
             }
         ];
@@ -534,7 +577,7 @@
                     <th>Is No Shift</th>
                     <th>Is No Break</th>
                     <th>Shift</th>
-                    <th>Department</th>
+                    <th>Project</th>
                     <th>Date Assigned</th>
                 </tr>
             </thead>
@@ -588,25 +631,54 @@
         };
 
         // Render department dropdown
-        renderSimpleDropdown('#department', _department, 'departmentId', 'departmentName', 'Select Department');
+        //renderSimpleDropdown('#department', _department, 'departmentId', 'departmentName', 'Select Department');
+        renderSimpleDropdown('#project', _projects, 'company_branch_id', 'name', 'Select Project');
 
         // Render shift dropdown  
         renderSimpleDropdown('#shift', _shift, 'shiftId', 'shiftName', 'Select Shift');
     };
 
+    // let getDropdownData = async () => {
+    //     console.log('Loading dropdown data...');
+
+    //     try {
+    //         const departmentResponse = await _apiHelper.get({ url: 'Authenticated/Department' });
+    //         const shiftResponse = await _apiHelper.get({ url: 'Authenticated/Shift' });
+
+    //         if (departmentResponse.ok) {
+    //             _department = await departmentResponse.json();
+    //             console.log('Loaded departments:', _department.length);
+    //         } else {
+    //             console.error('Failed to load departments:', departmentResponse.status);
+    //             _department = [];
+    //         }
+
+    //         if (shiftResponse.ok) {
+    //             _shift = await shiftResponse.json();
+    //             console.log('Loaded shifts:', _shift.length);
+    //         } else {
+    //             console.error('Failed to load shifts:', shiftResponse.status);
+    //             _shift = [];
+    //         }
+    //     } catch (error) {
+    //         console.error('Error loading dropdown data:', error);
+    //         _department = [];
+    //         _shift = [];
+    //     }
+    // };
     let getDropdownData = async () => {
         console.log('Loading dropdown data...');
 
         try {
-            const departmentResponse = await _apiHelper.get({ url: 'Authenticated/Department' });
+            const projectResponse = await _apiHelper.get({ url: 'Authenticated/XCompanyBranch' });
             const shiftResponse = await _apiHelper.get({ url: 'Authenticated/Shift' });
 
-            if (departmentResponse.ok) {
-                _department = await departmentResponse.json();
-                console.log('Loaded departments:', _department.length);
+            if (projectResponse.ok) {
+                _projects = await projectResponse.json();
+                console.log('Loaded projects:', _projects.length);
             } else {
-                console.error('Failed to load departments:', departmentResponse.status);
-                _department = [];
+                console.error('Failed to load projects:', projectResponse.status);
+                _projects = [];
             }
 
             if (shiftResponse.ok) {
@@ -618,11 +690,10 @@
             }
         } catch (error) {
             console.error('Error loading dropdown data:', error);
-            _department = [];
+            _projects = [];
             _shift = [];
         }
     };
-
     let attachSelectAllEvents = () => {
         console.log('Attaching select all events...');
 

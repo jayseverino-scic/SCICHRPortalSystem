@@ -71,13 +71,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         [HttpGet("FilterPerProject")]
-        public async Task<IActionResult> FilterPerProjectAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate, string? projectName)
+        public async Task<IActionResult> FilterPerProjectAsync(DateTime? startDate, DateTime? endDate, string? projectName)
         {
-            var tuple = await BiometricsLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startDate, endDate, projectName);
-            var maxOrderNumber = pageNumber * pageSize;
-            var orderNumber = maxOrderNumber - pageSize + 1;
+            var tuple = await BiometricsLogService.FilterByProjectAndDateRange(startDate, endDate, projectName);
 
-            var data = tuple.Item1.Select(d => new
+
+            var data = tuple.Select(d => new
             {
                 d.BiometricsLogId,
                 d.PersonnelId,
@@ -88,13 +87,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.LogType,
                 d.DeviceName,
                 d.CreatedAt,
-                OrderNumber = orderNumber++
             });
 
             var dto = new
             {
                 Data = data,
-                Total = tuple.Item2
+                Total = data.Count()
             };
             return Ok(dto);
         }
