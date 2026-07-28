@@ -131,10 +131,36 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [Authorize]
         [HttpGet("ShiftFilter")]
         public async Task<IActionResult> EmployeeShiftFilterAsync(int projectId, int shiftId, string filterType)
-        {           
-            IEnumerable<EmployeeShift>? employeeShiftsList = null;
+        {
+            IEnumerable<XEmployee>? employees = await EmployeeService.GetEmployeeByProject(projectId);
+            if (employees == null)
+                return BadRequest();
+            IEnumerable<EmployeeShift>? employeeShiftsList = await EmployeeShiftService.EmployeeShiftFilterPerProject(projectId, shiftId); 
             List<EmployeeShiftUpdateRequestModel> listToDisplay = new List<EmployeeShiftUpdateRequestModel>();
-            IEnumerable<XEmployee>? employees = null;
+            int[] assignedIds = employeeShiftsList.Select(x => x.EmployeeId).ToArray();
+            List<EmployeeShift> employeeShifts = new List<EmployeeShift>();
+            IEnumerable<XDepartment> departmentList = await DepartmentService.GetAllAsync();
+            List<XDepartment> departments = departmentList.ToList();
+            IEnumerable<XCompany_Branch> companyList = await CompanyBranchService.GetAllAsync();
+            List<XCompany_Branch> companies = companyList.ToList();
+            employees = employees.Where(item => !assignedIds.Any(x => x == item.Id)).ToList();
+
+            List<XEmployee> mergedList = employees
+            .GroupJoin(
+                employeeShifts, left => left.Id, right => right.EmployeeId,
+                (x, y) => new { Left = x, Rights = y }
+            )
+            .SelectMany(
+                x => x.Rights.DefaultIfEmpty(),
+                (x, y) => new XEmployee
+                {
+                    Id = x.Left.Id,
+                    Department_Id = x.Left.Department_Id,
+                    Company_Branch_Id = x.Left.Company_Branch_Id,
+                    Last_Name = x.Left.Last_Name,
+                    First_Name = x.Left.First_Name
+                }
+            ).ToList();
             if (filterType == "Assigned")
             {
                 employeeShiftsList = await EmployeeShiftService.EmployeeShiftFilterPerProject(projectId, shiftId);
@@ -175,39 +201,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             }
             else
             {
-                employeeShiftsList = await EmployeeShiftService.EmployeeShiftFilterPerProject(projectId, shiftId);
-
-                int[] assignedIds = employeeShiftsList.Select(x => x.EmployeeId).ToArray();
-
-                List<EmployeeShift> employeeShifts = new List<EmployeeShift>();
-                IEnumerable<XDepartment> departmentList = await DepartmentService.GetAllAsync();
-                List<XDepartment> departments = departmentList.ToList();
-                IEnumerable<XCompany_Branch> companyList = await CompanyBranchService.GetAllAsync();
-                List<XCompany_Branch> companies = companyList.ToList();
-                employees = await EmployeeService.GetAllAsync();
-                employees = employees.Where(item => !assignedIds.Any(x => x == item.Id)).ToList();
-                if (projectId != 0)
-                {
-                    employees = employees.Where(e => e.Company_Branch_Id == projectId);
-                }
-
-                List<XEmployee> mergedList = employees
-                .GroupJoin(
-                    employeeShifts, left => left.Id, right => right.EmployeeId,
-                    (x, y) => new { Left = x, Rights = y }
-                )
-                .SelectMany(
-                    x => x.Rights.DefaultIfEmpty(),
-                    (x, y) => new XEmployee
-                    {
-                        Id = x.Left.Id,
-                        Department_Id = x.Left.Department_Id,
-                        Company_Branch_Id = x.Left.Company_Branch_Id,
-                        Last_Name = x.Left.Last_Name,
-                        First_Name = x.Left.First_Name
-                    }
-                ).ToList();
-
                 if (mergedList != null)
                 {
                     foreach (XEmployee employee in mergedList)

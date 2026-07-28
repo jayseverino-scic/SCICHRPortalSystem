@@ -69,5 +69,13 @@ namespace SCICHRPortal.Repository.Implementations
 
             return employees;
         }
+        public async Task<IEnumerable<XEmployee>> GetEmployeeByProject(int projectId)
+        {
+            IEnumerable<XEmployee> employees = await XscribeContext.Employee!.Where(e => !e._Deleted).ToListAsync();
+            if (projectId > 0)
+                employees = employees.Where(e => !e._Deleted && e.Company_Branch_Id == projectId).ToList();
+
+            return employees;
+        }
     }
 }
