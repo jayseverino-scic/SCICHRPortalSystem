@@ -11,7 +11,8 @@ namespace SCICHRPortal.Service.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<bool> UpdateAsync(EmployeeShift entity);
         Task<Tuple<IEnumerable<EmployeeShift>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
-            Task<IEnumerable<EmployeeShift>> EmployeeShiftFilter(int departmentId, int shiftId);
+        Task<IEnumerable<EmployeeShift>> EmployeeShiftFilter(int departmentId, int shiftId);
+        Task<IEnumerable<EmployeeShift>> EmployeeShiftFilterPerProject(int departmentId, int shiftId);
         Task<EmployeeShift> GetAsync(int id);
         Task<DuplicateMessage> HasDuplicateShift(EmployeeShift entity);
         Task<IEnumerable<EmployeeShift>> GetAllAsync();

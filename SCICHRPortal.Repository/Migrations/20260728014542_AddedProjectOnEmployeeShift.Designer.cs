@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SCICHRPortal.Repository;
@@ -11,9 +12,11 @@ using SCICHRPortal.Repository;
 namespace SCICHRPortal.Repository.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20260728014542_AddedProjectOnEmployeeShift")]
+    partial class AddedProjectOnEmployeeShift
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -294,7 +297,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AssignedShiftId"));
 
-                    b.Property<int?>("Company_Branch_Id")
+                    b.Property<int>("Company_Branch_Id")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -309,7 +312,7 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<int?>("DepartmentId")
+                    b.Property<int>("DepartmentId")
                         .HasColumnType("integer");
 
                     b.Property<int>("EmployeeId")
@@ -1564,7 +1567,7 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<int?>("Company_BranchId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("Company_Branch_Id")
+                    b.Property<int>("Company_Branch_Id")
                         .HasColumnType("integer");
 
                     b.Property<int>("Company_Id")
@@ -1771,12 +1774,14 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "Company")
                         .WithMany()
                         .HasForeignKey("Company_Branch_Id")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("SCICHRPortal.Data.XscribeTables.XDepartment", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
                         .WithMany()

@@ -17,7 +17,7 @@ namespace SCICHRPortal.Data.XscribeTables
         public string? Gender { get; set; }
         public string? Blood_Type { get; set; }
         public int Company_Id { get; set; }
-        public int Company_Branch_Id { get; set; }
+        public int? Company_Branch_Id { get; set; }
         public int? Department_Id { get; set; }
         public string? Position { get; set; }
         public string? Employment_Status { get; set; }

@@ -13,8 +13,9 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         [Required(ErrorMessage = "Employee is required.")]
         public int EmployeeId { get; set; }
         [Required(ErrorMessage = "Department is required.")]
-        public int DepartmentId { get; set; }
-        
+        public int? DepartmentId { get; set; }
+        [Required(ErrorMessage = "Project is required.")]
+        public int? Company_Branch_Id { get; set; }
         public DateTime? ShiftDate { get; set; }
         public DateTime? MondayShiftStart { get; set; }
         public DateTime? MondayShiftEnd { get; set; }
@@ -36,6 +37,7 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public Boolean? IsAssigned { get; set; }
         public XEmployee? Employee { get; set; }
         public XDepartment? Department { get; set; }
+        public XCompany_Branch? Company { get; set; }
         public Shift? Shift { get; set; }
     }
 }

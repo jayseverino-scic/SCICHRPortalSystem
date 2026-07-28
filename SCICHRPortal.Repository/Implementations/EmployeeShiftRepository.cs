@@ -29,6 +29,7 @@ namespace SCICHRPortal.Repository.Implementations
             var employeeShifts = Context.EmployeeShift!
                 .Include(t => t.Employee)
                 .Include(t => t.Department)
+                .Include(t => t.Company)
                 .Include(t => t.Shift)
                 .Where(e => e.Deleted == false);
 
@@ -59,6 +60,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
+                  .Include(t => t.Company)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false  && e.DepartmentId == departmentId && e.ShiftId == shiftId).ToListAsync();
             }
@@ -67,6 +69,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
+                  .Include(t => t.Company)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false && e.DepartmentId == departmentId).ToListAsync();
             }
@@ -75,6 +78,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
+                  .Include (t => t.Company)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false && e.ShiftId == shiftId).ToListAsync();
             }
@@ -83,12 +87,53 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
+                  .Include(t => t.Company)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false).ToListAsync();
             }
             return employeeShifts;
         }
-
+        public async Task<IEnumerable<EmployeeShift>> EmployeeShiftFilterPerProject(int projectId, int shiftId)
+        {
+            IEnumerable<EmployeeShift> employeeShifts;
+            if (projectId != 0 && shiftId != 0)
+            {
+                employeeShifts = await Context.EmployeeShift!
+                  .Include(t => t.Employee)
+                  .Include(t => t.Department)
+                  .Include(t => t.Company)
+                  .Include(t => t.Shift)
+                  .Where(e => e.Deleted == false && e.Company_Branch_Id == projectId && e.ShiftId == shiftId).ToListAsync();
+            }
+            else if (projectId != 0 && shiftId == 0)
+            {
+                employeeShifts = await Context.EmployeeShift!
+                  .Include(t => t.Employee)
+                  .Include(t => t.Department)
+                  .Include(t => t.Company)
+                  .Include(t => t.Shift)
+                  .Where(e => e.Deleted == false && e.Company_Branch_Id == projectId).ToListAsync();
+            }
+            else if (projectId == 0 && shiftId != 0)
+            {
+                employeeShifts = await Context.EmployeeShift!
+                  .Include(t => t.Employee)
+                  .Include(t => t.Department)
+                  .Include(t => t.Company)
+                  .Include(t => t.Shift)
+                  .Where(e => e.Deleted == false && e.ShiftId == shiftId).ToListAsync();
+            }
+            else
+            {
+                employeeShifts = await Context.EmployeeShift!
+                  .Include(t => t.Employee)
+                  .Include(t => t.Department)
+                  .Include(t => t.Company)
+                  .Include(t => t.Shift)
+                  .Where(e => e.Deleted == false).ToListAsync();
+            }
+            return employeeShifts;
+        }
         public async Task<EmployeeShift> GetAsync(int id)
         {
             var employeeShift = await Context.EmployeeShift!

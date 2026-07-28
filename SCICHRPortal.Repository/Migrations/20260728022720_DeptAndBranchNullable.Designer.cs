@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SCICHRPortal.Repository;
@@ -11,9 +12,11 @@ using SCICHRPortal.Repository;
 namespace SCICHRPortal.Repository.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20260728022720_DeptAndBranchNullable")]
+    partial class DeptAndBranchNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1564,7 +1567,7 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<int?>("Company_BranchId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("Company_Branch_Id")
+                    b.Property<int>("Company_Branch_Id")
                         .HasColumnType("integer");
 
                     b.Property<int>("Company_Id")

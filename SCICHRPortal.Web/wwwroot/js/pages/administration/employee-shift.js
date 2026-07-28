@@ -135,45 +135,79 @@
         $('#unAssigned').off(CLICK_EVENT);
         $('#all').off(CLICK_EVENT);
         $('#save').off(CLICK_EVENT);
-        //$('#department').off('change');
         $('#project').off('change');
         $('#shift').off('change');
 
+        // Filter button events
         $('#assigned').on(CLICK_EVENT, (event) => {
             event.preventDefault();
             setActiveFilterButton(event.currentTarget);
             _currentFilterType = 'Assigned';
-            loadEmployeeShiftData();
+
+            // Only load data if project is selected
+            if (_currentProjectId && _currentProjectId > 0) {
+                loadEmployeeShiftData();
+            } else {
+                showProjectRequiredMessage();
+            }
         });
 
         $('#unAssigned').on(CLICK_EVENT, (event) => {
             event.preventDefault();
             setActiveFilterButton(event.currentTarget);
             _currentFilterType = 'Unassigned';
-            loadEmployeeShiftData();
+
+            if (_currentProjectId && _currentProjectId > 0) {
+                loadEmployeeShiftData();
+            } else {
+                showProjectRequiredMessage();
+            }
         });
 
         $('#all').on(CLICK_EVENT, (event) => {
             event.preventDefault();
             setActiveFilterButton(event.currentTarget);
             _currentFilterType = 'All';
-            loadEmployeeShiftData();
+
+            if (_currentProjectId && _currentProjectId > 0) {
+                loadEmployeeShiftData();
+            } else {
+                showProjectRequiredMessage();
+            }
         });
 
+        // Save button
         $('#save').on(CLICK_EVENT, onEmployeeShiftSubmit);
 
-        // $('#department').on('change', () => {
-        //     _currentDepartmentId = $('#department').val() || 0;
-        //     loadEmployeeShiftData();
-        // });
+        // Project dropdown change - clear data and show empty grid
         $('#project').on('change', () => {
-            _currentProjectId= $('#project').val() || 0;
-            loadEmployeeShiftData();
+            _currentProjectId = $('#project').val() || 0;
+
+            // Clear the table when project changes
+            if (dataTable) {
+                renderEmployeeShiftGrid([]);
+            }
+
+            // Optionally auto-load if shift is also selected
+            const shiftId = $('#shift').val() || 0;
+            if (_currentProjectId > 0 && shiftId > 0) {
+                loadEmployeeShiftData();
+            }
         });
 
+        // Shift dropdown change - clear data and show empty grid
         $('#shift').on('change', () => {
             _currentShiftId = $('#shift').val() || 0;
-            loadEmployeeShiftData();
+
+            // Clear the table when shift changes
+            if (dataTable) {
+                renderEmployeeShiftGrid([]);
+            }
+
+            // Optionally auto-load if project is also selected
+            if (_currentProjectId > 0 && _currentShiftId > 0) {
+                loadEmployeeShiftData();
+            }
         });
 
         console.log('Events attached successfully');
@@ -187,6 +221,39 @@
         console.log('Loading employee shift data...');
         await getEmployeeShiftData(_currentProjectId, _currentShiftId, _currentFilterType);
     };
+
+    // Update getEmployeeShiftData to handle empty data properly
+    let getEmployeeShiftData = async (projectId, shiftId, filterType) => {
+        console.log('Fetching employee shift data...');
+
+        try {
+            // Check if project is selected
+            if (!projectId || projectId == 0) {
+                console.warn('No project selected - showing empty grid');
+                renderEmployeeShiftGrid([]);
+                return;
+            }
+
+            let response = await _apiHelper.get({
+                url: `Authenticated/EmployeeShift/ShiftFilter?projectId=${projectId}&shiftId=${shiftId}&filterType=${filterType}`,
+            });
+
+            if (response.ok) {
+                let data = await response.json();
+                console.log('Employee shift data loaded:', data ? data.length : 0, 'records');
+
+                // Always pass data (even empty) to render function
+                renderEmployeeShiftGrid(data || []);
+            } else {
+                console.error('Failed to load employee shift data:', response.status);
+                renderEmployeeShiftGrid([]);
+            }
+        } catch (error) {
+            console.error('Error loading employee shift data:', error);
+            renderEmployeeShiftGrid([]);
+        }
+    };
+
 
     // let loadEmployeeShiftData = async () => {
     //     console.log('Loading employee shift data...');
@@ -214,27 +281,29 @@
     //         renderEmployeeShiftGrid([]);
     //     }
     // };
-    let getEmployeeShiftData = async (projectId, shiftId, filterType) => {
-        console.log('Fetching employee shift data...');
+    // let getEmployeeShiftData = async (projectId, shiftId, filterType) => {
+    //     console.log('Fetching employee shift data...');
 
-        try {
-            let response = await _apiHelper.get({
-                url: `Authenticated/EmployeeShift/ShiftFilter?projectId=${projectId}&shiftId=${shiftId}&filterType=${filterType}`,
-            });
+    //     try {
+    //         if (projectId != null && projectId > 0) {
+    //             let response = await _apiHelper.get({
+    //                 url: `Authenticated/EmployeeShift/ShiftFilter?projectId=${projectId}&shiftId=${shiftId}&filterType=${filterType}`,
+    //             });
 
-            if (response.ok) {
-                let data = await response.json();
-                console.log('Employee shift data loaded:', data ? data.length : 0, 'records');
-                renderEmployeeShiftGrid(data || []);
-            } else {
-                console.error('Failed to load employee shift data:', response.status);
-                renderEmployeeShiftGrid([]);
-            }
-        } catch (error) {
-            console.error('Error loading employee shift data:', error);
-            renderEmployeeShiftGrid([]);
-        }
-    };
+    //             if (response.ok) {
+    //                 let data = await response.json();
+    //                 console.log('Employee shift data loaded:', data ? data.length : 0, 'records');
+    //                 renderEmployeeShiftGrid(data || []);
+    //             } else {
+    //                 console.error('Failed to load employee shift data:', response.status);
+    //                 renderEmployeeShiftGrid([]);
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error('Error loading employee shift data:', error);
+    //         renderEmployeeShiftGrid([]);
+    //     }
+    // };
 
     let getEmployeeShiftColumns = () => {
         return [
@@ -424,7 +493,7 @@
             // },
             {
                 title: "Project",
-                data: "projectName",
+                data: "companyName",
                 className: 'dt-center',
                 render: (data) => data ? _stringHelper.capitalize(data) : '-'
             },
@@ -460,7 +529,7 @@
             // }
             {
                 title: "Project Id",
-                data: "projectId",
+                data: "company_Branch_Id",
                 visible: false
             }
         ];
@@ -553,36 +622,36 @@
             $table.empty();
         }
 
-        // Create a complete table structure
+        // Create table structure - always show the table header
         $table.html(`
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Employee</th>
-                    <th>Monday Shift Start</th>
-                    <th>Monday Shift End</th>
-                    <th>Tuesday Shift Start</th>
-                    <th>Tuesday Shift End</th>
-                    <th>Wednesday Shift Start</th>
-                    <th>Wednesday Shift End</th>
-                    <th>Thursday Shift Start</th>
-                    <th>Thursday Shift End</th>
-                    <th>Friday Shift Start</th>
-                    <th>Friday Shift End</th>
-                    <th>Saturday Shift Start</th>
-                    <th>Saturday Shift End</th>
-                    <th>Sunday Shift Start</th>
-                    <th>Sunday Shift End</th>
-                    <th>Is Flexible Shift</th>
-                    <th>Is No Shift</th>
-                    <th>Is No Break</th>
-                    <th>Shift</th>
-                    <th>Project</th>
-                    <th>Date Assigned</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `);
+        <thead>
+            <tr>
+                <th><input name="select_all" value="1" id="select-all" type="checkbox"></th>
+                <th>Employee</th>
+                <th>Monday Shift Start</th>
+                <th>Monday Shift End</th>
+                <th>Tuesday Shift Start</th>
+                <th>Tuesday Shift End</th>
+                <th>Wednesday Shift Start</th>
+                <th>Wednesday Shift End</th>
+                <th>Thursday Shift Start</th>
+                <th>Thursday Shift End</th>
+                <th>Friday Shift Start</th>
+                <th>Friday Shift End</th>
+                <th>Saturday Shift Start</th>
+                <th>Saturday Shift End</th>
+                <th>Sunday Shift Start</th>
+                <th>Sunday Shift End</th>
+                <th>Is Flexible Shift</th>
+                <th>Is No Shift</th>
+                <th>Is No Break</th>
+                <th>Shift</th>
+                <th>Project</th>
+                <th>Date Assigned</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `);
 
         // Initialize DataTable
         dataTable = $table.DataTable({
@@ -594,18 +663,38 @@
             autoWidth: false,
             lengthChange: false,
             ordering: true,
-            data: data,
+            data: data || [], // Ensure data is always an array
             columns: getEmployeeShiftColumns(),
+            language: {
+                emptyTable: `
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3" style="opacity: 0.5;"></i>
+                    <h5 class="text-muted">No Data Available</h5>
+                    <p class="text-muted small">Please select a project and shift, then click a filter button to load data</p>
+                    <div class="mt-3">
+                        <span class="badge badge-secondary">Assigned</span>
+                        <span class="badge badge-secondary">Unassigned</span>
+                        <span class="badge badge-secondary">All</span>
+                    </div>
+                </div>
+            `,
+                infoEmpty: "Showing 0 entries",
+                infoFiltered: ""
+            },
             drawCallback: function () {
-                attachSelectAllEvents();
+                if (data && data.length > 0) {
+                    attachSelectAllEvents();
+                }
             },
             initComplete: function () {
                 console.log('DataTable initialized successfully');
-                console.log('Columns configured:', this.api().columns().count());
-                attachSelectAllEvents();
+                if (data && data.length > 0) {
+                    attachSelectAllEvents();
+                }
             }
         });
     };
+
 
     let renderDropDowns = () => {
         console.log('Rendering dropdowns...');
@@ -632,7 +721,8 @@
 
         // Render department dropdown
         //renderSimpleDropdown('#department', _department, 'departmentId', 'departmentName', 'Select Department');
-        renderSimpleDropdown('#project', _projects, 'company_branch_id', 'name', 'Select Project');
+        console.log(_projects);
+        renderSimpleDropdown('#project', _projects, 'id', 'name', 'Select Project');
 
         // Render shift dropdown  
         renderSimpleDropdown('#shift', _shift, 'shiftId', 'shiftName', 'Select Shift');
@@ -917,20 +1007,50 @@
             // Step 3: Set initial active button
             setActiveFilterButton($('#all')[0]);
 
-            // Step 4: Load initial grid data
-            await loadEmployeeShiftData();
+            // Step 4: Show empty grid first (instead of loading data)
+            renderEmployeeShiftGrid([]); // Pass empty array to show empty table
 
-            // Step 5: Attach events
+            // Step 5: Attach events (only after empty grid is shown)
             attachEvents();
 
-            console.log('Application initialized successfully');
+            console.log('Application initialized successfully - showing empty grid');
         } catch (error) {
             console.error('Failed to initialize application:', error);
-            // Show basic error to user
             $('#employee-shift-grid').html('<div class="alert alert-danger">Failed to initialize application. Please refresh the page.</div>');
         }
     };
+    let showProjectRequiredMessage = () => {
+        if (dataTable) {
+            // Show a temporary message in the table
+            const emptyMessage = `
+            <div class="text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h5 class="text-warning">Project Required</h5>
+                <p class="text-muted">Please select a project before loading data</p>
+            </div>
+        `;
 
+            // If DataTable has the language emptyTable setting, it will show automatically
+            // Otherwise, we can update the table content
+            const $tbody = $('#employee-shift-grid tbody');
+            if ($tbody.length) {
+                $tbody.html(`
+                <tr>
+                    <td colspan="22" style="text-align: center; padding: 50px 20px;">
+                        ${emptyMessage}
+                    </td>
+                </tr>
+            `);
+            }
+        }
+    };
+
+    // Optional: Add a reset function
+    let resetToEmptyGrid = () => {
+        if (dataTable) {
+            renderEmployeeShiftGrid([]);
+        }
+    };
     // Initialize when document is ready
     $(document).ready(function () {
         console.log('Document ready - starting initialization...');

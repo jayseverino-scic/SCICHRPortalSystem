@@ -33,6 +33,10 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await EmployeeShiftRepository.EmployeeShiftFilter(departmentId, shiftId);
         }
+        public async Task<IEnumerable<EmployeeShift>> EmployeeShiftFilterPerProject(int projectId, int shiftId)
+        {
+            return await EmployeeShiftRepository.EmployeeShiftFilterPerProject(projectId, shiftId);
+        }
         public async Task<EmployeeShift> GetAsync(int id)
         {
             return await EmployeeShiftRepository.GetAsync(id);
