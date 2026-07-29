@@ -21,13 +21,15 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IBiometricsLogService BiometricsLogService { get; }
         private IXEmployeeService EmployeeService { get; }
         private IEmployeeShiftService EmployeeShiftService { get; }
+        private IXCompanyBranchService CompanyBranchService { get; }
 
-        public EmployeeTimeLogController(IEmployeeTimeLogService employeeTimeLogService, IBiometricsLogService biometricsLogService, IXEmployeeService employeeService, IEmployeeShiftService employeeShiftService)
+        public EmployeeTimeLogController(IEmployeeTimeLogService employeeTimeLogService, IBiometricsLogService biometricsLogService, IXEmployeeService employeeService, IEmployeeShiftService employeeShiftService, IXCompanyBranchService companyBranchService)
         {
             EmployeeTimeLogService = employeeTimeLogService;
             BiometricsLogService = biometricsLogService;
             EmployeeService = employeeService;
             EmployeeShiftService = employeeShiftService;
+            CompanyBranchService = companyBranchService;
         }
         [HttpGet()]
         public async Task<IActionResult> GetAsync()
@@ -71,16 +73,16 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         [HttpGet("FilterPerProject")]
-        public async Task<IActionResult> FilterPerProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? deviceName)
+        public async Task<IActionResult> FilterPerProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
         {
-            var tuple = await EmployeeTimeLogService.FilterByProjectAndDateRange(startDate, endDate, deviceName);
+            var tuple = await EmployeeTimeLogService.FilterByProjectAndDateRange(startDate, endDate, projectName);
 
             var data = tuple.Select(d => new
             {
                 d.TimeLogId,
                 d.EmployeeId,
-                employeeNo = d.Employee!.Id.ToString(),
-                EmployeeName = d.Employee!.Last_Name + "," + d.Employee.First_Name,
+                employeeNo = d.Employee?.Id.ToString(),
+                EmployeeName = d.Employee?.Last_Name + "," + d.Employee?.First_Name,
                 d.DateIn,
                 d.DateOut,
                 d.TimeIn,
@@ -109,9 +111,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             IEnumerable<BiometricsLog> biometricsLogs = await BiometricsLogService.FilterByProjectAndDateRange(startImportDate, endImportDate, projectName);
             List<string> bioEmployees = new List<string>();
             List<string?> bioDates = new List<string?>();
+            var projects = await CompanyBranchService.GetAllAsync();
+            int projectId = projects.Where(p => p.Name?.ToUpper() == projectName?.ToUpper()).Select(p => p.Id).FirstOrDefault();
             bioDates = biometricsLogs.Select(d => d.Date.ToString()).Distinct().ToList(); //tuple.Item1.Select(d => d.Date.ToString()).Distinct().ToList();
             bioEmployees = biometricsLogs.Select(static d => d.PersonnelId).Distinct().ToList()!;// tuple.Item1.Select(static d => d.PersonnelId).Distinct().ToList();
-            IEnumerable<XEmployee> employees = await EmployeeService.GetAllAsync();
+            IEnumerable<XEmployee> employees = await EmployeeService.GetEmployeeByProject(projectId);
             IEnumerable<EmployeeShift> shifts = await EmployeeShiftService.GetAllAsync();
             var filteredEmployees = from e in employees join b in bioEmployees on e.Id.ToString() equals b select e;
             List<EmployeeTimeLog> timeLogs = new List<EmployeeTimeLog>();

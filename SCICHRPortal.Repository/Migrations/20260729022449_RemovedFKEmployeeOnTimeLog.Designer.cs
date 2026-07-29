@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SCICHRPortal.Repository;
@@ -11,9 +12,11 @@ using SCICHRPortal.Repository;
 namespace SCICHRPortal.Repository.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20260729022449_RemovedFKEmployeeOnTimeLog")]
+    partial class RemovedFKEmployeeOnTimeLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -294,6 +297,9 @@ namespace SCICHRPortal.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AssignedShiftId"));
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("Company_Branch_Id")
                         .HasColumnType("integer");
 
@@ -383,7 +389,7 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.HasKey("AssignedShiftId");
 
-                    b.HasIndex("Company_Branch_Id");
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("DepartmentId");
 
@@ -1770,18 +1776,16 @@ namespace SCICHRPortal.Repository.Migrations
                 {
                     b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "Company")
                         .WithMany()
-                        .HasForeignKey("Company_Branch_Id")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("CompanyId");
 
                     b.HasOne("SCICHRPortal.Data.XscribeTables.XDepartment", "Department")
                         .WithMany()
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("DepartmentId");
 
                     b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SCICHRPortal.Data.TimekeepingTables.SZKDevices", "SZKDevices")
@@ -1791,7 +1795,7 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Shift", "Shift")
                         .WithMany()
                         .HasForeignKey("ShiftId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -1841,7 +1845,7 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SCICHRPortal.Data.TimekeepingTables.SZKDevices", "SZKDevices")
