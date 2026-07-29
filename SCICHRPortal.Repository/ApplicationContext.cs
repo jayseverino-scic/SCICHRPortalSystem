@@ -3,6 +3,8 @@ using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Mappings;
 using SCICHRPortal.Data.Mappings.Metadatas;
+using SCICHRPortal.Data.TimekeepingTables;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Repository.AuditTrail.Contexts;
 using SCICHRPortal.Utility.HttpContext.Interfaces;
 
@@ -44,6 +46,26 @@ namespace SCICHRPortal.Repository
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Ignore<XCompany_Branch>();
+            modelBuilder.Ignore<XCompany_Position>();
+            modelBuilder.Ignore<XDepartment>();
+            modelBuilder.Ignore<XEmployee>();
+            modelBuilder.Ignore<SZKDevices>();
+            //modelBuilder.Entity<XCompany_Branch>()
+            //     .ToView("XCompany_Branch", schema: "external")
+            //     .HasNoKey();
+            //modelBuilder.Entity<XDepartment>()
+            //     .ToView("XDepartment", schema: "external")
+            //     .HasNoKey();
+            //modelBuilder.Entity<XEmployee>()
+            //     .ToView("XEmployee", schema: "external")
+            //     .HasNoKey();
+            //modelBuilder.Entity<SZKDevices>()
+            //     .ToView("SZKDevices", schema: "external")
+            //     .HasNoKey();
+            //modelBuilder.Entity<XCompany_Position>()
+            //     .ToView("XCompany_Position", schema: "external")
+            //     .HasNoKey();
             new AnnouncementMap(modelBuilder.Entity<Announcement>());
             new UserMap(modelBuilder.Entity<User>());
             new RoleMap(modelBuilder.Entity<Role>());
