@@ -20,17 +20,17 @@ namespace SCICHRPortal.Repository
         {
             modelBuilder.Entity<XCompany_Branch>(entity =>
             {
-                entity.ToTable("Company_Branch");
+                entity.ToView("Company_Branch");
                 entity.HasKey(e =>e.Id);
             });
             modelBuilder.Entity<XDepartment>(entity =>
             {
-                entity.ToTable("Department");
+                entity.ToView("Department");
                 entity.HasKey(e => e.Id);
             });
             modelBuilder.Entity<XEmployee>(entity =>
             {
-                entity.ToTable("Employee");
+                entity.ToView("Employee");
                 entity.HasKey(e => e.Id);
 
                 entity.HasOne(e => e.Department)
@@ -50,7 +50,7 @@ namespace SCICHRPortal.Repository
             });
             modelBuilder.Entity<XCompany_Position>(entity =>
             {
-                entity.ToTable("Company_Position");
+                entity.ToView("Company_Position");
                 entity.HasKey(e => e.Id);
             });
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace SCICHRPortal.Data.Entities
     public class EmployeeTimeLog : BaseEntity
     {
         public int TimeLogId { get; set; }
+        [Column("id")]
         public int EmployeeId { get; set; }
         public DateTime? DateIn { get; set; }
         public DateTime? DateOut { get; set; }
