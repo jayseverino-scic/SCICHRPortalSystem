@@ -16,12 +16,12 @@ namespace SCICHRPortal.Data.Mappings
             entityBuilder.Property(e => e.EmployeeId).IsRequired();
             entityBuilder.Property(e => e.ShiftStart).IsRequired();
             entityBuilder.Property(e => e.ShiftEnd).IsRequired();
-            entityBuilder.HasOne(e => e.Employee)
-               .WithMany()
-               .HasForeignKey(e => e.EmployeeId)
-               .HasPrincipalKey(e => e.Id)
-               .OnDelete(DeleteBehavior.ClientCascade)
-               .IsRequired(false);
+            //entityBuilder.HasOne(e => e.Employee)
+            //   .WithMany()
+            //   .HasForeignKey(e => e.EmployeeId)
+            //   .HasPrincipalKey(e => e.Id)
+            //   .OnDelete(DeleteBehavior.ClientCascade)
+            //   .IsRequired(false);
         }
     }
 }
