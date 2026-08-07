@@ -1,4 +1,5 @@
-﻿using SCICHRPortal.Data.Entities.Metadatas;
+﻿using Microsoft.EntityFrameworkCore.Query;
+using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Data.XscribeTables;
 using System;
@@ -36,7 +37,9 @@ namespace SCICHRPortal.Data.Entities
         public bool IsFlexibleShift { get; set; }
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
+        [NotMapped]
         public XEmployee? Employee { get; set; }
+        [NotMapped]
         public XDepartment? Department { get; set; }
         public XCompany_Branch? Company { get; set; }
         public Shift? Shift { get; set; }

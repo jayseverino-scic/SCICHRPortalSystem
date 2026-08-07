@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SCICHRPortal.Repository;
@@ -11,9 +12,11 @@ using SCICHRPortal.Repository;
 namespace SCICHRPortal.Repository.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20260807083441_AddedDepartmentRelationshipOnEmployeeShift")]
+    partial class AddedDepartmentRelationshipOnEmployeeShift
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -318,6 +321,9 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("EmployeeId1")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("FridayShiftEnd")
                         .HasColumnType("timestamp without time zone");
 
@@ -391,6 +397,8 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("EmployeeId");
+
+                    b.HasIndex("EmployeeId1");
 
                     b.HasIndex("SZKDevicesId");
 
@@ -1776,6 +1784,15 @@ namespace SCICHRPortal.Repository.Migrations
                         .WithMany()
                         .HasForeignKey("CompanyId");
 
+                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId1");
+
                     b.HasOne("SCICHRPortal.Data.TimekeepingTables.SZKDevices", "SZKDevices")
                         .WithMany()
                         .HasForeignKey("SZKDevicesId");
@@ -1787,6 +1804,8 @@ namespace SCICHRPortal.Repository.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
+
+                    b.Navigation("Employee");
 
                     b.Navigation("SZKDevices");
 

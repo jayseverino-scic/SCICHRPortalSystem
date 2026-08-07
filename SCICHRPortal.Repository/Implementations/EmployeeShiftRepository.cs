@@ -99,7 +99,7 @@ namespace SCICHRPortal.Repository.Implementations
             if (projectId != 0 && shiftId != 0)
             {
                 employeeShifts = await Context.EmployeeShift!
-                  .Include(t => t.Employee)
+                  //.Include(t => t.Employee)
                   //.Include(t => t.Department)
                   //.Include(t => t.Company)
                   .Include(t => t.Shift)
