@@ -43,6 +43,8 @@ namespace SCICHRPortal.Repository
         public DbSet<BiometricsLog> BiometricsLog { get; set; }
         public DbSet<Position> Position { get; set; }
         public DbSet<EmployeeShiftDevice> EmployeeShiftDevice { get; set; }
+        public DbSet<Device> Device { get; set; }
+        public DbSet<Project> Project { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -64,6 +66,8 @@ namespace SCICHRPortal.Repository
             new BiometricsLogMap(modelBuilder.Entity<BiometricsLog>());
             new PositionMap(modelBuilder.Entity<Position>());
             new EmployeeShiftDeviceMap(modelBuilder.Entity<EmployeeShiftDevice>());
+            new DeviceMap(modelBuilder.Entity<Device>());
+            new ProjectMap(modelBuilder.Entity<Project>());
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
 
