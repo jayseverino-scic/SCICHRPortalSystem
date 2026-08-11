@@ -233,13 +233,27 @@
                                    role="menuitem"
                                    asp-controller="Administration"
                                    asp-area=""
-                                   asp-action="XEmployee"
-                                   data-label="Employees"
-                                   aria-label="Employees">
+                                   asp-action="Employee"
+                                   data-label="TK Employees"
+                                   aria-label="TK Employees">
                                     <span class="nav-icon" aria-hidden="true">
                                         <img src="~/images/administration/employee.png" alt="" />
                                     </span>
-                                    <span class="nav-text">Employees</span>
+                                    <span class="nav-text">Local Employees</span>
+                                </a>
+                            </li>
+                            <li role="none">
+                                <a class="sidebar-nav-link meta-data"
+                                   role="menuitem"
+                                   asp-controller="Administration"
+                                   asp-area=""
+                                   asp-action="XEmployee"
+                                   data-label="HRIS Employees"
+                                   aria-label="HRIS Employees">
+                                    <span class="nav-icon" aria-hidden="true">
+                                        <img src="~/images/administration/employee.png" alt="" />
+                                    </span>
+                                    <span class="nav-text">HRIS Employees</span>
                                 </a>
                             </li>
                             <li role="none">
@@ -261,13 +275,27 @@
                                    role="menuitem"
                                    asp-controller="Administration"
                                    asp-area=""
-                                   asp-action="XDepartment"
-                                   data-label="Departments"
-                                   aria-label="Departments">
+                                   asp-action="Department"
+                                   data-label="TK Departments"
+                                   aria-label="TK Departments">
                                     <span class="nav-icon" aria-hidden="true">
                                         <img src="~/images/administration/department.png" alt="" />
                                     </span>
-                                    <span class="nav-text">Departments</span>
+                                    <span class="nav-text">Local Departments</span>
+                                </a>
+                            </li>
+                            <li role="none">
+                                <a class="sidebar-nav-link meta-data"
+                                   role="menuitem"
+                                   asp-controller="Administration"
+                                   asp-area=""
+                                   asp-action="XDepartment"
+                                   data-label="HRIS Departments"
+                                   aria-label="HRIS Departments">
+                                    <span class="nav-icon" aria-hidden="true">
+                                        <img src="~/images/administration/department.png" alt="" />
+                                    </span>
+                                    <span class="nav-text">HRIS Departments</span>
                                 </a>
                             </li>
                             <li role="none">
@@ -331,6 +359,20 @@
                                    role="menuitem"
                                    asp-controller="Administration"
                                    asp-area=""
+                                   asp-action="Device"
+                                   data-label="Local Devices"
+                                   aria-label="Local Devices">
+                                    <span class="nav-icon" aria-hidden="true">
+                                        <img src="~/images/administration/timekeepingadminsetup.png" alt="" />
+                                    </span>
+                                    <span class="nav-text">Local Devices</span>
+                                </a>
+                            </li>
+                            <li role="none">
+                                <a class="sidebar-nav-link meta-data"
+                                   role="menuitem"
+                                   asp-controller="Administration"
+                                   asp-area=""
                                    asp-action="SZKDevices"
                                    data-label="ZK Devices"
                                    aria-label="ZK Devices">
@@ -344,16 +386,29 @@
                                 <a class="sidebar-nav-link user"
                                    role="menuitem"
                                    asp-controller="Administration"
-                                   asp-action="XCompanyBranch"
-                                   data-label="Xscribe Projects"
-                                   aria-label="Xscribe Projects">
+                                   asp-action="Project"
+                                   data-label="Local Projects"
+                                   aria-label="Local Projects">
                                     <span class="nav-icon" aria-hidden="true">
                                         <img src="~/images/administration/attendancesummary.png" alt="" />
                                     </span>
-                                    <span class="nav-text">Projects</span>
+                                    <span class="nav-text">Local Projects</span>
                                 </a>
                             </li>
                             <li role="none">
+                                <a class="sidebar-nav-link user"
+                                   role="menuitem"
+                                   asp-controller="Administration"
+                                   asp-action="XCompanyBranch"
+                                   data-label="HRIS Projects"
+                                   aria-label="HRIS Projects">
+                                    <span class="nav-icon" aria-hidden="true">
+                                        <img src="~/images/administration/attendancesummary.png" alt="" />
+                                    </span>
+                                    <span class="nav-text">HRIS Projects</span>
+                                </a>
+                            </li>
+@*                             <li role="none">
                                 <a class="sidebar-nav-link meta-data"
                                    role="menuitem"
                                    asp-controller="Administration"
@@ -366,7 +421,7 @@
                                     </span>
                                     <span class="nav-text">Timekeeping Admin Setup</span>
                                 </a>
-                            </li>
+                            </li> *@
                             <li role="none">
                                 <a class="sidebar-nav-link meta-data"
                                    role="menuitem"

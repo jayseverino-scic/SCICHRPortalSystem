@@ -16,7 +16,7 @@ namespace SCICHRPortal.Repository.Implementations
         }
         public async Task<bool> DeleteAsync(int projectId)
         {
-            var project = await Context.Project!.SingleOrDefault(s => s.Id == projectId && !s.Deleted);
+            var project = await Context.Project!.SingleOrDefaultAsync(s => s.Id == projectId && !s.Deleted);
             if (project == null)
                 return false;
 

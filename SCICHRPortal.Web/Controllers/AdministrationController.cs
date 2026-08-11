@@ -115,5 +115,15 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View();
         }
+        public IActionResult Device()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
+        public IActionResult Project()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
     }
 }
