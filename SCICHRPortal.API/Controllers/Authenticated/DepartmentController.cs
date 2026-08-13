@@ -1,14 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Drawing.Printing;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Enums;
+using SCICHRPortal.Data.TimekeepingTables;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
 using SCICHRPortal.Utility.Settings;
+using System.Drawing.Printing;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -18,9 +20,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class DepartmentController : ControllerBase
     {
         private IDepartmentService DepartmentService { get; }
-        public DepartmentController(IDepartmentService departmentService)
+        private IXDepartmentService XDepartmentService { get; }
+        public DepartmentController(IDepartmentService departmentService, IXDepartmentService xDepartmentService)
         {
             DepartmentService = departmentService;
+            XDepartmentService = xDepartmentService;
         }
         [HttpGet()]
         public async Task<IActionResult> GetAsync()
@@ -100,6 +104,37 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 return NotFound(ResponseMessage.NotFound);
 
             return Ok();
+        }
+        [HttpGet("ImportDb")]
+        [Authorize]
+        public async Task<ActionResult> ImportDb()
+        {
+            var xDepartments = await XDepartmentService.GetAllAsync();
+            var existingDepartments = await DepartmentService.GetAllAsync();
+            var deparmentList = new List<Department>();
+            if (xDepartments != null)
+            {
+                foreach (var department in xDepartments)
+                {
+                    Department departmentQuery = existingDepartments.Where(d => d.DepartmentName?.ToUpper() == department.Name?.ToUpper()).SingleOrDefault();
+                    if (departmentQuery == null)
+                    {
+                        Department newDepartment = new()
+                        {
+                            DepartmentName = department.Name
+                        };
+
+                        deparmentList.Add(newDepartment);
+                        await DepartmentService.InsertAsync(newDepartment);
+                    }
+                }
+            }
+            var dto = new
+            {
+                Data = deparmentList,
+                Total = deparmentList.Count()
+            };
+            return Ok(dto);
         }
     }
 }

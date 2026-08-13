@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Data;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
+using System.Data;
 
 
 namespace SCICHRPortal.Repository.Implementations
