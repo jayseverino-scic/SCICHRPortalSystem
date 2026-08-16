@@ -121,9 +121,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         Department newDepartment = new()
                         {
-                            DepartmentName = department.Name
-                        };
+                            DeptCode = department.Id.ToString(),
+                            DepartmentName = department.Name,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = "manuel"
 
+                        };
                         deparmentList.Add(newDepartment);
                         await DepartmentService.InsertAsync(newDepartment);
                     }

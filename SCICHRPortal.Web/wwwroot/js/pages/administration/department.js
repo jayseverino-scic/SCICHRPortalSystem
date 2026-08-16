@@ -10,9 +10,11 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    let dataTable = null;
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#department-form').on('submit', onFormSubmit);
+        $('#dbfilter').on(CLICK_EVENT, onClickDbFilter);
     };
 
     let onClickAddModal = function () {
@@ -78,7 +80,25 @@
             $('#busy-indicator-container').addClass('d-none');
         }
     };
+    let onClickDbFilter = async e => {
+        e.preventDefault();
 
+        let response = await _apiHelper.get({
+            url: `Authenticated/Department/ImportDb`,
+        });
+
+        if (response.ok) {
+            let json = await response.json();
+            let dataRetrieved = json.data;
+
+            // Reload existing DataTable
+            if ($.fn.DataTable.isDataTable('#department-grid')) {
+                $('#department-grid').DataTable().ajax.reload(null, false);
+            } else {
+                initializeGrid();
+            }
+        }
+    };
     let populateForm = (form, data) => {
         $(form).find(':submit').text('Update');
         _formHelper.populateForm(form, data);
@@ -114,7 +134,6 @@
                         data: json.data
                     });
 
-
                     $('#department-grid tbody').on('click', '.icon-edit', function () {
                         var data = table.row($(this).closest('tr')).data();
                         let form = $('#department-form');
@@ -134,8 +153,8 @@
             pageLength: 5,
             dom: '<"pull-left">lBf<"pull-right">tipr',
         });
-    }
-
+        dataTable = table; // Store reference
+    };
     let getColumns = async () => {
         let columns = [
             {
