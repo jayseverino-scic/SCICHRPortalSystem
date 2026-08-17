@@ -13,6 +13,7 @@
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#project-form').on('submit', onFormSubmit);
+        $('#dbfilter').on(CLICK_EVENT, onClickDbFilter);
     };
 
     let onClickAddModal = function () {
@@ -20,7 +21,25 @@
         $('#project-form').find(':submit').text('Add');
         $('#project-modal').modal('show');
     }
+    let onClickDbFilter = async e => {
+        e.preventDefault();
 
+        let response = await _apiHelper.get({
+            url: `Authenticated/Project/ImportDb`,
+        });
+
+        if (response.ok) {
+            let json = await response.json();
+            let dataRetrieved = json.data;
+
+            // Reload existing DataTable
+            if ($.fn.DataTable.isDataTable('#project-grid')) {
+                $('#project-grid').DataTable().ajax.reload(null, false);
+            } else {
+                initializeGrid();
+            }
+        }
+    };
     let onFormSubmit = async event => {
         event.preventDefault();
 

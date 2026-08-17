@@ -18,9 +18,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class DeviceController : ControllerBase
     {
         private IDeviceService DeviceService { get; }
-        public DeviceController(IDeviceService deviceService)
+        private ISZKDevicesService SZKDevicesService { get; }
+        public DeviceController(IDeviceService deviceService, ISZKDevicesService szkDevicesService)
         {
             DeviceService = deviceService;
+            SZKDevicesService = szkDevicesService;
         }
         [HttpGet()]
         public async Task<IActionResult> GetAsync()
@@ -100,6 +102,40 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 return NotFound(ResponseMessage.NotFound);
 
             return Ok();
+        }
+        [HttpGet("ImportDb")]
+        [Authorize]
+        public async Task<ActionResult> ImportDb()
+        {
+            var szkDevices = await SZKDevicesService.GetAllAsync();
+            var existingDevices = await DeviceService.GetAllAsync();
+            var devicesList = new List<Device>();
+            if (szkDevices != null)
+            {
+                foreach (var device in szkDevices)
+                {
+                    Device deviceQuery = existingDevices.Where(d => d.SerialNumber?.ToUpper() == device.SerialNumber?.ToUpper()).SingleOrDefault();
+                    if (deviceQuery == null)
+                    {
+                        Device newDevice = new()
+                        {
+                            Name = device.Name,
+                            SerialNumber = device.SerialNumber,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = "manuel"
+
+                        };
+                        devicesList.Add(newDevice);
+                        await DeviceService.InsertAsync(newDevice);
+                    }
+                }
+            }
+            var dto = new
+            {
+                Data = devicesList,
+                Total = devicesList.Count()
+            };
+            return Ok(dto);
         }
     }
 }

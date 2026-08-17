@@ -18,9 +18,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class ProjectController : ControllerBase
     {
         private IProjectService ProjectService { get; }
-        public ProjectController(IProjectService projectService)
+        private XCompanyBranchService CompanyBranchService { get; }
+        public ProjectController(IProjectService projectService, XCompanyBranchService companyBranchService)
         {
             ProjectService = projectService;
+            CompanyBranchService = companyBranchService;
         }
         [HttpGet()]
         public async Task<IActionResult> GetAsync()
@@ -100,6 +102,40 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 return NotFound(ResponseMessage.NotFound);
 
             return Ok();
+        }
+        [HttpGet("ImportDb")]
+        [Authorize]
+        public async Task<ActionResult> ImportDb()
+        {
+            var xProjects = await CompanyBranchService.GetAllAsync();
+            var existingProjects = await ProjectService.GetAllAsync();
+            var projectList = new List<Project>();
+            if (xProjects != null)
+            {
+                foreach (var project in xProjects)
+                {
+                    Project projectQuery = existingProjects.Where(d => d.Name?.ToUpper() == project.Name?.ToUpper()).SingleOrDefault();
+                    if (projectQuery == null)
+                    {
+                        Project newProject = new()
+                        {
+                            Code = project.Code,
+                            Name = project.Name,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = "manuel"
+
+                        };
+                        projectList.Add(newProject);
+                        await ProjectService.InsertAsync(newProject);
+                    }
+                }
+            }
+            var dto = new
+            {
+                Data = projectList,
+                Total = projectList.Count()
+            };
+            return Ok(dto);
         }
     }
 }
