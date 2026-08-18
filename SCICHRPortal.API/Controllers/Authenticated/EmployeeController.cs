@@ -24,10 +24,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IUserRoleService UserRoleService { get; }
         private IDepartmentService DepartmentService { get; }
         private IPositionService PositionService { get; }
+        private IXEmployeeService XEmployeeService { get; }
         private AppSettings AppSettings { get; }
         private readonly IMailService MailService;
 
-        public EmployeeController(IEmployeeService employeeService, IUserService userService, IUserRoleService userRoleService, IOptions<AppSettings> appSettings, IMailService mailService, IDepartmentService departmentService, IPositionService positionService)
+        public EmployeeController(IEmployeeService employeeService, IUserService userService, IUserRoleService userRoleService, IOptions<AppSettings> appSettings, IMailService mailService, IDepartmentService departmentService, IPositionService positionService, IXEmployeeService xemployeeService)
         {
             EmployeeService = employeeService;
             UserService = userService;
@@ -36,6 +37,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             MailService = mailService;
             DepartmentService = departmentService;
             PositionService = positionService;
+            XEmployeeService = xemployeeService;
         }
 
         private async Task<FileStreamResult> GetEmailTemplate(string templateUrl)
@@ -260,6 +262,48 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 Data = employee,
                 Total = employee.Count()
+            };
+            return Ok(dto);
+        }
+        [HttpGet("ImportDb")]
+        [Authorize]
+        public async Task<ActionResult> ImportDb()
+        {
+            var xEmployees = await XEmployeeService.GetAllAsync();
+            var existingEmployees = await EmployeeService.GetAllAsync();
+            var employeeList = new List<Employee>();
+            if (xEmployees != null)
+            {
+                foreach (var employee in xEmployees)
+                {
+                    Employee employeeQuery = existingEmployees.Where(d => d.EmployeeNo?.ToUpper() == employee.Employee_code?.ToUpper()).SingleOrDefault();
+                    if (employeeQuery == null)
+                    {
+                        Employee newEmployee = new()
+                        {
+                            EmployeeNo = employee.Employee_code,
+                            FirstName = employee.First_Name,
+                            LastName = employee.Last_Name,
+                            MiddleName = employee.Middle_Name,
+                            Suffix = employee.Suffix ?? string.Empty,
+                            Email = employee.Email ?? string.Empty,
+                            ContactNumber = employee.Mobile ?? string.Empty,
+                            PositionId = employee.Company_Position_Id,
+                            ProjectId = employee.Company_Branch_Id,
+                            DepartmentId = employee.Department_Id,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = "manuel"
+
+                        };
+                        employeeList.Add(newEmployee);
+                        await EmployeeService.InsertAsync(newEmployee);
+                    }
+                }
+            }
+            var dto = new
+            {
+                Data = employeeList,
+                Total = employeeList.Count()
             };
             return Ok(dto);
         }

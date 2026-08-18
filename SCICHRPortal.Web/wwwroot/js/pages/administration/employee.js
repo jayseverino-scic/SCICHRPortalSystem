@@ -83,6 +83,7 @@
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#employee-form').on('submit', onFormSubmit);
         $('#import').on('click', onSubmitUploadForm);
+        $('#dbfilter').on(CLICK_EVENT, onClickDbFilter);
     };
 
     let onClickAddModal = function () {
@@ -90,6 +91,25 @@
         $('#employee-form').find(':submit').text('Add');
         $('#employee-modal').modal('show');
     }
+    let onClickDbFilter = async e => {
+        e.preventDefault();
+
+        let response = await _apiHelper.get({
+            url: `Authenticated/Employee/ImportDb`,
+        });
+
+        if (response.ok) {
+            let json = await response.json();
+            let dataRetrieved = json.data;
+
+            // Reload existing DataTable
+            if ($.fn.DataTable.isDataTable('#employee-grid')) {
+                $('#employee-grid').DataTable().ajax.reload(null, false);
+            } else {
+                initializeGrid();
+            }
+        }
+    };
     let onSubmitUploadForm = async e => {
         e.preventDefault();
         let fileInput = $('#upload-file');

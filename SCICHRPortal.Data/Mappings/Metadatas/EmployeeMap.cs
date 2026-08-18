@@ -30,6 +30,10 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
                .WithMany()
                .HasForeignKey(u => u.PositionId)
                .OnDelete(DeleteBehavior.NoAction);
+            entityBuilder.HasOne(u => u.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId)
+                .OnDelete(DeleteBehavior.NoAction);
 
         }
     }
