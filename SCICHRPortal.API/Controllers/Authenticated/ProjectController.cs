@@ -18,8 +18,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class ProjectController : ControllerBase
     {
         private IProjectService ProjectService { get; }
-        private XCompanyBranchService CompanyBranchService { get; }
-        public ProjectController(IProjectService projectService, XCompanyBranchService companyBranchService)
+        private IXCompanyBranchService CompanyBranchService { get; }
+        public ProjectController(IProjectService projectService, IXCompanyBranchService companyBranchService)
         {
             ProjectService = projectService;
             CompanyBranchService = companyBranchService;
@@ -119,7 +119,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         Project newProject = new()
                         {
-                            Code = project.Code,
+                            Code = project.Code == null ? project.Id.ToString() : project.Code,
                             Name = project.Name,
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = "manuel"

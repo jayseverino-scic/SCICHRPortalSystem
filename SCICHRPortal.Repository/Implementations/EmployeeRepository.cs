@@ -40,6 +40,7 @@ namespace SCICHRPortal.Repository.Implementations
 
             employees.Select(e => e.Position).Load();
             employees.Select(e => e.Department).Load();
+            employees.Select(e => e.Project).Load();
 
             var total = employees.Count();
 

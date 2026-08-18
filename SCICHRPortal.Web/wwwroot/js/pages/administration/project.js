@@ -10,6 +10,7 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    let dataTable = null;
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#project-form').on('submit', onFormSubmit);
@@ -133,7 +134,6 @@
                         data: json.data
                     });
 
-
                     $('#project-grid tbody').on('click', '.icon-edit', function () {
                         var data = table.row($(this).closest('tr')).data();
                         let form = $('#project-form');
@@ -169,7 +169,7 @@
             },
             {
                 title: 'Project Code',
-                data: "deptCode",
+                data: "code",
                 className: 'noVis dt-center',
                 render: (data, type, row, meta) => {
                     return data;
@@ -177,7 +177,7 @@
             },
             {
                 title: "Project Name",
-                data: "projectName",
+                data: "name",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return data
