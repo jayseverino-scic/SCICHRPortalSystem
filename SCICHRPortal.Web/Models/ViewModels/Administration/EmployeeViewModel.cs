@@ -36,6 +36,6 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
         public string? ContactNumber { get; set; }
 
         public int? DepartmentId { get; set; }
-        public int? PositionId { get; set; }
+        public int? ProjectId { get; set; }
     }
 }

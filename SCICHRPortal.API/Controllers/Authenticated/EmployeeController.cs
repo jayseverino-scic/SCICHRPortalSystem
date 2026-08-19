@@ -23,12 +23,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IUserService UserService { get; }
         private IUserRoleService UserRoleService { get; }
         private IDepartmentService DepartmentService { get; }
-        private IPositionService PositionService { get; }
+        private IProjectService ProjectService { get; }
         private IXEmployeeService XEmployeeService { get; }
         private AppSettings AppSettings { get; }
         private readonly IMailService MailService;
 
-        public EmployeeController(IEmployeeService employeeService, IUserService userService, IUserRoleService userRoleService, IOptions<AppSettings> appSettings, IMailService mailService, IDepartmentService departmentService, IPositionService positionService, IXEmployeeService xemployeeService)
+        public EmployeeController(IEmployeeService employeeService, IUserService userService, IUserRoleService userRoleService, IOptions<AppSettings> appSettings, IMailService mailService, IDepartmentService departmentService, IXEmployeeService xemployeeService, IProjectService projectService)
         {
             EmployeeService = employeeService;
             UserService = userService;
@@ -36,8 +36,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             AppSettings = appSettings.Value;
             MailService = mailService;
             DepartmentService = departmentService;
-            PositionService = positionService;
             XEmployeeService = xemployeeService;
+            ProjectService = projectService;
         }
 
         private async Task<FileStreamResult> GetEmailTemplate(string templateUrl)
@@ -80,7 +80,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 d.EmployeeId,
                 d.DepartmentId,
-                d.PositionId,
+                d.ProjectId,
                 d.EmployeeNo,
                 d.LastName,
                 d.FirstName,
@@ -91,7 +91,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.ContactNumber,
                 d.CreatedAt,
                 d.Department,
-                d.Position,
+                d.Project,
                 OrderNumber = orderNumber++
             });
 
@@ -209,10 +209,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             }
             var employee = new List<Employee>();
             IEnumerable<Department> departments = await DepartmentService.GetAllAsync();
-            IEnumerable<Position> positions = await PositionService.GetAllAsync();
+            IEnumerable<Project> projects = await ProjectService.GetAllAsync();
+            //IEnumerable<Position> positions = await PositionService.GetAllAsync();
             IEnumerable<User> users = await UserService.GetAllAsync();
             Department department = departments.FirstOrDefault();
-            Position position = positions.FirstOrDefault();
+            //Position position = positions.FirstOrDefault();
+            Project project = projects.FirstOrDefault();
             User user = users.FirstOrDefault();
             using (var stream = new MemoryStream())
             {
@@ -240,8 +242,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             FirstName = firstNameName,
                             ContactNumber = contactNumber,
                             Email = email,
-                            PositionId = position!.PositionId,
                             DepartmentId = department!.DepartmentId,
+                            ProjectId = project!.Id,
                             MiddleName = " ",
                             Suffix = " ",
                             Address = " ",
@@ -274,11 +276,17 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var employeeList = new List<Employee>();
             if (xEmployees != null)
             {
+                int counter=0;
                 foreach (var employee in xEmployees)
                 {
                     Employee employeeQuery = existingEmployees.Where(d => d.EmployeeNo?.ToUpper() == employee.Employee_code?.ToUpper()).SingleOrDefault();
                     if (employeeQuery == null)
                     {
+                        counter++;
+                        if (counter > 31)
+                        {
+                            Console.WriteLine("tracking");
+                        }
                         Employee newEmployee = new()
                         {
                             EmployeeNo = employee.Employee_code,
@@ -288,9 +296,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             Suffix = employee.Suffix ?? string.Empty,
                             Email = employee.Email ?? string.Empty,
                             ContactNumber = employee.Mobile ?? string.Empty,
-                            PositionId = employee.Company_Position_Id,
-                            ProjectId = employee.Company_Branch_Id,
-                            DepartmentId = employee.Department_Id,
+                            ProjectId = employee.Company_Branch_Id ?? null,
+                            DepartmentId = employee.Department_Id ?? null,
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = "manuel"
 

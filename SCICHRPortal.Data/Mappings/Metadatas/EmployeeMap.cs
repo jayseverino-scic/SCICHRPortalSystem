@@ -10,7 +10,6 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
         {
             entityBuilder.HasKey(t => t.EmployeeId);
             entityBuilder.Property(t => t.DepartmentId).IsRequired(false);
-            entityBuilder.Property(t => t.PositionId).IsRequired(false);
             entityBuilder.Property(t => t.EmployeeNo).HasMaxLength(20).IsRequired();
             entityBuilder.Property(t => t.LastName).HasMaxLength(30).IsRequired();
             entityBuilder.Property(t => t.FirstName).HasMaxLength(100).IsRequired();
@@ -26,10 +25,7 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
                .WithMany()
                .HasForeignKey(u => u.DepartmentId)
                .OnDelete(DeleteBehavior.NoAction);
-            entityBuilder.HasOne(e => e.Position)
-               .WithMany()
-               .HasForeignKey(u => u.PositionId)
-               .OnDelete(DeleteBehavior.NoAction);
+
             entityBuilder.HasOne(u => u.Project)
                 .WithMany()
                 .HasForeignKey(e => e.ProjectId)

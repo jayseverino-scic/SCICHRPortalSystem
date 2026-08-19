@@ -38,7 +38,6 @@ namespace SCICHRPortal.Repository.Implementations
                         e.LastName!.ToLower().Contains(searchKeyword.ToLower()));
             }
 
-            employees.Select(e => e.Position).Load();
             employees.Select(e => e.Department).Load();
             employees.Select(e => e.Project).Load();
 

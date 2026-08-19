@@ -77,7 +77,7 @@
     const SYSTEM = 'grading';
 
     let _department = [];
-    let _position = [];
+    let _project = [];
 
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
@@ -325,8 +325,8 @@
                 },
             },
             {
-                title: "Position",
-                data: "position.positionName",
+                title: "Project",
+                data: "project.name",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return data
@@ -374,23 +374,23 @@
     let renderDropDowns = async () => {
         await getDropdownData();
         _formHelper.renderDropdown({ name: 'employee-form #DepartmentId', valueName: 'departmentId', data: _department, text: 'description', placeHolder: '-' });
-        _formHelper.renderDropdown({ name: 'employee-form #PositionId', valueName: 'positionId', data: _position, text: 'positionName', placeHolder: '-' });
+        _formHelper.renderDropdown({ name: 'employee-form #ProjectId', valueName: 'id', data: _project, text: 'name', placeHolder: '-' });
     };
 
     let getDropdownData = async () => {
-        let [departmentResp, positionResp] = await Promise.all([
+        let [departmentResp, projectResp] = await Promise.all([
             _apiHelper.get({
                 url: `Authenticated/Department`
             }),
             _apiHelper.get({
-                url: `Authenticated/Position`
+                url: `Authenticated/Project`
             }),
         ]);
 
-        let [departmentComponent, positionComponent] = await Promise.all(
+        let [departmentComponent, projectComponent] = await Promise.all(
             [
                 departmentResp.json(),
-                positionResp.json(),
+                projectResp.json(),
             ]
         );
 
@@ -400,14 +400,14 @@
                 description: s.departmentName
             }
         });
-        _position = _.map(positionComponent, (s) => {
+        _project = _.map(projectComponent, (s) => {
             return {
-                positionId: s.positionId,
-                positionName: s.positionName
+                id: s.id,
+                name: s.name
             }
         });
 
-        console.log(_department)
+        console.log(_project)
     }
 
 

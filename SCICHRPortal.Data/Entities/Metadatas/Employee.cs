@@ -18,12 +18,10 @@ namespace SCICHRPortal.Data.Entities.Metadatas
         public string? Email { get; set; }
         public string? ContactNumber { get; set; }
         public int? DepartmentId { get; set; }
-        public int? PositionId { get; set; }
         public int? ProjectId { get; set; }
         public int? UserId { get; set; }
         public virtual Department? Department { get; set; }
         public virtual User? User { get; set; }
-        public virtual Position? Position { get; set; }
         public virtual Project? Project { get; set; }
     }
 }
