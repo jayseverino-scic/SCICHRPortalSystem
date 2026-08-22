@@ -17,7 +17,7 @@ namespace SCICHRPortal.Data.Entities
         public int ShiftId { get; set; }
         public int EmployeeId { get; set; }
         public int? DepartmentId { get; set; }
-        public int? Company_Branch_Id { get; set; }
+        public int? ProjectId { get; set; }
         public DateTime? ShiftDate { get; set; }
         public DateTime? MondayShiftStart {  get; set; }
         public DateTime? MondayShiftEnd { get; set; }
@@ -37,12 +37,10 @@ namespace SCICHRPortal.Data.Entities
         public bool IsFlexibleShift { get; set; }
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
-        [NotMapped]
-        public XEmployee? Employee { get; set; }
-        [NotMapped]
-        public XDepartment? Department { get; set; }
-        public XCompany_Branch? Company { get; set; }
+        public Employee? Employee { get; set; }
+        public Department? Department { get; set; }
+        public Project? Project { get; set; }
         public Shift? Shift { get; set; }
-        public SZKDevices? SZKDevices { get; set; }
+        public Device? Device { get; set; }
     }
 }

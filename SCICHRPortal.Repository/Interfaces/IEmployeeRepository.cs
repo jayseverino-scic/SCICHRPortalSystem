@@ -2,6 +2,7 @@
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Utility.Interface;
 
 namespace SCICHRPortal.Repository.Interfaces
@@ -19,5 +20,6 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<DuplicateMessage> HasDuplicateName(Employee employee);
         Task<Employee> GetByUserId(int userId);
         Task<Employee> GetByEmployeeNoAsync(string employeeNo);
+        Task<IEnumerable<Employee>> GetEmployeeByProject(int projectId);
     }
 }

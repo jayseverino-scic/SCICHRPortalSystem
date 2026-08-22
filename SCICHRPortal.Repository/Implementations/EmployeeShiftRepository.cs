@@ -29,7 +29,7 @@ namespace SCICHRPortal.Repository.Implementations
             var employeeShifts = Context.EmployeeShift!
                 .Include(t => t.Employee)
                 .Include(t => t.Department)
-                .Include(t => t.Company)
+                .Include(t => t.Project)
                 .Include(t => t.Shift)
                 .Where(e => e.Deleted == false);
 
@@ -37,8 +37,8 @@ namespace SCICHRPortal.Repository.Implementations
             {
                 employeeShifts = employeeShifts
                     .Where(e =>
-                        e.Employee!.First_Name!.ToLower().Contains(searchKeyword.ToLower()) ||
-                        e.Employee.Last_Name!.ToLower().Contains(searchKeyword.ToLower()));
+                        e.Employee!.FirstName!.ToLower().Contains(searchKeyword.ToLower()) ||
+                        e.Employee.LastName!.ToLower().Contains(searchKeyword.ToLower()));
 
             }
 
@@ -60,7 +60,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
-                  .Include(t => t.Company)
+                  .Include(t => t.Project)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false  && e.DepartmentId == departmentId && e.ShiftId == shiftId).ToListAsync();
             }
@@ -69,7 +69,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
-                  .Include(t => t.Company)
+                  .Include(t => t.Project)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false && e.DepartmentId == departmentId).ToListAsync();
             }
@@ -78,7 +78,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
-                  .Include (t => t.Company)
+                  .Include (t => t.Project)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false && e.ShiftId == shiftId).ToListAsync();
             }
@@ -87,7 +87,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
-                  .Include(t => t.Company)
+                  .Include(t => t.Project)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false).ToListAsync();
             }
@@ -103,23 +103,23 @@ namespace SCICHRPortal.Repository.Implementations
                   //.Include(t => t.Department)
                   //.Include(t => t.Company)
                   .Include(t => t.Shift)
-                  .Where(e => e.Deleted == false && e.Company_Branch_Id == projectId && e.ShiftId == shiftId).ToListAsync();
+                  .Where(e => e.Deleted == false && e.ProjectId == projectId && e.ShiftId == shiftId).ToListAsync();
             }
             else if (projectId != 0 && shiftId == 0)
             {
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
-                  .Include(t => t.Company)
+                  .Include(t => t.Project)
                   .Include(t => t.Shift)
-                  .Where(e => e.Deleted == false && e.Company_Branch_Id == projectId).ToListAsync();
+                  .Where(e => e.Deleted == false && e.ProjectId == projectId).ToListAsync();
             }
             else if (projectId == 0 && shiftId != 0)
             {
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
-                  .Include(t => t.Company)
+                  .Include(t => t.Project)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false && e.ShiftId == shiftId).ToListAsync();
             }
@@ -128,7 +128,7 @@ namespace SCICHRPortal.Repository.Implementations
                 employeeShifts = await Context.EmployeeShift!
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
-                  .Include(t => t.Company)
+                  .Include(t => t.Project)
                   .Include(t => t.Shift)
                   .Where(e => e.Deleted == false).ToListAsync();
             }

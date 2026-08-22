@@ -760,7 +760,7 @@
         console.log('Loading dropdown data...');
 
         try {
-            const projectResponse = await _apiHelper.get({ url: 'Authenticated/XCompanyBranch' });
+            const projectResponse = await _apiHelper.get({ url: 'Authenticated/Project' });
             const shiftResponse = await _apiHelper.get({ url: 'Authenticated/Shift' });
 
             if (projectResponse.ok) {

@@ -1,6 +1,7 @@
 ﻿using SCICHRPortal.Core.Interfaces;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
 namespace SCICHRPortal.Service.Implementations
@@ -75,6 +76,10 @@ namespace SCICHRPortal.Service.Implementations
         public async Task<Employee> GetByEmployeeNoAsync(string employeeNo)
         {
             return await EmployeeRepository.GetByEmployeeNoAsync(employeeNo);
+        }
+        public async Task<IEnumerable<Employee>> GetEmployeeByProject(int projectId)
+        {
+            return await EmployeeRepository.GetEmployeeByProject(projectId);
         }
     }
 }

@@ -13,6 +13,8 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
         public int EmployeeId { get; set; }
         [Required(ErrorMessage ="Department is required.")]
         public int DepartmentId { get; set; }
+        [Required(ErrorMessage ="Project is required.")]
+        public int ProjectId { get; set; }
         [Required(ErrorMessage ="Shift date is required.")]
         public DateTime ShiftDate { get; set; }
         public DateTime? MondayShiftStart { get; set; }

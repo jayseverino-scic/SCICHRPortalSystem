@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Data;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
+using System.Data;
 
 namespace SCICHRPortal.Repository.Implementations
 {
@@ -124,6 +125,14 @@ namespace SCICHRPortal.Repository.Implementations
 
             await Context.SaveChangesAsync();
             return true;
+        }
+        public async Task<IEnumerable<Employee>> GetEmployeeByProject(int projectId)
+        {
+            IEnumerable<Employee> employees = await Context.Employee!.Where(e => !e.Deleted).ToListAsync();
+            if (projectId > 0)
+                employees = employees.Where(e => !e.Deleted && e.ProjectId == projectId).ToList();
+
+            return employees;
         }
     }
 }
