@@ -287,17 +287,37 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         {
                             Console.WriteLine("tracking");
                         }
+                        int? tempDeptId;
+                        int? tempProjectId;
+                        Department tempDepartment = new Department();
+                        if (employee.Department_Id != null)
+                            tempDepartment = await DepartmentService.GetDeptCodeAsync(employee.Department_Id.ToString()!);
+                        else
+                            tempDeptId = null;
+                        Project tempProject = new Project();
+                        if (employee.Company_Branch_Id != null)
+                            tempProject = await ProjectService.GetProjectNameAsync(employee.Company_Branch_Id.ToString()!);
+                        else
+                            tempProjectId = null;
+                        if (tempDepartment != null)
+                            tempDeptId = tempDepartment.DepartmentId;
+                        else
+                            tempDeptId = null;
+                        if (tempProject != null)
+                            tempProjectId = tempProject.Id;
+                        else
+                            tempProjectId = null;
                         Employee newEmployee = new()
                         {
-                            EmployeeNo = employee.Employee_code,
+                            EmployeeNo = employee.Id.ToString() ?? string.Empty,
                             FirstName = employee.First_Name,
                             LastName = employee.Last_Name,
                             MiddleName = employee.Middle_Name,
                             Suffix = employee.Suffix ?? string.Empty,
                             Email = employee.Email ?? string.Empty,
                             ContactNumber = employee.Mobile ?? string.Empty,
-                            ProjectId = employee.Company_Branch_Id ?? null,
-                            DepartmentId = employee.Department_Id ?? null,
+                            ProjectId = tempProjectId,
+                            DepartmentId = tempDeptId,
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = "manuel"
 

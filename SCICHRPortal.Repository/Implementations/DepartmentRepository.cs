@@ -6,6 +6,7 @@ using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
 using System.Data;
+using System.Security.Cryptography;
 
 
 namespace SCICHRPortal.Repository.Implementations
@@ -64,6 +65,16 @@ namespace SCICHRPortal.Repository.Implementations
             return department!;
         }
 
+        public async Task<Department> GetDeptCodeAsync(string deptCode)
+        { 
+            var department = await Context.Department!.SingleOrDefaultAsync(s => s.DeptCode!.ToUpper() == deptCode.ToUpper());
+            return department!;
+        }
+        public async Task<Department> GetDeptNameAsync(string deptName)
+        {
+            var department = await Context.Department!.SingleOrDefaultAsync(s => s.DepartmentName!.ToUpper() == deptName.ToUpper());
+            return department!;
+        }
         public async Task<DuplicateMessage> HasDuplicateName(Department department)
         {
             DuplicateMessage message = new();

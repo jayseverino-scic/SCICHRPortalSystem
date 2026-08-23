@@ -31,9 +31,13 @@ namespace SCICHRPortal.Service.Implementations
             return await EmployeeTimeLogRepository.FilterAsync(pageNumber, pageSize, searchKeyword, startDate,endDate, deviceName);
         }
 
-        public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate)
+        //public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate)
+        //{
+        //    return await EmployeeTimeLogRepository.GetDailyLogByDeptAsync(departmentId, logDate);
+        //}
+        public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByProjectAsync(int projectId, DateTime logDate)
         {
-            return await EmployeeTimeLogRepository.GetDailyLogByDeptAsync(departmentId, logDate);
+            return await EmployeeTimeLogRepository.GetDailyLogByProjectAsync(projectId, logDate);
         }
         public async Task<DuplicateMessage> HasDuplicateName(EmployeeTimeLog employeeTimeLog)
         {

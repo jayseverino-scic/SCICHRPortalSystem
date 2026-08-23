@@ -15,5 +15,7 @@ namespace SCICHRPortal.Service.Interfaces
         Task<bool> UpdateAsync(Project project);
         Task<Tuple<IEnumerable<Project>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
         Task<DuplicateMessage> HasDuplicateName(Project project);
+        Task<Project> GetProjectCodeAsync(string projectCode);
+        Task<Project> GetProjectNameAsync(string projectName);
     }
 }

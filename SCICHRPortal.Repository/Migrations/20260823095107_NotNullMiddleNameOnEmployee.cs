@@ -5,17 +5,16 @@
 namespace SCICHRPortal.Repository.Migrations
 {
     /// <inheritdoc />
-    public partial class ExtendLengthOfEmployeeFirstName : Migration
+    public partial class NotNullMiddleNameOnEmployee : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
+                name: "MiddleName",
                 table: "Employee",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: false,
+                type: "text",
+                nullable: true,
                 oldClrType: typeof(string),
                 oldType: "character varying(30)",
                 oldMaxLength: 30);
@@ -25,14 +24,15 @@ namespace SCICHRPortal.Repository.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
+                name: "MiddleName",
                 table: "Employee",
                 type: "character varying(30)",
                 maxLength: 30,
                 nullable: false,
+                defaultValue: "",
                 oldClrType: typeof(string),
-                oldType: "character varying(100)",
-                oldMaxLength: 100);
+                oldType: "text",
+                oldNullable: true);
         }
     }
 }

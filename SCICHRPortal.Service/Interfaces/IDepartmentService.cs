@@ -15,5 +15,7 @@ namespace SCICHRPortal.Service.Interfaces
         Task<bool> UpdateAsync(Department department);
         Task<Tuple<IEnumerable<Department>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
         Task<DuplicateMessage> HasDuplicateName(Department department);
+        Task<Department> GetDeptCodeAsync(string deptCode);
+        Task<Department> GetDeptNameAsync(string deptName);
     }
 }

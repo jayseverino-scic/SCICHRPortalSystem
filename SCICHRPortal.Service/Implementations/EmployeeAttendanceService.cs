@@ -25,13 +25,13 @@ namespace SCICHRPortal.Service.Implementations
             return await EmployeeAttendanceRepository.FilterAsync(pageNumber, pageSize, searchKeyword);
         }
 
-        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceFilter(int departmentId, DateTime attendanceDate)
+        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceFilter(int projectId, DateTime attendanceDate)
         {
-            return await EmployeeAttendanceRepository.EmployeeAttendanceFilter(departmentId, attendanceDate);
+            return await EmployeeAttendanceRepository.EmployeeAttendanceFilter(projectId, attendanceDate);
         }
-        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int departmentId, DateTime fromDate, DateTime toDate)
+        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int projectId, DateTime fromDate, DateTime toDate)
         {
-            return await EmployeeAttendanceRepository.EmployeeAttendanceCutOffFilter(departmentId, fromDate, toDate);
+            return await EmployeeAttendanceRepository.EmployeeAttendanceCutOffFilter(projectId, fromDate, toDate);
         }
         public async Task<EmployeeAttendance> GetAsync(int id)
         {

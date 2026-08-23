@@ -29,8 +29,8 @@ namespace SCICHRPortal.Data.Entities
         public string? DeviceTimeOut { get; set; }
         public string? ProjecTimeIn { get; set; }
         public string? ProjectTimeOut { get; set; }
-        public XEmployee? Employee { get; set; }
-        public XCompany_Branch? XCompany_Branch { get; set; }
-        public SZKDevices? SZKDevices { get; set; }
+        public Employee? Employee { get; set; }
+        public Project? Project { get; set; }
+        public Device? Device { get; set; }
     }
 }

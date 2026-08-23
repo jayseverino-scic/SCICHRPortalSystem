@@ -7,7 +7,7 @@
     const _numberHelper = new NumberHelper();
     const _stringHelper = new StringHelper();
 
-    let _department = [];
+    let _project = [];
     let _cutOff = [];
     let _currentDepartmentId = 0;
     let _currentCutOffId = 0;
@@ -19,15 +19,15 @@
     };
 
     let loadEmployeeAttendanceData = async () => {
-        _currentDepartmentId = $('#department').val() || 0;
+        _currentDepartmentId = $('#project').val() || 0;
         _currentCutOffId = $('#cutOff').val() || 0;
         await getEmployeeAttendanceData(_currentDepartmentId, _currentCutOffId);
     };
 
-    let getEmployeeAttendanceData = async (departmentId, cutOffId) => {
+    let getEmployeeAttendanceData = async (projectId, cutOffId) => {
         try {
             let response = await _apiHelper.get({
-                url: `Authenticated/EmployeeAttendance/AttendanceCutOffFilter?departmentId=${departmentId}&cutOffId=${cutOffId}`,
+                url: `Authenticated/EmployeeAttendance/AttendanceCutOffFilter?projectId=${projectId}&cutOffId=${cutOffId}`,
             });
 
             if (response.ok) {
@@ -217,22 +217,22 @@
         _cutOff.forEach(item => {
             item.combinedDate = `${moment(item.startDate).format('MM/DD/yyyy')} - ${moment(item.endDate).format('MM/DD/yyyy') }`;
         });
-        renderSimpleDropdown('#department', _department, 'departmentId', 'departmentName', 'Select Department');
+        renderSimpleDropdown('#project', _project, 'projectId', 'name', 'Select Project');
         renderSimpleDropdown('#cutOff', _cutOff, 'cutOffId', 'combinedDate', 'Select Cut-Off Period');
     };
 
     let getDropdownData = async () => {
         try {
-            const departmentResponse = await _apiHelper.get({ url: 'Authenticated/Department' });
+            const departmentResponse = await _apiHelper.get({ url: 'Authenticated/Project' });
 
             if (departmentResponse.ok) {
-                _department = await departmentResponse.json();
+                _project = await departmentResponse.json();
             } else {
-                _department = [];
+                _project = [];
             }
 
         } catch (error) {
-            _department = [];
+            _project = [];
         }
         try {
             const cutOffResponse = await _apiHelper.get({ url: 'Authenticated/CutOff' });

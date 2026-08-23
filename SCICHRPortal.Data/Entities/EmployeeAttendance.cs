@@ -38,9 +38,9 @@ namespace SCICHRPortal.Data.Entities
         public bool ApprovedSPHolidayOT { get; set; }
         public bool ApprovedRestDay { get; set; }
         public bool ApprovedRestDayOT { get; set; }
-        public XEmployee? Employee { get; set; }
-        public XCompany_Branch? Company_Branch { get; set; }
+        public Employee? Employee { get; set; }
+        public Project? Project { get; set; }
         public EmployeeTimeLog? EmployeeTimeLog { get; set; }
-        public SZKDevices? ZKDevices { get; set; }
+        public Device? Device { get; set; }
     }
 }

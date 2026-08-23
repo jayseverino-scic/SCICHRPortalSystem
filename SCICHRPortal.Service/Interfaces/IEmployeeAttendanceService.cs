@@ -10,8 +10,8 @@ namespace SCICHRPortal.Service.Interfaces
     {
         Task<bool> UpdateAsync(EmployeeAttendance entity);
         Task<Tuple<IEnumerable<EmployeeAttendance>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
-        Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceFilter(int departmentId, DateTime attendanceDate);
-        Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int departmentId, DateTime fromDate, DateTime toDate);
+        Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceFilter(int projectId, DateTime attendanceDate);
+        Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int projectId, DateTime fromDate, DateTime toDate);
         Task<EmployeeAttendance> GetAsync(int id);
         Task<IEnumerable<EmployeeAttendance>> GetAllAsync();
         Task RemoveRangeAsync(List<EmployeeAttendance> employeeAttendances);

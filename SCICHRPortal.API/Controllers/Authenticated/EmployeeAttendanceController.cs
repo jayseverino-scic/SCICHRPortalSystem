@@ -20,14 +20,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class EmployeeAttendanceController : ControllerBase
     {
         private IEmployeeAttendanceService EmployeeAttendanceService { get; }
-        private IXEmployeeService EmployeeService { get; }
+        private IEmployeeService EmployeeService { get; }
         private IShiftService ShiftService { get; }
-        private IXDepartmentService DepartmentService { get; }
+        private IDepartmentService DepartmentService { get; }
         private IEmployeeTimeLogService EmployeeTimeLogService { get; }
         private IEmployeeShiftService EmployeeShiftService { get; }
         private ICutOffService CutOffService { get; }
         private IHolidayService HolidayService { get; }
-        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IXEmployeeService employeeService, IShiftService shiftService, IXDepartmentService departmentService, IEmployeeTimeLogService employeeTimeLogService, ICutOffService cutOffService, IHolidayService holidayService, IEmployeeShiftService employeeShiftService)
+        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IEmployeeTimeLogService employeeTimeLogService, ICutOffService cutOffService, IHolidayService holidayService, IEmployeeShiftService employeeShiftService)
         {
             EmployeeAttendanceService = employeeAttendanceService;
             EmployeeService = employeeService;
@@ -56,34 +56,34 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var orderNumber = maxOrderNumber - pageSize + 1;
             IEnumerable<EmployeeAttendance> employeeAttendancesList = await EmployeeAttendanceService.GetAllAsync();
             List<EmployeeAttendance> employeeAttendances = employeeAttendancesList.ToList();
-            IEnumerable<XEmployee> employees = await EmployeeService.GetAllAsync();
-            IEnumerable<XDepartment> departments = await DepartmentService.GetAllAsync();
+            IEnumerable<Employee> employees = await EmployeeService.GetAllAsync();
+            IEnumerable<Department> departments = await DepartmentService.GetAllAsync();
             IEnumerable<Shift> shifts = await ShiftService.GetAllAsync();
 
-            List<XEmployee> mergedList = employees
+            List<Employee> mergedList = employees
             .GroupJoin(
-                tuple.Item1, left => left.Id, right => right.EmployeeId,
+                tuple.Item1, left => left.EmployeeId, right => right.EmployeeId,
                 (x, y) => new { Left = x, Rights = y }
             )
             .SelectMany(
                 x => x.Rights.DefaultIfEmpty(),
-                (x, y) => new XEmployee
+                (x, y) => new Employee
                 {
-                    Id = x.Left.Id,
-                    Department_Id = x.Left.Department_Id,
-                    Last_Name = x.Left.Last_Name,
-                    First_Name = x.Left.First_Name
+                    EmployeeId = x.Left.EmployeeId,
+                    DepartmentId = x.Left.DepartmentId,
+                    LastName = x.Left.LastName,
+                    FirstName = x.Left.FirstName
                 }
             ).ToList();
 
             if (mergedList != null)
             {
-                foreach(XEmployee employee in mergedList)
+                foreach(Employee employee in mergedList)
                 {
                     EmployeeAttendance employeeAttendance = new EmployeeAttendance
                     {
                         EmployeeAttendanceId = 0,
-                        EmployeeId = employee.Id,
+                        EmployeeId = employee.EmployeeId,
                         Employee = employee,
                     };
                     employeeAttendances.Add(employeeAttendance);
@@ -96,7 +96,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.ShiftStart,
                 d.ShiftEnd,
                 d.EmployeeId,
-                EmployeeName = $"{d.Employee!.Last_Name}, {d.Employee!.First_Name}",
+                EmployeeName = $"{d.Employee!.LastName}, {d.Employee!.FirstName}",
                 OrderNumber = orderNumber++
             });
             var dto = new
@@ -110,25 +110,25 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
         [Authorize]
         [HttpGet("AttendanceCutOffFilter")]
-        public async Task<IActionResult> EmployeeAttendanceCutOffFilter(int departmentId, DateTime fromDate, int cutOffId)
+        public async Task<IActionResult> EmployeeAttendanceCutOffFilter(int projectId, DateTime fromDate, int cutOffId)
         {
             CutOff cutOff = await CutOffService.GetAsync(cutOffId);
             if (cutOff == null)
                 return BadRequest();
 
-            IEnumerable<EmployeeAttendance> employeeAttendance = await EmployeeAttendanceService.EmployeeAttendanceCutOffFilter(departmentId, cutOff.StartDate, cutOff.EndDate);
-            IEnumerable<XEmployee> employees = await EmployeeService.GetEmployeeByDepartment(departmentId);
+            IEnumerable<EmployeeAttendance> employeeAttendance = await EmployeeAttendanceService.EmployeeAttendanceCutOffFilter(projectId, cutOff.StartDate, cutOff.EndDate);
+            IEnumerable<Employee> employees = await EmployeeService.GetEmployeeByProject(projectId);
             List<EmployeeAttendanceSummary> attendanceList = new List<EmployeeAttendanceSummary>();
             //TimekeepingAdminSetup adminSetup = await TimekeepingAdminSetupService.GetFirstOrDefault();
             foreach (var employee in employees)
             {
-                EmployeeShift employeeShift = await EmployeeShiftService.GetByEmployee(employee.Id);
+                EmployeeShift employeeShift = await EmployeeShiftService.GetByEmployee(employee.EmployeeId);
                 if (employeeShift != null)
                 {
                     Shift shift = await ShiftService.GetAsync(employeeShift.ShiftId);
                     if (shift != null)
                     {
-                        var perEmployeeAttendance = employeeAttendance.Where(e => e.EmployeeId == employee.Id);
+                        var perEmployeeAttendance = employeeAttendance.Where(e => e.EmployeeId == employee.EmployeeId);
                         if (perEmployeeAttendance.Any())
                         {
                             double shiftTotalHours = 0;
@@ -178,8 +178,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             }
                             var finalAttendance = new EmployeeAttendanceSummary
                             {
-                                EmployeeNo = employee.Employee_code,
-                                EmployeeName = employee.Last_Name + ", " + employee.First_Name,
+                                EmployeeNo = employee.EmployeeNo,
+                                EmployeeName = employee.LastName + ", " + employee.FirstName,
                                 ShiftTotalHours = shiftTotalHours,
                                 RegularTotalHours = regularTotalHours,
                                 TotalLoggedHours = totalLoggedHours,
@@ -207,22 +207,22 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
         [Authorize]
         [HttpGet("AttendanceFilter")]
-        public async Task<IActionResult> EmployeeAttendanceFilterAsync(int departmentId, DateTime attendanceDate)
+        public async Task<IActionResult> EmployeeAttendanceFilterAsync(int projectId, DateTime attendanceDate)
         {
-            IEnumerable<EmployeeTimeLog> employeeTimeLogs = await EmployeeTimeLogService.GetDailyLogByDeptAsync(departmentId, attendanceDate);
+            IEnumerable<EmployeeTimeLog> employeeTimeLogs = await EmployeeTimeLogService.GetDailyLogByProjectAsync(projectId, attendanceDate);
             IEnumerable<EmployeeAttendance>? employeeAttendancesList = null;
             List<EmployeeAttendanceUpdateRequestModel> listToDisplay = new List<EmployeeAttendanceUpdateRequestModel>();
-            employeeAttendancesList = await EmployeeAttendanceService.EmployeeAttendanceFilter(departmentId, attendanceDate);
+            employeeAttendancesList = await EmployeeAttendanceService.EmployeeAttendanceFilter(projectId, attendanceDate);
 
             int[] assignedIds = employeeAttendancesList.Select(x => x.TimeLogId).ToArray();
 
             List<EmployeeAttendance> employeeAttendances = new List<EmployeeAttendance>();
-            IEnumerable<XDepartment> departmentList = await DepartmentService.GetAllAsync();
-            List<XDepartment> departments = departmentList.ToList();
+            IEnumerable<Department> departmentList = await DepartmentService.GetAllAsync();
+            List<Department> departments = departmentList.ToList();
             employeeTimeLogs = employeeTimeLogs.Where(item => !assignedIds.Any(x => x == item.TimeLogId)).ToList();
-            if (departmentId != 0)
+            if (projectId != 0)
             {
-                employeeTimeLogs = employeeTimeLogs.Where(e => e.Employee?.Department_Id == departmentId);
+                employeeTimeLogs = employeeTimeLogs.Where(e => e.Employee?.ProjectId == projectId);
             }
             List<EmployeeTimeLog> mergedList = employeeTimeLogs
             .GroupJoin(
@@ -279,7 +279,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     EmployeeAttendanceId = employeeAttendance.EmployeeAttendanceId,
                     TimeLogId = employeeAttendance.TimeLogId,
                     EmployeeId = employeeAttendance.EmployeeId,
-                    EmployeeName = $"{employeeAttendance.Employee?.Last_Name}, {employeeAttendance.Employee?.First_Name}",
+                    EmployeeName = $"{employeeAttendance.Employee?.LastName}, {employeeAttendance.Employee?.FirstName}",
                     TimeIn = employeeAttendance.TimeIn,
                     TimeOut = employeeAttendance.TimeOut,
                     ShiftStart = employeeAttendance.ShiftStart,
@@ -302,7 +302,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     ApprovedRestDay = employeeAttendance.ApprovedRestDay,
                     ApprovedRestDayOT = employeeAttendance.ApprovedRestDayOT,
                     Employee = employeeAttendance.Employee,
-                    Department = departmentList.Where(d => d.Id == employeeAttendance.Employee?.Department_Id).Select(d => d.Name).FirstOrDefault(),
+                    Department = departmentList.Where(d => d.DepartmentId == employeeAttendance.Employee?.DepartmentId).Select(d => d.DepartmentName).FirstOrDefault(),
                 };
                 listToDisplay.Add(employeeAttendanceUpdateRequestModel);
             }
@@ -312,7 +312,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.EmployeeAttendanceId,
                 d.TimeLogId,
                 d.EmployeeId,
-                EmployeeName = $"{d.Employee?.Last_Name}, {d.Employee?.First_Name}",
+                EmployeeName = $"{d.Employee?.LastName}, {d.Employee?.FirstName}",
                 d.TimeIn,
                 d.TimeOut,
                 d.ShiftStart,

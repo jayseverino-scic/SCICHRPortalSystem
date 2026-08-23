@@ -16,7 +16,8 @@ namespace SCICHRPortal.Repository.Interfaces
         
         Task<Tuple<IEnumerable<EmployeeTimeLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName);
         Task<DuplicateMessage> HasDuplicateName(EmployeeTimeLog employeeTimeLog);
-        Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate);
+        //Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate);
+        Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByProjectAsync(int departmentId, DateTime logDate);
         Task<IEnumerable<EmployeeTimeLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName);
     }
 }

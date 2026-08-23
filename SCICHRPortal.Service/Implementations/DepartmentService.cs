@@ -65,5 +65,13 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await DepartmentRepository.HasDuplicateName(department);
         }
+        public async Task<Department> GetDeptCodeAsync(string deptCode)
+        {
+            return await DepartmentRepository.GetDeptCodeAsync(deptCode);
+        }
+        public async Task<Department> GetDeptNameAsync(string deptName)
+        {
+            return await DepartmentRepository.GetDeptNameAsync(deptName);
+        }
     }
 }

@@ -201,9 +201,6 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<bool>("ApprovedSPHolidayOT")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("Company_BranchId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone");
@@ -215,6 +212,9 @@ namespace SCICHRPortal.Repository.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
+
+                    b.Property<int?>("DeviceId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
@@ -233,6 +233,9 @@ namespace SCICHRPortal.Repository.Migrations
 
                     b.Property<double>("OTHours")
                         .HasColumnType("double precision");
+
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("integer");
 
                     b.Property<double>("RegularHour")
                         .HasColumnType("double precision");
@@ -270,18 +273,15 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ZKDevicesId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("EmployeeAttendanceId");
 
-                    b.HasIndex("Company_BranchId");
+                    b.HasIndex("DeviceId");
 
                     b.HasIndex("EmployeeId");
 
-                    b.HasIndex("TimeLogId");
+                    b.HasIndex("ProjectId");
 
-                    b.HasIndex("ZKDevicesId");
+                    b.HasIndex("TimeLogId");
 
                     b.ToTable("EmployeeAttendance");
                 });
@@ -530,6 +530,9 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<int?>("DeviceId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("DeviceTimeIn")
                         .HasColumnType("text");
 
@@ -552,11 +555,11 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<string>("ProjecTimeIn")
                         .HasColumnType("text");
 
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ProjectTimeOut")
                         .HasColumnType("text");
-
-                    b.Property<Guid?>("SZKDevicesId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("ShiftEnd")
                         .HasColumnType("timestamp without time zone");
@@ -579,16 +582,13 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<int?>("XCompany_BranchId")
-                        .HasColumnType("integer");
-
                     b.HasKey("TimeLogId");
+
+                    b.HasIndex("DeviceId");
 
                     b.HasIndex("EmployeeId");
 
-                    b.HasIndex("SZKDevicesId");
-
-                    b.HasIndex("XCompany_BranchId");
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("EmployeeTimeLog");
                 });
@@ -825,17 +825,15 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(30)");
 
                     b.Property<string>("MiddleName")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasColumnType("text");
 
                     b.Property<int?>("ProjectId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Suffix")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
@@ -1816,15 +1814,19 @@ namespace SCICHRPortal.Repository.Migrations
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeAttendance", b =>
                 {
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "Company_Branch")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Device", "Device")
                         .WithMany()
-                        .HasForeignKey("Company_BranchId");
+                        .HasForeignKey("DeviceId");
 
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId");
 
                     b.HasOne("SCICHRPortal.Data.Entities.EmployeeTimeLog", "EmployeeTimeLog")
                         .WithMany()
@@ -1832,17 +1834,13 @@ namespace SCICHRPortal.Repository.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SCICHRPortal.Data.TimekeepingTables.SZKDevices", "ZKDevices")
-                        .WithMany()
-                        .HasForeignKey("ZKDevicesId");
-
-                    b.Navigation("Company_Branch");
+                    b.Navigation("Device");
 
                     b.Navigation("Employee");
 
                     b.Navigation("EmployeeTimeLog");
 
-                    b.Navigation("ZKDevices");
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeShift", b =>
@@ -1917,25 +1915,25 @@ namespace SCICHRPortal.Repository.Migrations
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeTimeLog", b =>
                 {
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XEmployee", "Employee")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Device", "Device")
+                        .WithMany()
+                        .HasForeignKey("DeviceId");
+
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SCICHRPortal.Data.TimekeepingTables.SZKDevices", "SZKDevices")
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Project", "Project")
                         .WithMany()
-                        .HasForeignKey("SZKDevicesId");
+                        .HasForeignKey("ProjectId");
 
-                    b.HasOne("SCICHRPortal.Data.XscribeTables.XCompany_Branch", "XCompany_Branch")
-                        .WithMany()
-                        .HasForeignKey("XCompany_BranchId");
+                    b.Navigation("Device");
 
                     b.Navigation("Employee");
 
-                    b.Navigation("SZKDevices");
-
-                    b.Navigation("XCompany_Branch");
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.LeaveRequest", b =>
@@ -1962,12 +1960,12 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SCICHRPortal.Data.Entities.User", "User")
                         .WithMany()

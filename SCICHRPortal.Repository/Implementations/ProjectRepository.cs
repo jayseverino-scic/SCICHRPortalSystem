@@ -100,5 +100,15 @@ namespace SCICHRPortal.Repository.Implementations
             await Context.SaveChangesAsync();
             return true;
         }
+        public async Task<Project> GetProjectCodeAsync(string projectCode)
+        {
+            var project = await Context.Project!.SingleOrDefaultAsync(p => p.Code!.ToUpper() == projectCode.ToUpper());
+            return project!;
+        }
+        public async Task<Project> GetProjectNameAsync(string projectName)
+        { 
+            var project = await Context.Project!.SingleOrDefaultAsync(p => p.Name!.ToUpper() == projectName.ToUpper());
+            return project!;
+        }
     }
 }

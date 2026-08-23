@@ -25,8 +25,8 @@ namespace SCICHRPortal.Repository.Implementations
             {
                 employeeAttendances = employeeAttendances
                     .Where(e =>
-                        e.Employee!.First_Name!.ToLower().Contains(searchKeyword.ToLower()) ||
-                        e.Employee.Last_Name!.ToLower().Contains(searchKeyword.ToLower()));
+                        e.Employee!.FirstName!.ToLower().Contains(searchKeyword.ToLower()) ||
+                        e.Employee.LastName!.ToLower().Contains(searchKeyword.ToLower()));
 
             }
 
@@ -40,15 +40,15 @@ namespace SCICHRPortal.Repository.Implementations
             return new Tuple<IEnumerable<EmployeeAttendance>, int>(await employeeAttendances.ToListAsync(), total);
         }
 
-        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceFilter(int departmentId, DateTime attendanceDate)
+        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceFilter(int projectId, DateTime attendanceDate)
         {
             IEnumerable<EmployeeAttendance> employeeAttendances;
-            if (departmentId != 0)
+            if (projectId != 0)
             {
                 employeeAttendances = await Context.EmployeeAttendance!
                   .Include(t => t.Employee)
                   .Include(t => t.EmployeeTimeLog)
-                  .Where(e => e.Deleted == false && e.Employee!.Department_Id == departmentId && e.TimeIn.Date == attendanceDate.Date).ToListAsync();
+                  .Where(e => e.Deleted == false && e.Employee!.ProjectId == projectId && e.TimeIn.Date == attendanceDate.Date).ToListAsync();
             }
             else
             {
@@ -61,15 +61,15 @@ namespace SCICHRPortal.Repository.Implementations
         }
 
 
-        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int departmentId, DateTime fromDate, DateTime toDate)
+        public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int projectId, DateTime fromDate, DateTime toDate)
         {
             IEnumerable<EmployeeAttendance> employeeAttendances;
-            if (departmentId != 0)
+            if (projectId != 0)
             {
                 employeeAttendances = await Context.EmployeeAttendance!
                   .Include(t => t.Employee)
                   .Include(t => t.EmployeeTimeLog)
-                  .Where(e => e.Deleted == false && e.Employee!.Department_Id == departmentId && e.TimeIn.Date >= fromDate.Date && e.TimeIn.Date <= toDate.Date).ToListAsync();
+                  .Where(e => e.Deleted == false && e.Employee!.ProjectId == projectId && e.TimeIn.Date >= fromDate.Date && e.TimeIn.Date <= toDate.Date).ToListAsync();
             }
             else
             {

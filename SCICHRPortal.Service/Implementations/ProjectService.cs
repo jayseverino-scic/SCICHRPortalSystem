@@ -65,5 +65,13 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await ProjectRepository.HasDuplicateName(project);
         }
+        public async Task<Project> GetProjectCodeAsync(string projectCode)
+        {
+            return await ProjectRepository.GetProjectCodeAsync(projectCode);
+        }
+        public async Task<Project> GetProjectNameAsync(string projectName)
+        {
+            return await ProjectRepository.GetProjectNameAsync(projectName);
+        }
     }
 }

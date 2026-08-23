@@ -7,8 +7,8 @@
     const _numberHelper = new NumberHelper();
     const _stringHelper = new StringHelper();
 
-    let _department = [];
-    let _currentDepartmentId = 0;
+    let _project = [];
+    let _currentProjectId = 0;
     let _attendanceDate = new Date();
     let dataTable = null;
 
@@ -21,16 +21,16 @@
     };
 
     let loadEmployeeAttendanceData = async () => {
-        _currentDepartmentId = $('#department').val() || 0;
+        _currentProjectId = $('#project').val() || 0;
         _attendanceDate = $('#inputdate').val();
-        await getEmployeeAttendanceData(_currentDepartmentId, _attendanceDate);
+        await getEmployeeAttendanceData(_currentProjectId, _attendanceDate);
     };
 
-    let getEmployeeAttendanceData = async (departmentId, attendanceDate) => {
+    let getEmployeeAttendanceData = async (projectId, attendanceDate) => {
         var queryDate = _dateHelper.formatShortLocalDate(attendanceDate);
         try {
             let response = await _apiHelper.get({
-                url: `Authenticated/EmployeeAttendance/AttendanceFilter?departmentId=${departmentId}&attendanceDate=${queryDate}`,
+                url: `Authenticated/EmployeeAttendance/AttendanceFilter?projectId=${projectId}&attendanceDate=${queryDate}`,
             });
 
             if (response.ok) {
@@ -281,8 +281,8 @@
                 orderable: false
             },
             {
-                title: "Department",
-                data: "department",
+                title: "Project",
+                data: "project",
                 className: 'dt-center',
                 render: (data) => data ? _stringHelper.capitalize(data) : '-',
                 orderable: true
@@ -373,7 +373,7 @@
                     <th>Approved Special Holiday OT</th>
                     <th>Approved Rest Day</th>
                     <th>Approved Rest Day OT</th>
-                    <th>Department</th>
+                    <th>Project</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -416,21 +416,21 @@
                 $select.append('<option value="">No data available</option>');
             }
         };
-        renderSimpleDropdown('#department', _department, 'departmentId', 'departmentName', 'Select Department');
+        renderSimpleDropdown('#project', _project, 'id', 'name', 'Select Project');
     };
 
     let getDropdownData = async () => {
         try {
-            const departmentResponse = await _apiHelper.get({ url: 'Authenticated/Department' });
+            const projectResponse = await _apiHelper.get({ url: 'Authenticated/Project' });
 
-            if (departmentResponse.ok) {
-                _department = await departmentResponse.json();
+            if (projectResponse.ok) {
+                _project = await projectResponse.json();
             } else {
-                _department = [];
+                _project = [];
             }
 
         } catch (error) {
-            _department = [];
+            _project = [];
         }
     };
 

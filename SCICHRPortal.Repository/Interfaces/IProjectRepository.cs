@@ -18,5 +18,7 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<bool> UpdateAsync(Project entity);
         Task<Tuple<IEnumerable<Project>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
         Task<DuplicateMessage> HasDuplicateName(Project project);
+        Task<Project> GetProjectCodeAsync(string  projectCode);
+        Task<Project> GetProjectNameAsync(string projectName);
     }
 }

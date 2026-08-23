@@ -43,25 +43,25 @@ namespace SCICHRPortal.Repository.Implementations
 
             return new Tuple<IEnumerable<EmployeeTimeLog>, int>(await employeeTimeLogs.ToListAsync(), total);
         }
-        public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate)
-        {
-            IEnumerable<EmployeeTimeLog> employeeTimeLogs;
-            if (departmentId != 0)
-            {
-                employeeTimeLogs = await Context.EmployeeTimeLog!
-                .Include(t => t.Employee)
-                    .ThenInclude(e => e!.Department)
-                .Where(e => e.Deleted == false && e.Employee!.Department_Id == departmentId && e.DateIn == logDate).AsNoTracking()
-                .ToListAsync();
-            }
-            else
-            {
-                employeeTimeLogs = await Context.EmployeeTimeLog!
-                  .Include(t => t.Employee)
-                  .Where(e => e.Deleted == false && e.DateIn == logDate).AsNoTracking().ToListAsync();
-            }
-            return employeeTimeLogs;
-        }
+        //public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate)
+        //{
+        //    IEnumerable<EmployeeTimeLog> employeeTimeLogs;
+        //    if (departmentId != 0)
+        //    {
+        //        employeeTimeLogs = await Context.EmployeeTimeLog!
+        //        .Include(t => t.Employee)
+        //            .ThenInclude(e => e!.Department)
+        //        .Where(e => e.Deleted == false && e.Employee!.Department_Id == departmentId && e.DateIn == logDate).AsNoTracking()
+        //        .ToListAsync();
+        //    }
+        //    else
+        //    {
+        //        employeeTimeLogs = await Context.EmployeeTimeLog!
+        //          .Include(t => t.Employee)
+        //          .Where(e => e.Deleted == false && e.DateIn == logDate).AsNoTracking().ToListAsync();
+        //    }
+        //    return employeeTimeLogs;
+        //}
         public async Task<IEnumerable<EmployeeTimeLog>> GetAllAsync()
         {
             var employeeTimeLogs = await Context.EmployeeTimeLog!.Where(s => !s.Deleted)
@@ -114,6 +114,25 @@ namespace SCICHRPortal.Repository.Implementations
             IEnumerable<EmployeeTimeLog> employeeTimeLog = await Context.EmployeeTimeLog!.Include(e => e.Employee).Where(d => !d.Deleted).ToListAsync();
             employeeTimeLog = employeeTimeLog!.Where(b => !b.Deleted && b.DateIn >= startDate && b.DateIn <= endDate && b.ProjecTimeIn!.ToUpper() == projectName!.ToUpper()).ToList();
                 return employeeTimeLog;
+        }
+        public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByProjectAsync(int projectId, DateTime logDate)
+        {
+            IEnumerable<EmployeeTimeLog> employeeTimeLogs;
+            if (projectId != 0)
+            {
+                employeeTimeLogs = await Context.EmployeeTimeLog!
+                .Include(t => t.Employee)
+                    .ThenInclude(e => e!.Department)
+                .Where(e => e.Deleted == false && e.Employee!.ProjectId == projectId && e.DateIn == logDate).AsNoTracking()
+                .ToListAsync();
+            }
+            else
+            {
+                employeeTimeLogs = await Context.EmployeeTimeLog!
+                  .Include(t => t.Employee)
+                  .Where(e => e.Deleted == false && e.DateIn == logDate).AsNoTracking().ToListAsync();
+            }
+            return employeeTimeLogs;
         }
     }
 }

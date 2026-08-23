@@ -48,8 +48,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 d.TimeLogId,
                 d.EmployeeId,
-                employeeNo = d.Employee!.Id.ToString(),
-                EmployeeName = d.Employee!.Last_Name + "," + d.Employee.First_Name,
+                employeeNo = d.Employee!.EmployeeId.ToString(),
+                EmployeeName = d.Employee!.LastName + "," + d.Employee.FirstName,
                 d.DateIn,
                 d.DateOut,
                 d.TimeIn,
@@ -81,8 +81,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 d.TimeLogId,
                 d.EmployeeId,
-                employeeNo = d.Employee?.Id.ToString(),
-                EmployeeName = d.Employee?.Last_Name + "," + d.Employee?.First_Name,
+                employeeNo = d.Employee?.EmployeeId.ToString(),
+                EmployeeName = d.Employee?.LastName + "," + d.Employee?.FirstName,
                 d.DateIn,
                 d.DateOut,
                 d.TimeIn,
@@ -283,8 +283,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 d.TimeLogId,
                 d.EmployeeId,
-                employeeNo = d.Employee!.Id.ToString(),
-                EmployeeName = d.Employee!.Last_Name + "," + d.Employee.First_Name,
+                employeeNo = d.Employee!.EmployeeId.ToString(),
+                EmployeeName = d.Employee!.LastName + "," + d.Employee.FirstName,
                 d.DateIn,
                 d.DateOut,
                 d.TimeIn,
