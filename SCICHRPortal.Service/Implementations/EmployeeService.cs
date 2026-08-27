@@ -1,4 +1,5 @@
-﻿using SCICHRPortal.Core.Interfaces;
+﻿using EFCore.BulkExtensions;
+using SCICHRPortal.Core.Interfaces;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.XscribeTables;
@@ -80,6 +81,12 @@ namespace SCICHRPortal.Service.Implementations
         public async Task<IEnumerable<Employee>> GetEmployeeByProject(int projectId)
         {
             return await EmployeeRepository.GetEmployeeByProject(projectId);
+        }
+
+
+        public async Task BulkInsertOrUpdateAsync(List<Employee> employees, BulkConfig? bulkConfig = null)
+        {
+            await EmployeeRepository.BulkInsertOrUpdateAsync(employees, bulkConfig);
         }
     }
 }

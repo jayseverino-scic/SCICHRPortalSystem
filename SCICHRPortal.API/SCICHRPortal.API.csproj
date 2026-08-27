@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.BulkExtensions" Version="10.0.1" />
     <PackageReference Include="EPPlus" Version="8.5.1" />
     <PackageReference Include="itext" Version="9.6.0" />
     <PackageReference Include="JsonModelBinder" Version="2.1.1" />
@@ -37,6 +38,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.7" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
+    <PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="10.105.8" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,6 +5,7 @@ using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
 using System.Data;
+using EFCore.BulkExtensions;
 
 namespace SCICHRPortal.Repository.Implementations
 {
@@ -133,6 +134,25 @@ namespace SCICHRPortal.Repository.Implementations
                 employees = employees.Where(e => !e.Deleted && e.ProjectId == projectId).ToList();
 
             return employees;
+        }
+        public async Task BulkInsertOrUpdateAsync(List<Employee> employees, BulkConfig? bulkConfig = null)
+        {
+            if (employees == null || !employees.Any())
+                return;
+
+            // Use default config if not provided
+            if (bulkConfig == null)
+            {
+                bulkConfig = new BulkConfig
+                {
+                    SetOutputIdentity = true,
+                    PreserveInsertOrder = true,
+                    UseTempDB = true,
+                    UpdateByProperties = new List<string> { nameof(Employee.EmployeeNo) }
+                };
+            }
+
+            await Context.BulkInsertOrUpdateAsync(employees, bulkConfig);
         }
     }
 }

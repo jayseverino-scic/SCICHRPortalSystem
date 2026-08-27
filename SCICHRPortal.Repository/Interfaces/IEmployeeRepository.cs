@@ -1,4 +1,5 @@
-﻿using SCICHRPortal.Core.Interfaces;
+﻿using EFCore.BulkExtensions;
+using SCICHRPortal.Core.Interfaces;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
@@ -21,5 +22,6 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<Employee> GetByUserId(int userId);
         Task<Employee> GetByEmployeeNoAsync(string employeeNo);
         Task<IEnumerable<Employee>> GetEmployeeByProject(int projectId);
+        Task BulkInsertOrUpdateAsync(List<Employee> employees, BulkConfig? bulkConfig = null);
     }
 }
