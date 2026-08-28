@@ -7,17 +7,17 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
-namespace SCICHRPortal.Data.Repositories.Implementations
+namespace SCICHRPortal.Repository.Implementations
 {
-    public class BiometricsBulkRepository : IBiometricsBulkRepository
+    public class BiometricsBulkRepository : Repository, IBiometricsBulkRepository
     {
-        private readonly string _connectionString;
         private const int BULK_BATCH_SIZE = 5000;
         private const int BULK_TIMEOUT = 300; // 5 minutes
 
-        public BiometricsBulkRepository(IConfiguration configuration)
+        public BiometricsBulkRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+    : base(context, xscribeContext, timekeepingContext)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            
         }
 
         /// <summary>
@@ -28,12 +28,12 @@ namespace SCICHRPortal.Data.Repositories.Implementations
             if (dataTable == null || dataTable.Rows.Count == 0)
                 return;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = new SqlConnection(Context);
             await connection.OpenAsync();
 
             using var bulkCopy = new SqlBulkCopy(connection)
             {
-                DestinationTableName = "BiometricsLogs",
+                DestinationTableName = "BiometricsLog",
                 BatchSize = BULK_BATCH_SIZE,
                 BulkCopyTimeout = BULK_TIMEOUT,
                 EnableStreaming = true

@@ -1,4 +1,5 @@
 ﻿using SCICHRPortal.Core.Interfaces;
+using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.TimekeepingTables;
@@ -59,6 +60,22 @@ namespace SCICHRPortal.Service.Implementations
         public async Task<IEnumerable<STimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
         {
             return await BiometricsLogRepository.ImportDbDateRange(startDate, endDate, serialNumber);
+        }
+        public async Task BulkInsertBiometricsLogsAsync(List<BiometricsLog> logs)
+        {
+            await BiometricsLogRepository.BulkInsertBiometricsLogsAsync(logs);
+        }
+
+        public async Task<BulkImportResult> BulkInsertWithResultAsync(List<BiometricsLog> logs)
+        {
+            return await BiometricsLogRepository.BulkInsertWithResultAsync(logs);
+        }
+
+        public async Task<BulkImportResult> BulkInsertWithProgressAsync(
+            List<BiometricsLog> logs,
+            IProgress<BulkProgress> progress)
+        {
+            return await BiometricsLogRepository.BulkInsertWithProgressAsync(logs, progress);
         }
     }
 }

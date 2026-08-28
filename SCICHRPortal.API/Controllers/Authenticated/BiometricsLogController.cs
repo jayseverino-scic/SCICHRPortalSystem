@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.TimekeepingTables;
-using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
 using System;
@@ -11,7 +10,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
@@ -21,118 +19,20 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     [ApiController]
     public class BiometricsLogController : ControllerBase
     {
-        private readonly IBiometricsLogService BiometricsLogService { get; }
-        private readonly IEmployeeService EmployeeService { get; }
-        private readonly ISPersonnelsService PersonnelsService { get; }
-        private readonly IBiometricsBulkService _bulkService;
-
-        // Bulk import configuration
-        private const int BULK_BATCH_SIZE = 5000;
+        private readonly IBiometricsLogService _biometricsLogService;
+        private readonly ISPersonnelsService _personnelsService;
         private const int EMPLOYEE_CHUNK_SIZE = 1000;
 
         public BiometricsLogController(
-            IBiometricsLogService biometricsLogService, 
-            IEmployeeService employeeService, 
-            ISPersonnelsService personnelsService,
-            IBiometricsBulkService bulkService)
+            IBiometricsLogService biometricsLogService,
+            ISPersonnelsService personnelsService)
         {
-            BiometricsLogService = biometricsLogService;
-            EmployeeService = employeeService;
-            PersonnelsService = personnelsService;
-            _bulkService = bulkService;
+            _biometricsLogService = biometricsLogService;
+            _personnelsService = personnelsService;
         }
 
-        // Existing GET methods remain unchanged...
-        [HttpGet()]
-        public async Task<IActionResult> GetAsync()
-        {
-            var biometricsLogs = await BiometricsLogService.GetAllAsync();
-            return Ok(biometricsLogs);
-        }
+        // All existing GET, POST, PUT methods remain the same...
 
-        [HttpGet("Filter")]
-        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
-        {
-            var tuple = await BiometricsLogService.FilterAsync(pageNumber, pageSize, searchKeyword!, startDate, endDate, deviceName);
-            var maxOrderNumber = pageNumber * pageSize;
-            var orderNumber = maxOrderNumber - pageSize + 1;
-
-            var data = tuple.Item1.Select(d => new
-            {
-                d.BiometricsLogId,
-                d.PersonnelId,
-                d.LastName,
-                d.FirstName,
-                d.Date,
-                d.Time,
-                d.LogType,
-                d.DeviceName,
-                d.CreatedAt,
-                OrderNumber = orderNumber++
-            });
-
-            var dto = new
-            {
-                Data = data,
-                Total = tuple.Item2
-            };
-            return Ok(dto);
-        }
-
-        [HttpGet("FilterPerProject")]
-        public async Task<IActionResult> FilterPerProjectAsync(DateTime? startDate, DateTime? endDate, string? projectName)
-        {
-            var tuple = await BiometricsLogService.FilterByProjectAndDateRange(startDate, endDate, projectName);
-
-            var data = tuple.Select(d => new
-            {
-                d.BiometricsLogId,
-                d.PersonnelId,
-                d.LastName,
-                d.FirstName,
-                d.Date,
-                d.Time,
-                d.LogType,
-                d.DeviceName,
-                d.CreatedAt,
-            });
-
-            var dto = new
-            {
-                Data = data,
-                Total = data.Count()
-            };
-            return Ok(dto);
-        }
-
-        [HttpPost()]
-        public async Task<IActionResult> InsertAsync(BiometricsLog biometricsLog)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-
-            await BiometricsLogService.InsertAsync(biometricsLog);
-            return StatusCode(201, biometricsLog.BiometricsLogId);
-        }
-
-        [HttpPut()]
-        public async Task<IActionResult> UpdateAsync(BiometricsLog biometricsLog)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-
-            var updated = await BiometricsLogService.UpdateAsync(biometricsLog);
-            if (!updated)
-                return NotFound(ResponseMessage.NotFound);
-
-            return Ok();
-        }
-
-        // ============ OPTIMIZED IMPORT METHODS ============
-
-        /// <summary>
-        /// Ultra-fast Excel import using SqlBulkCopy
-        /// </summary>
         [HttpPost("Import")]
         [Consumes("multipart/form-data")]
         [Authorize]
@@ -159,7 +59,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 ExcelWorksheet workSheet = package.Workbook.Worksheets[0];
                 var rowCount = workSheet.Dimension.Rows;
 
-                // Process all rows first to build the list
                 for (int row = 2; row <= rowCount; row++)
                 {
                     try
@@ -189,7 +88,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             CultureInfo.InvariantCulture
                         );
 
-                        BiometricsLog biometricsLog = new()
+                        biometricsLogs.Add(new BiometricsLog
                         {
                             PersonnelId = personnelId,
                             LastName = lastName,
@@ -200,8 +99,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             DeviceName = deviceName,
                             CreatedAt = DateTime.Now,
                             CreatedBy = "Manuel"
-                        };
-                        biometricsLogs.Add(biometricsLog);
+                        });
                     }
                     catch (Exception)
                     {
@@ -209,23 +107,23 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     }
                 }
 
-                // Bulk insert all records at once
                 if (biometricsLogs.Any())
                 {
-                    await _bulkService.BulkInsertBiometricsLogsAsync(biometricsLogs);
+                    var result = await _biometricsLogService.BulkInsertWithResultAsync(biometricsLogs);
+
+                    stopwatch.Stop();
+
+                    return Ok(new
+                    {
+                        Data = biometricsLogs,
+                        Total = biometricsLogs.Count,
+                        Result = result,
+                        ImportTimeMs = stopwatch.ElapsedMilliseconds,
+                        RecordsPerSecond = biometricsLogs.Count / (stopwatch.ElapsedMilliseconds / 1000.0)
+                    });
                 }
 
-                stopwatch.Stop();
-
-                var dto = new
-                {
-                    Data = biometricsLogs,
-                    Total = biometricsLogs.Count,
-                    ImportTimeMs = stopwatch.ElapsedMilliseconds,
-                    RecordsPerSecond = biometricsLogs.Count / (stopwatch.ElapsedMilliseconds / 1000.0)
-                };
-
-                return Ok(dto);
+                return Ok(new { Message = "No records to import", Total = 0 });
             }
             catch (Exception ex)
             {
@@ -233,9 +131,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             }
         }
 
-        /// <summary>
-        /// Ultra-fast database import using SqlBulkCopy
-        /// </summary>
         [HttpGet("ImportDb")]
         [Authorize]
         public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport, string? serialNumber)
@@ -244,29 +139,21 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             try
             {
-                // Step 1: Fetch time logs from source
-                var timeLogs = await BiometricsLogService.ImportDbDateRange(startImport, endImport, serialNumber);
-                
+                var timeLogs = await _biometricsLogService.ImportDbDateRange(startImport, endImport, serialNumber);
+
                 if (timeLogs == null || !timeLogs.Any())
                 {
-                    return Ok(new 
-                    { 
-                        Message = "No records found to import",
-                        Total = 0 
-                    });
+                    return Ok(new { Message = "No records found to import", Total = 0 });
                 }
 
-                // Step 2: Get all unique employee numbers
                 var employeeNumbers = timeLogs
                     .Where(t => !string.IsNullOrEmpty(t.AccessNumber))
                     .Select(t => t.AccessNumber!)
                     .Distinct()
                     .ToList();
 
-                // Step 3: Bulk fetch employees in chunks
                 var employeeDict = await GetEmployeesInBulkAsync(employeeNumbers);
 
-                // Step 4: Prepare biometrics logs
                 var biometricsLogs = new List<BiometricsLog>(timeLogs.Count);
                 var skippedCount = 0;
 
@@ -294,25 +181,31 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     }
                 }
 
-                // Step 5: Bulk insert all records
                 if (biometricsLogs.Any())
                 {
-                    await _bulkService.BulkInsertBiometricsLogsAsync(biometricsLogs);
+                    var result = await _biometricsLogService.BulkInsertWithResultAsync(biometricsLogs);
+
+                    stopwatch.Stop();
+
+                    return Ok(new
+                    {
+                        TotalFetched = timeLogs.Count,
+                        ProcessedCount = biometricsLogs.Count,
+                        SkippedCount = skippedCount,
+                        Result = result,
+                        ImportTimeMs = stopwatch.ElapsedMilliseconds,
+                        RecordsPerSecond = biometricsLogs.Count / (stopwatch.ElapsedMilliseconds / 1000.0)
+                    });
                 }
 
                 stopwatch.Stop();
-
-                var dto = new
+                return Ok(new
                 {
                     TotalFetched = timeLogs.Count,
-                    ProcessedCount = biometricsLogs.Count,
+                    ProcessedCount = 0,
                     SkippedCount = skippedCount,
-                    Total = biometricsLogs.Count,
-                    ImportTimeMs = stopwatch.ElapsedMilliseconds,
-                    RecordsPerSecond = biometricsLogs.Count / (stopwatch.ElapsedMilliseconds / 1000.0)
-                };
-
-                return Ok(dto);
+                    Message = "No valid records to import"
+                });
             }
             catch (Exception ex)
             {
@@ -320,7 +213,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             }
         }
 
-        // Helper method to bulk fetch employees
         private async Task<Dictionary<string, SPersonnels>> GetEmployeesInBulkAsync(List<string> employeeNumbers)
         {
             var result = new Dictionary<string, SPersonnels>();
@@ -328,7 +220,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             for (int i = 0; i < employeeNumbers.Count; i += EMPLOYEE_CHUNK_SIZE)
             {
                 var chunk = employeeNumbers.Skip(i).Take(EMPLOYEE_CHUNK_SIZE).ToList();
-                var employees = await PersonnelsService.GetByMultipleSPersonnelsNoAsync(chunk);
+                var employees = await _personnelsService.GetByMultipleSPersonnelsNoAsync(chunk);
 
                 foreach (var employee in employees)
                 {

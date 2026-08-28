@@ -13,5 +13,6 @@ namespace SCICHRPortal.Repository.Interfaces
     {
         Task<Tuple<IEnumerable<SPersonnels>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
         Task<SPersonnels> GetBySPersonnelsNoAsync(string employeeNo);
+        Task<List<SPersonnels>> GetByMultiplePersonnelNoAsync(List<string> personnelNumbers);
     }
 }

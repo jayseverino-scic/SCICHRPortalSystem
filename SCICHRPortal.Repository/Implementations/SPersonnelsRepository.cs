@@ -56,5 +56,14 @@ namespace SCICHRPortal.Repository.Implementations
                     .SingleOrDefaultAsync(s => s.AccessNumber == employeeNo && !s.IsDeleted);
             return employee!;
         }
+        public async Task<List<SPersonnels>> GetByMultiplePersonnelNoAsync(List<string> personnelNumbers)
+        {
+            if (personnelNumbers == null || !personnelNumbers.Any())
+                return new List<SPersonnels>();
+
+            return await TimekeepingContext.SPersonnels
+                .Where(x => personnelNumbers.Contains(x.PersonnelNo!))
+                .ToListAsync();
+        }
     }
 }

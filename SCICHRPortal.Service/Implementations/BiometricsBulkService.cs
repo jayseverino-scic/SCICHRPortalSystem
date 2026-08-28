@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using SCICHRPortal.Data;
 using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Repositories.Interfaces;
+using SCICHRPortal.Repository;
 using SCICHRPortal.Service.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -12,49 +16,62 @@ namespace SCICHRPortal.Service.Implementations
 {
     public class BiometricsBulkService : IBiometricsBulkService
     {
-        private readonly IBiometricsBulkRepository _bulkRepository;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<BiometricsBulkService> _logger;
         private const int BATCH_SIZE = 5000;
 
         public BiometricsBulkService(
-            IBiometricsBulkRepository bulkRepository,
+            ApplicationDbContext context,
             ILogger<BiometricsBulkService> logger)
         {
-            _bulkRepository = bulkRepository;
+            _context = context;
             _logger = logger;
         }
 
-        /// <summary>
-        /// Bulk insert biometrics logs
-        /// </summary>
         public async Task BulkInsertBiometricsLogsAsync(List<BiometricsLog> logs)
         {
             if (logs == null || logs.Count == 0)
                 return;
 
-            var dataTable = _bulkRepository.BuildDataTableFromLogs(logs);
-            await _bulkRepository.BulkInsertAsync(dataTable);
+            // Process in batches to avoid memory issues
+            for (int i = 0; i < logs.Count; i += BATCH_SIZE)
+            {
+                var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
+                await _context.BiometricsLogs.AddRangeAsync(batch);
+                await _context.SaveChangesAsync();
+
+                _logger.LogDebug($"Batch {i / BATCH_SIZE + 1} inserted: {batch.Count} records");
+            }
 
             _logger.LogInformation($"Bulk inserted {logs.Count} records");
         }
 
-        /// <summary>
-        /// Bulk insert with transaction support
-        /// </summary>
         public async Task BulkInsertWithTransactionAsync(List<BiometricsLog> logs)
         {
             if (logs == null || logs.Count == 0)
                 return;
 
-            var dataTable = _bulkRepository.BuildDataTableFromLogs(logs);
-            await _bulkRepository.BulkInsertWithTransactionAsync(dataTable);
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            _logger.LogInformation($"Bulk inserted {logs.Count} records with transaction");
+            try
+            {
+                for (int i = 0; i < logs.Count; i += BATCH_SIZE)
+                {
+                    var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
+                    await _context.BiometricsLogs.AddRangeAsync(batch);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                _logger.LogInformation($"Bulk inserted {logs.Count} records with transaction");
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
-        /// <summary>
-        /// Bulk insert with result tracking
-        /// </summary>
         public async Task<BulkImportResult> BulkInsertWithResultAsync(List<BiometricsLog> logs)
         {
             var result = new BulkImportResult
@@ -74,12 +91,28 @@ namespace SCICHRPortal.Service.Implementations
                     return result;
                 }
 
-                var dataTable = _bulkRepository.BuildDataTableFromLogs(logs);
-                var insertedCount = await _bulkRepository.BulkInsertWithReturnCountAsync(dataTable);
+                var batchCount = 0;
+                var totalInserted = 0;
 
-                result.TotalInserted = insertedCount;
-                result.TotalFailed = logs.Count - insertedCount;
-                result.BatchCount = (int)Math.Ceiling((double)logs.Count / BATCH_SIZE);
+                for (int i = 0; i < logs.Count; i += BATCH_SIZE)
+                {
+                    batchCount++;
+                    var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
+
+                    await _context.BiometricsLogs.AddRangeAsync(batch);
+                    var inserted = await _context.SaveChangesAsync();
+                    totalInserted += inserted;
+
+                    // Detach entities to free memory
+                    foreach (var entity in batch)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+                }
+
+                result.TotalInserted = totalInserted;
+                result.TotalFailed = logs.Count - totalInserted;
+                result.BatchCount = batchCount;
             }
             catch (Exception ex)
             {
@@ -97,9 +130,6 @@ namespace SCICHRPortal.Service.Implementations
             return result;
         }
 
-        /// <summary>
-        /// Bulk insert with progress reporting
-        /// </summary>
         public async Task<BulkImportResult> BulkInsertWithProgressAsync(
             List<BiometricsLog> logs,
             IProgress<BulkProgress> progress)
@@ -118,39 +148,39 @@ namespace SCICHRPortal.Service.Implementations
 
             var stopwatch = Stopwatch.StartNew();
             var totalProcessed = 0;
+            var batchCount = 0;
 
             try
             {
-                // Process in batches for progress reporting
-                var batches = logs.Chunk(BATCH_SIZE);
-                var batchCount = 0;
-
-                foreach (var batch in batches)
+                for (int i = 0; i < logs.Count; i += BATCH_SIZE)
                 {
                     batchCount++;
-                    var batchList = batch.ToList();
+                    var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
 
-                    // Report progress
                     progress?.Report(new BulkProgress
                     {
                         ProcessedRows = totalProcessed,
                         TotalRows = logs.Count,
-                        Status = $"Processing batch {batchCount}/{batches.Count()}"
+                        Status = $"Processing batch {batchCount}"
                     });
 
-                    var dataTable = _bulkRepository.BuildDataTableFromLogs(batchList);
-                    await _bulkRepository.BulkInsertAsync(dataTable);
+                    await _context.BiometricsLogs.AddRangeAsync(batch);
+                    var inserted = await _context.SaveChangesAsync();
+                    totalProcessed += inserted;
 
-                    totalProcessed += batchList.Count;
+                    // Detach entities to free memory
+                    foreach (var entity in batch)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
 
-                    _logger.LogDebug($"Batch {batchCount} completed: {batchList.Count} records");
+                    _logger.LogDebug($"Batch {batchCount} completed: {batch.Count} records");
                 }
 
                 result.TotalInserted = totalProcessed;
                 result.TotalFailed = logs.Count - totalProcessed;
                 result.BatchCount = batchCount;
 
-                // Final progress
                 progress?.Report(new BulkProgress
                 {
                     ProcessedRows = totalProcessed,
