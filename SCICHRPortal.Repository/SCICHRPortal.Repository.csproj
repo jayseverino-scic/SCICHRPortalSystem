@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Implementations\BiometricsBulkRepository.cs" />
+    <Compile Remove="Interfaces\IBiometricsBulkRepository.cs" />
     <Compile Remove="Migrations\20260625092319_RevertedToOldDB.cs" />
     <Compile Remove="Migrations\20260625092319_RevertedToOldDB.Designer.cs" />
   </ItemGroup>

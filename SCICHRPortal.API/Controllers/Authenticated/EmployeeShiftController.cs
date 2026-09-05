@@ -287,7 +287,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.DepartmentId,
                 DepartmentName = d.Department?.DepartmentName,
                 d.ProjectId,
-                CompanyName = d.Project?.Name,
+                ProjectName = d.Project?.Name,
                 d.ShiftId,
                 ShiftName = d.Shift?.ShiftName,
                 d.IsAssigned 

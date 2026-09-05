@@ -1,141 +1,170 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using SCICHRPortal.Data.DTOs;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
+using SCICHRPortal.Data;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Data.XscribeTables;
+using SCICHRPortal.Repository;
+using SCICHRPortal.Repository.Implementations;
 using SCICHRPortal.Repository.Interfaces;
-using SCICHRPortal.Utility.Extensions;
+using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SCICHRPortal.Repository.Implementations
 {
     public class BiometricsLogRepository : Repository, IBiometricsLogRepository
     {
-        //private readonly ILogger<BiometricsBulkService> _logger;
-        private const int BATCH_SIZE = 5000;
-        public BiometricsLogRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
-    : base(context, xscribeContext, timekeepingContext)
-        {
-           
-        }
+        private readonly string _connectionString;
+        private const int BULK_BATCH_SIZE = 5000;
+        private const int BULK_TIMEOUT = 300;
 
-        public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName)
+        public BiometricsLogRepository(
+            ApplicationContext context,
+            XscribeContext xscribeContext,
+            TimekeepingContext timekeepingContext,
+            IConfiguration configuration)
+            : base(context, xscribeContext, timekeepingContext)
         {
-            var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false && b.Date >= startDate && b.Date <= endDate && b.ProjectName == deviceName).AsNoTracking();
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            if (!String.IsNullOrWhiteSpace(searchKeyword))
+            if (string.IsNullOrEmpty(_connectionString))
             {
-                //items = items
-                //    .Where(e =>
-                //        e.Date!.ToLower().Contains(searchKeyword.ToLower()));
+                throw new InvalidOperationException("DefaultConnection connection string not found in configuration.");
             }
-            var total = biometricsLogs.Count();
-
-            biometricsLogs = biometricsLogs
-                .OrderByDescending(e => e.BiometricsLogId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize);
-
-            return new Tuple<IEnumerable<BiometricsLog>, int>(await biometricsLogs.ToListAsync(), total);
         }
 
-        public async Task<Tuple<IEnumerable<BiometricsLog>, int>> FilterPerProjectAsync(int pageNumber, int pageSize, string searchKeyword, DateTime? startDate, DateTime? endDate, string? projectName)
+        // ============ EXISTING CRUD METHODS ============
+        public async Task<BiometricsLog> GetAsync(int id)
         {
-            var biometricsLogs = Context.BiometricsLog.Where(b => b.Deleted == false && b.Date >= startDate && b.Date <= endDate && b.ProjectName!.ToUpper() == projectName!.ToUpper()).AsNoTracking();
-
-            if (!String.IsNullOrWhiteSpace(searchKeyword))
-            {
-                //items = items
-                //    .Where(e =>
-                //        e.Date!.ToLower().Contains(searchKeyword.ToLower()));
-            }
-            var total = biometricsLogs.Count();
-
-            biometricsLogs = biometricsLogs
-                .OrderByDescending(e => e.BiometricsLogId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize);
-
-            return new Tuple<IEnumerable<BiometricsLog>, int>(await biometricsLogs.ToListAsync(), total);
-        }
-
-        public async Task<IEnumerable<BiometricsLog>> FilterByDateRange(DateTime? startDate, DateTime? endDate, string? deviceName)
-        {
-            IEnumerable<BiometricsLog> biometricsLogs;
-            biometricsLogs = await Context.BiometricsLog!.Where(b => !b.Deleted).ToListAsync();
-            if (startDate.HasValue && endDate.HasValue)
-                biometricsLogs = biometricsLogs.Where(b => b.Date >= startDate && b.Date <= endDate && b.DeviceName == deviceName);
-
-
-            return biometricsLogs;
-        }
-
-        public async Task<IEnumerable<BiometricsLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
-        {
-            IEnumerable<BiometricsLog> biometricsLogs;
-            biometricsLogs = await Context.BiometricsLog!.Where(b => !b.Deleted).ToListAsync();
-            if (startDate.HasValue && endDate.HasValue)
-                biometricsLogs = biometricsLogs.Where(b => b.Date >= startDate && b.Date <= endDate && b.ProjectName == projectName);
-
-
-            return biometricsLogs;
-        }
-        public async Task<IEnumerable<BiometricsLog>> GetDailyLogAsync(DateTime logDate)
-        {
-            IEnumerable<BiometricsLog> biometricsLogs;
-
-            biometricsLogs = await Context.BiometricsLog!
-                .Where(e => e.Deleted == false && e.Date == logDate).ToListAsync();
-
-            return biometricsLogs;
+            var biometricsLog = await Context.BiometricsLog!
+                    .SingleOrDefaultAsync(s => s.BiometricsLogId == id && !s.Deleted);
+            return biometricsLog!;
         }
         public async Task<IEnumerable<BiometricsLog>> GetAllAsync()
         {
-            var biometricsLogs = await Context.BiometricsLog!.Where(s => !s.Deleted)
-              .ToListAsync();
-            return biometricsLogs;
+            return await Context.BiometricsLog
+                .OrderByDescending(x => x.BiometricsLogId)
+                .ToListAsync();
         }
 
-        public async Task<BiometricsLog> GetAsync(int id)
+        public async Task<(IEnumerable<BiometricsLog>, int)> FilterAsync(
+            int pageNumber,
+            int pageSize,
+            string? searchKeyword,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? deviceName)
         {
-            var item = await Context.BiometricsLog!
-                    .SingleOrDefaultAsync(s => s.BiometricsLogId == id && !s.Deleted);
-            return item!;
+            var query = Context.BiometricsLog.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchKeyword))
+            {
+                query = query.Where(x =>
+                    x.PersonnelId.Contains(searchKeyword) ||
+                    (x.LastName != null && x.LastName.Contains(searchKeyword)) ||
+                    (x.FirstName != null && x.FirstName.Contains(searchKeyword)));
+            }
+
+            if (startDate.HasValue)
+                query = query.Where(x => x.Date >= startDate.Value);
+
+            if (endDate.HasValue)
+                query = query.Where(x => x.Date <= endDate.Value);
+
+            if (!string.IsNullOrEmpty(deviceName))
+                query = query.Where(x => x.DeviceName == deviceName);
+
+            var total = await query.CountAsync();
+
+            var data = await query
+                .OrderByDescending(x => x.BiometricsLogId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (data, total);
         }
 
-        public async Task InsertAsync(BiometricsLog entity)
+        public async Task<IEnumerable<BiometricsLog>> FilterByProjectAndDateRange(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? projectName)
         {
-            await Context.BiometricsLog!.AddAsync(entity);
+            var query = Context.BiometricsLog.AsQueryable();
+
+            if (startDate.HasValue)
+                query = query.Where(x => x.Date >= startDate.Value);
+
+            if (endDate.HasValue)
+                query = query.Where(x => x.Date <= endDate.Value);
+
+            if (!string.IsNullOrEmpty(projectName))
+                query = query.Where(x => x.ProjectName == projectName);
+
+            return await query
+                .OrderByDescending(x => x.BiometricsLogId)
+                .ToListAsync();
+        }
+
+        public async Task<BiometricsLog> GetByIdAsync(int id)
+        {
+            return await Context.BiometricsLog
+                .FirstOrDefaultAsync(x => x.BiometricsLogId == id);
+        }
+
+        public async Task InsertAsync(BiometricsLog biometricsLog)
+        {
+            await Context.BiometricsLog.AddAsync(biometricsLog);
             await Context.SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateAsync(BiometricsLog biometricsLog)
+        public async Task UpdateAsync(BiometricsLog biometricsLog)
         {
-            var record = Context.Update(biometricsLog);
-            if (record is null)
-                return false;
-
-            await Context.SaveChangesAsync();
-            return true;
+            var existing = await Context.BiometricsLog.FindAsync(biometricsLog.BiometricsLogId);
+            if (existing != null)
+            {
+                Context.Entry(existing).CurrentValues.SetValues(biometricsLog);
+                existing.UpdatedAt = DateTime.Now;
+                await Context.SaveChangesAsync();
+            }
         }
-        public async Task<IEnumerable<STimeLogs>> ImportDbDateRange(DateTime? startDate, DateTime? endDate, string? serialNumber)
+
+        public async Task DeleteAsync(int id)
+        {
+            var entity = await Context.BiometricsLog.FindAsync(id);
+            if (entity != null)
+            {
+                Context.BiometricsLog.Remove(entity);
+                await Context.SaveChangesAsync();
+            }
+        }
+
+        // ============ TIMELOGS FROM TIMEKEEPING CONTEXT - FIXED ============
+
+        public async Task<List<STimeLogs>> GetTimeLogsFromTimekeepingAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? projectName)
         {
             // Validate inputs
-            if (!startDate.HasValue || !endDate.HasValue || string.IsNullOrEmpty(serialNumber))
+            if (!startDate.HasValue || !endDate.HasValue || string.IsNullOrEmpty(projectName))
             {
-                return Enumerable.Empty<STimeLogs>();
+                return new List<STimeLogs>();
             }
 
             var devices = TimekeepingContext.SGroups!
-                .Where(e => e.Description != null && e.Description.ToUpper() == serialNumber.ToUpper())
+                .Where(e => e.Description != null && e.Description.ToUpper() == projectName.ToUpper())
                 .ToList();
 
             if (!devices.Any())
             {
-                return Enumerable.Empty<STimeLogs>();
+                return new List<STimeLogs>();
             }
 
             var biometricsLogs = new List<STimeLogs>();
@@ -164,83 +193,193 @@ namespace SCICHRPortal.Repository.Implementations
             }
 
             return biometricsLogs;
+            //var query = TimekeepingContext.TimeLogs.AsQueryable();
+
+            //if (startDate.HasValue)
+            //    query = query.Where(x => x.RecordDate >= startDate.Value);
+
+            //if (endDate.HasValue)
+            //    query = query.Where(x => x.RecordDate <= endDate.Value);
+            //if (!string.IsNullOrEmpty(serialNumber))
+            //{
+            //    var devices = TimekeepingContext.SGroups!.Where(d => d.Description!.ToUpper() == serialNumber!.ToUpper()).ToList();
+            //    if (devices != null)
+            //    {
+
+            //    }
+            //    query = query.Where(x => x.DeviceSerialNumber == serialNumber);
+            //}
+
+            //return await query.ToListAsync();
         }
-        public async Task BulkInsertAsync(IEnumerable<BiometricsLog> logs)
+
+        // ============ EMPLOYEES FROM XSCRIBE CONTEXT ============
+
+        public async Task<List<Employee>> GetEmployeesDBAsync(List<string> personnelNumbers)
         {
-            if (logs == null || !logs.Any())
-                return;
+            if (personnelNumbers == null || !personnelNumbers.Any())
+                return new List<Employee>();
 
-            // Add range using EF Core
-            await Context.BiometricsLog.AddRangeAsync(logs);
-            await Context.SaveChangesAsync();
-        }
-
-        public async Task BulkInsertWithTransactionAsync(IEnumerable<BiometricsLog> logs)
-        {
-            if (logs == null || !logs.Any())
-                return;
-
-            using var transaction = await Context.Database.BeginTransactionAsync();
+            // For PostgreSQL with EF Core, use Contains with parameterized query
+            // This works with Npgsql EF Core provider
             try
             {
-                await Context.BiometricsLog.AddRangeAsync(logs);
-                await Context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                // Method 1: Use Contains with array (works with Npgsql)
+                return await Context.Employee
+                    .Where(x => personnelNumbers.Contains(x.EmployeeNo))
+                    .ToListAsync();
             }
-            catch
+            catch (Exception)
             {
-                await transaction.RollbackAsync();
-                throw;
+                // Method 2: Use Any with array (alternative approach)
+                try
+                {
+                    return await Context.Employee
+                        .Where(x => personnelNumbers.Any(p => p == x.EmployeeNo))
+                        .ToListAsync();
+                }
+                catch (Exception)
+                {
+                    // Method 3: Use raw SQL with ANY operator (PostgreSQL specific)
+                    return await GetEmployeesFromDBAsync(personnelNumbers);
+                }
             }
         }
-
-        public async Task<int> BulkInsertWithReturnCountAsync(IEnumerable<BiometricsLog> logs)
+        public async Task<List<Employee>> GetEmployeesFromDBAsync(List<string> personnelNumbers)
         {
-            if (logs == null || !logs.Any())
+            if (personnelNumbers == null || !personnelNumbers.Any())
+                return new List<Employee>();
+
+            // Create a PostgreSQL array parameter
+            var param = new NpgsqlParameter("@PersonnelNumbers", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text)
+            {
+                Value = personnelNumbers.ToArray()
+            };
+
+            var sql = "SELECT * FROM \"Employee\" WHERE \"EmployeeNo\" = ANY(@PersonnelNumbers)";
+
+            return await Context.Employee
+                .FromSqlRaw(sql, param)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Alternative: Use string join for PostgreSQL
+        /// </summary>
+        private async Task<List<SPersonnels>> GetEmployeesFromXscribeViaStringJoinAsync(List<string> personnelNumbers)
+        {
+            if (personnelNumbers == null || !personnelNumbers.Any())
+                return new List<SPersonnels>();
+
+            // Using string_agg or array for PostgreSQL
+            var quotedValues = string.Join(",", personnelNumbers.Select(p => $"'{p.Replace("'", "''")}'"));
+
+            var sql = $"SELECT * FROM \"SPersonnels\" WHERE \"PersonnelNo\" IN ({quotedValues})";
+
+            return await TimekeepingContext.SPersonnels
+                .FromSqlRaw(sql)
+                .ToListAsync();
+        }
+
+
+        // ============ BULK IMPORT METHODS ============
+
+        public async Task<int> BulkInsertAsync(List<BiometricsLog> logs)
+        {
+            if (logs == null || logs.Count == 0)
                 return 0;
 
-            var logList = logs.ToList();
-            await Context.BiometricsLog.AddRangeAsync(logList);
-            await Context.SaveChangesAsync();
+            using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
 
-            return logList.Count;
-        }
-        public async Task BulkInsertBiometricsLogsAsync(List<BiometricsLog> logs)
-        {
-            if (logs == null || logs.Count == 0)
-                return;
+            using var writer = connection.BeginBinaryImport(
+                "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\") FROM STDIN (FORMAT BINARY)"
+            );
 
-            // Process in batches to avoid memory issues
-            for (int i = 0; i < logs.Count; i += BATCH_SIZE)
+            foreach (var log in logs)
             {
-                var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
-                await Context.BiometricsLog.AddRangeAsync(batch);
-                await Context.SaveChangesAsync();
-
-                //_logger.LogDebug($"Batch {i / BATCH_SIZE + 1} inserted: {batch.Count} records");
+                await writer.StartRowAsync();
+                await writer.WriteAsync(log.PersonnelId ?? string.Empty);
+                await writer.WriteAsync(log.LastName ?? string.Empty);
+                await writer.WriteAsync(log.FirstName ?? string.Empty);
+                await writer.WriteAsync(log.Date, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                await writer.WriteAsync(log.Time, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                await writer.WriteAsync(log.LogType ?? string.Empty);
+                await writer.WriteAsync(log.DeviceName ?? string.Empty);
+                await writer.WriteAsync(log.ProjectName ?? string.Empty);
+                await writer.WriteAsync(log.CreatedAt, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                await writer.WriteAsync(log.CreatedBy ?? string.Empty);
             }
 
-           // _logger.LogInformation($"Bulk inserted {logs.Count} records");
+            await writer.CompleteAsync();
+            return logs.Count;
         }
 
-        public async Task BulkInsertWithTransactionAsync(List<BiometricsLog> logs)
+        /// <summary>
+        /// PostgreSQL COPY with result tracking
+        /// </summary>
+        public async Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(List<BiometricsLog> logs)
         {
-            if (logs == null || logs.Count == 0)
-                return;
+            var errors = new List<string>();
+            var inserted = 0;
+            var failed = 0;
 
-            using var transaction = await Context.Database.BeginTransactionAsync();
+            if (logs == null || logs.Count == 0)
+                return (0, 0, errors);
 
             try
             {
-                for (int i = 0; i < logs.Count; i += BATCH_SIZE)
+                inserted = await BulkInsertAsync(logs);
+            }
+            catch (Exception ex)
+            {
+                failed = logs.Count;
+                errors.Add($"Bulk insert failed: {ex.Message}");
+                if (ex.InnerException != null)
+                    errors.Add($"Inner exception: {ex.InnerException.Message}");
+            }
+
+            return (inserted, failed, errors);
+        }
+
+        /// <summary>
+        /// PostgreSQL COPY with transaction support
+        /// </summary>
+        public async Task<int> BulkInsertWithTransactionAsync(List<BiometricsLog> logs)
+        {
+            if (logs == null || logs.Count == 0)
+                return 0;
+
+            using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var transaction = await connection.BeginTransactionAsync();
+
+            try
+            {
+                using var writer = connection.BeginBinaryImport(
+                    "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\") FROM STDIN (FORMAT BINARY)"
+                );
+
+                foreach (var log in logs)
                 {
-                    var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
-                    await Context.BiometricsLog.AddRangeAsync(batch);
-                    await Context.SaveChangesAsync();
+                    await writer.StartRowAsync();
+                    await writer.WriteAsync(log.PersonnelId ?? string.Empty);
+                    await writer.WriteAsync(log.LastName ?? string.Empty);
+                    await writer.WriteAsync(log.FirstName ?? string.Empty);
+                    await writer.WriteAsync(log.Date, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                    await writer.WriteAsync(log.Time, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                    await writer.WriteAsync(log.LogType ?? string.Empty);
+                    await writer.WriteAsync(log.DeviceName ?? string.Empty);
+                    await writer.WriteAsync(log.ProjectName ?? string.Empty);
+                    await writer.WriteAsync(log.CreatedAt, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                    await writer.WriteAsync(log.CreatedBy ?? string.Empty);
                 }
 
+                await writer.CompleteAsync();
                 await transaction.CommitAsync();
-                //_logger.LogInformation($"Bulk inserted {logs.Count} records with transaction");
+
+                return logs.Count;
             }
             catch
             {
@@ -249,134 +388,70 @@ namespace SCICHRPortal.Repository.Implementations
             }
         }
 
-        public async Task<BulkImportResult> BulkInsertWithResultAsync(List<BiometricsLog> logs)
+        /// <summary>
+        /// PostgreSQL COPY with progress tracking
+        /// </summary>
+        public async Task<int> BulkInsertWithProgressAsync(
+            List<BiometricsLog> logs,
+            IProgress<(int Processed, int Total, string Status)> progress)
         {
-            var result = new BulkImportResult
-            {
-                StartTime = DateTime.Now,
-                Errors = new List<string>()
-            };
-
-            var stopwatch = Stopwatch.StartNew();
-
-            try
-            {
-                if (logs == null || logs.Count == 0)
-                {
-                    result.TotalInserted = 0;
-                    result.EndTime = DateTime.Now;
-                    return result;
-                }
-
-                var batchCount = 0;
-                var totalInserted = 0;
-
-                for (int i = 0; i < logs.Count; i += BATCH_SIZE)
-                {
-                    batchCount++;
-                    var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
-
-                    await Context.BiometricsLog.AddRangeAsync(batch);
-                    var inserted = await Context.SaveChangesAsync();
-                    totalInserted += inserted;
-
-                    // Detach entities to free memory
-                    foreach (var entity in batch)
-                    {
-                        Context.Entry(entity).State = EntityState.Detached;
-                    }
-                }
-
-                result.TotalInserted = totalInserted;
-                result.TotalFailed = logs.Count - totalInserted;
-                result.BatchCount = batchCount;
-            }
-            catch (Exception ex)
-            {
-                result.Errors.Add(ex.Message);
-                result.TotalFailed = logs?.Count ?? 0;
-                //_logger.LogError(ex, "Error during bulk insert");
-            }
-            finally
-            {
-                stopwatch.Stop();
-                result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-                result.EndTime = DateTime.Now;
-            }
-
-            return result;
-        }
-
-        public async Task<BulkImportResult> BulkInsertWithProgressAsync(List<BiometricsLog> logs,IProgress<BulkProgress> progress)
-        {
-            var result = new BulkImportResult
-            {
-                StartTime = DateTime.Now,
-                Errors = new List<string>()
-            };
-
             if (logs == null || logs.Count == 0)
-            {
-                result.EndTime = DateTime.Now;
-                return result;
-            }
+                return 0;
 
-            var stopwatch = Stopwatch.StartNew();
+            var totalInserted = 0;
             var totalProcessed = 0;
-            var batchCount = 0;
 
-            try
+            using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var writer = connection.BeginBinaryImport(
+                "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\") FROM STDIN (FORMAT BINARY)"
+            );
+
+            int batchCount = 0;
+            int totalBatches = (int)Math.Ceiling((double)logs.Count / BULK_BATCH_SIZE);
+
+            for (int i = 0; i < logs.Count; i++)
             {
-                for (int i = 0; i < logs.Count; i += BATCH_SIZE)
+                var log = logs[i];
+
+                await writer.StartRowAsync();
+                await writer.WriteAsync(log.PersonnelId ?? string.Empty);
+                await writer.WriteAsync(log.LastName ?? string.Empty);
+                await writer.WriteAsync(log.FirstName ?? string.Empty);
+                await writer.WriteAsync(log.Date, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                await writer.WriteAsync(log.Time, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                await writer.WriteAsync(log.LogType ?? string.Empty);
+                await writer.WriteAsync(log.DeviceName ?? string.Empty);
+                await writer.WriteAsync(log.ProjectName ?? string.Empty);
+                await writer.WriteAsync(log.CreatedAt, NpgsqlTypes.NpgsqlDbType.Timestamp);
+                await writer.WriteAsync(log.CreatedBy ?? string.Empty);
+
+                totalProcessed++;
+
+                // Report progress every batch
+                if (totalProcessed % BULK_BATCH_SIZE == 0 || totalProcessed == logs.Count)
                 {
                     batchCount++;
-                    var batch = logs.Skip(i).Take(BATCH_SIZE).ToList();
-
-                    progress?.Report(new BulkProgress
-                    {
-                        ProcessedRows = totalProcessed,
-                        TotalRows = logs.Count,
-                        Status = $"Processing batch {batchCount}"
-                    });
-
-                    await Context.BiometricsLog.AddRangeAsync(batch);
-                    var inserted = await Context.SaveChangesAsync();
-                    totalProcessed += inserted;
-
-                    // Detach entities to free memory
-                    foreach (var entity in batch)
-                    {
-                        Context.Entry(entity).State = EntityState.Detached;
-                    }
-
-                    //_logger.LogDebug($"Batch {batchCount} completed: {batch.Count} records");
+                    progress?.Report((
+                        totalProcessed,
+                        logs.Count,
+                        $"Processing batch {batchCount}/{totalBatches}"
+                    ));
                 }
-
-                result.TotalInserted = totalProcessed;
-                result.TotalFailed = logs.Count - totalProcessed;
-                result.BatchCount = batchCount;
-
-                progress?.Report(new BulkProgress
-                {
-                    ProcessedRows = totalProcessed,
-                    TotalRows = logs.Count,
-                    Status = "Completed"
-                });
-            }
-            catch (Exception ex)
-            {
-                result.Errors.Add(ex.Message);
-                result.TotalFailed = logs.Count - totalProcessed;
-               // _logger.LogError(ex, "Error during bulk insert with progress");
-            }
-            finally
-            {
-                stopwatch.Stop();
-                result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-                result.EndTime = DateTime.Now;
             }
 
-            return result;
+            await writer.CompleteAsync();
+            totalInserted = logs.Count;
+
+            progress?.Report((
+                totalInserted,
+                logs.Count,
+                "Completed"
+            ));
+
+            return totalInserted;
         }
+
     }
 }

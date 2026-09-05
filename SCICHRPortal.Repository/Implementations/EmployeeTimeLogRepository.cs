@@ -112,7 +112,7 @@ namespace SCICHRPortal.Repository.Implementations
         public async Task<IEnumerable<EmployeeTimeLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
         {
             IEnumerable<EmployeeTimeLog> employeeTimeLog = await Context.EmployeeTimeLog!.Include(e => e.Employee).Where(d => !d.Deleted).ToListAsync();
-            employeeTimeLog = employeeTimeLog!.Where(b => !b.Deleted && b.DateIn >= startDate && b.DateIn <= endDate && b.ProjecTimeIn!.ToUpper() == projectName!.ToUpper()).ToList();
+            employeeTimeLog = employeeTimeLog!.Where(b => !b.Deleted && b.DateIn >= startDate && b.DateIn <= endDate && b.ProjectTimeIn!.ToUpper() == projectName!.ToUpper()).ToList();
                 return employeeTimeLog;
         }
         public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByProjectAsync(int projectId, DateTime logDate)

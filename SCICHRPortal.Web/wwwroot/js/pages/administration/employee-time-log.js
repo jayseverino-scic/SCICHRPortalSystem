@@ -100,6 +100,7 @@
         if (response.ok) {
             let json = await response.json();
             let dataRetrieved = json.data;
+            console.log(dataRetrieved);
             loadDataIntoGrid(dataRetrieved);
         }
     };
@@ -346,6 +347,7 @@
 
     let loadDataIntoGrid = (gridData) => {
         var data = [];
+        console.log(gridData.data);
         try {
             if (gridData && Array.isArray(gridData)) {
                 data = gridData;
@@ -494,29 +496,19 @@
                 },
             },
             {
-                title: "Time In",
-                data: "timeIn",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatLocalShortTime(data);
-                },
-            },
-            {
-                title: "Project In",
-                data: "projectTimeIn",
-                className: 'noVis dt-center',
-            },
-            {
-                title: "Device In",
-                data: "deviceTimeIn",
-                className: 'noVis dt-center'
-            },
-            {
                 title: "Date Out",
                 data: "dateOut",
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return _dateHelper.formatShortLocalDate(data);
+                },
+            },
+            {
+                title: "Time In",
+                data: "timeIn",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
                 },
             },
             {
@@ -527,16 +519,6 @@
                     return _dateHelper.formatLocalShortTime(data);
                 },
             },
-            {
-                title: "Project Out",
-                data: "projectTimeOut",
-                data: 'noVis dt-center'
-            },
-            {
-                title: "Device Out",
-                data: "deviceTimeOut",
-                className: 'noVis dt-center'
-            }, 
             {
                 title: "Shift Start",
                 data: "shiftStart",
@@ -572,14 +554,25 @@
                 orderable: false
             },
             {
-                title: "No Break",
-                data: "isNoBreak",
+                title: "Project In",
+                data: "projectTimeIn",
                 className: 'noVis dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
-                },
-                orderable: false
             },
+            {
+                title: "Project Out",
+                data: "projectTimeOut",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "Device In",
+                data: "deviceTimeIn",
+                className: 'noVis dt-center'
+            },
+            {
+                title: "Device Out",
+                data: "deviceTimeOut",
+                className: 'noVis dt-center'
+            }, 
             {
                 title: "System Remarks",
                 data: "systemRemarks",

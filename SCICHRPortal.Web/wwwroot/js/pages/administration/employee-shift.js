@@ -493,7 +493,7 @@
             // },
             {
                 title: "Project",
-                data: "companyName",
+                data: "projectName",
                 className: 'dt-center',
                 render: (data) => data ? _stringHelper.capitalize(data) : '-'
             },
@@ -529,7 +529,7 @@
             // }
             {
                 title: "Project Id",
-                data: "company_Branch_Id",
+                data: "projectId",
                 visible: false
             }
         ];

@@ -129,11 +129,19 @@ namespace SCICHRPortal.Repository.Implementations
         }
         public async Task<IEnumerable<Employee>> GetEmployeeByProject(int projectId)
         {
-            IEnumerable<Employee> employees = await Context.Employee!.Where(e => !e.Deleted).ToListAsync();
-            if (projectId > 0)
-                employees = employees.Where(e => !e.Deleted && e.ProjectId == projectId).ToList();
+            // Build query at database level - only fetch what's needed
+            IQueryable<Employee> query = Context.Employee!
+                .Where(e => !e.Deleted);
 
-            return employees;
+            // Only apply project filter if projectId is valid
+            if (projectId > 0)
+            {
+                // EF Core handles nullable int? comparison correctly
+                query = query.Where(e => e.ProjectId == projectId);
+            }
+
+            // Execute query at database level - only matching records are fetched
+            return await query.ToListAsync();
         }
         public async Task BulkInsertOrUpdateAsync(List<Employee> employees, BulkConfig? bulkConfig = null)
         {

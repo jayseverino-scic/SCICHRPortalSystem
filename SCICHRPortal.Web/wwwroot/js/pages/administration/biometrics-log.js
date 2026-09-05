@@ -188,7 +188,7 @@
             return;
         }
         let response = await _apiHelper.get({
-            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&serialNumber=${_currentproject}`,
+            url: `Authenticated/BiometricsLog/ImportDb?startImport=${startDate}&endImport=${endDate}&projectName=${_currentproject}`,
         });
 
         if (response.ok) {

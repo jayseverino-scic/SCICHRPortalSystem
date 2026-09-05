@@ -1,39 +1,53 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Repositories.Interfaces;
+using SCICHRPortal.Repository;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SCICHRPortal.Repository.Implementations
 {
-    public class BiometricsBulkRepository : Repository, IBiometricsBulkRepository
+    public class BiometricsBulkRepository : IBiometricsBulkRepository
     {
-        private const int BULK_BATCH_SIZE = 5000;
-        private const int BULK_TIMEOUT = 300; // 5 minutes
+        private readonly ApplicationContext _context;
+        private readonly XscribeContext _xscribeContext;
+        private readonly TimekeepingContext _timekeepingContext;
+        private readonly string _connectionString;
 
-        public BiometricsBulkRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
-    : base(context, xscribeContext, timekeepingContext)
+        private const int BULK_BATCH_SIZE = 5000;
+        private const int BULK_TIMEOUT = 300;
+
+        public BiometricsBulkRepository(
+            ApplicationContext context,
+            XscribeContext xscribeContext,
+            TimekeepingContext timekeepingContext,
+            IConfiguration configuration)
         {
-            
+            _context = context;
+            _xscribeContext = xscribeContext;
+            _timekeepingContext = timekeepingContext;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
         /// <summary>
-        /// Bulk insert using SqlBulkCopy
+        /// Ultra-fast bulk insert using SqlBulkCopy
         /// </summary>
         public async Task BulkInsertAsync(DataTable dataTable)
         {
             if (dataTable == null || dataTable.Rows.Count == 0)
                 return;
 
-            using var connection = new SqlConnection(Context);
+            using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
 
             using var bulkCopy = new SqlBulkCopy(connection)
             {
-                DestinationTableName = "BiometricsLog",
+                DestinationTableName = "BiometricsLogs",
                 BatchSize = BULK_BATCH_SIZE,
                 BulkCopyTimeout = BULK_TIMEOUT,
                 EnableStreaming = true
@@ -65,15 +79,13 @@ namespace SCICHRPortal.Repository.Implementations
                     SqlBulkCopyOptions.Default,
                     transaction)
                 {
-                    DestinationTableName = "BiometricsLogs",
+                    DestinationTableName = "BiometricsLog",
                     BatchSize = BULK_BATCH_SIZE,
                     BulkCopyTimeout = BULK_TIMEOUT,
                     EnableStreaming = true
                 };
 
-                // Map columns
                 MapColumns(bulkCopy);
-
                 await bulkCopy.WriteToServerAsync(dataTable);
                 await transaction.CommitAsync();
             }
@@ -97,15 +109,13 @@ namespace SCICHRPortal.Repository.Implementations
 
             using var bulkCopy = new SqlBulkCopy(connection)
             {
-                DestinationTableName = "BiometricsLogs",
+                DestinationTableName = "BiometricsLog",
                 BatchSize = BULK_BATCH_SIZE,
                 BulkCopyTimeout = BULK_TIMEOUT,
                 EnableStreaming = true
             };
 
-            // Map columns
             MapColumns(bulkCopy);
-
             await bulkCopy.WriteToServerAsync(dataTable);
             return dataTable.Rows.Count;
         }
@@ -117,7 +127,7 @@ namespace SCICHRPortal.Repository.Implementations
         {
             var table = new DataTable("BiometricsLogs");
 
-            // Define columns matching your database table
+            // Define columns
             table.Columns.Add("PersonnelId", typeof(string));
             table.Columns.Add("LastName", typeof(string));
             table.Columns.Add("FirstName", typeof(string));
@@ -149,9 +159,6 @@ namespace SCICHRPortal.Repository.Implementations
             return table;
         }
 
-        /// <summary>
-        /// Map columns for SqlBulkCopy
-        /// </summary>
         private void MapColumns(SqlBulkCopy bulkCopy)
         {
             bulkCopy.ColumnMappings.Add("PersonnelId", "PersonnelId");

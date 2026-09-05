@@ -119,7 +119,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         Project newProject = new()
                         {
-                            Code = project.Code == null ? project.Id.ToString() : project.Code,
+                            Code = project.Id.ToString() == null ? string.Empty : project.Id.ToString(),
                             Name = project.Name,
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = "manuel"
