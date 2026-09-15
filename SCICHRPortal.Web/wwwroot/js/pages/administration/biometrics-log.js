@@ -266,10 +266,36 @@
                 scrollY: "350px",
                 scrollX: true,
                 order: [[1, 'asc']], // Fixed order syntax
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: 'Excel <i class="fas fa-download"></i>',
+                        className: 'btn btn-primary ml-3',
+                        title: 'Biometrics Logs',
+                        footer: true
+
+                    },
+                    {
+                        extend: 'pdf',
+                        text: 'PDF <i class="fas fa-download"></i>',
+                        className: 'btn btn-primary  ml-3',
+                        title: 'Biometrics Logs',
+                        footer: true
+
+                    },
+                    {
+                        extend: 'print',
+                        text: 'Print <i class="fas fa-download"></i>',
+                        className: 'btn btn-primary ml-3',
+                        title: 'Biometrics Logs',
+                        footer: true
+                    },
+                ],
                 data: data,
                 columns: columns,
                 pageLength: 5,
-                dom: '<"top"lf>rt<"bottom"ip>',
+                //dom: '<"top"lf>rt<"bottom"ip>',
                 language: {
                     emptyTable: "No biometrics log data available",
                     zeroRecords: "No matching records found",

@@ -655,7 +655,35 @@
 
         // Initialize DataTable
         dataTable = $table.DataTable({
-            dom: '<"top">rt<"bottom"ip><"clear">',
+            //dom: '<"top">rt<"bottom"ip><"clear">',
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: 'Excel <i class="fas fa-download"></i>',
+                    className: 'btn btn-primary ml-3',
+                    title: 'Biometrics Logs',
+                    footer: true
+
+                },
+                {
+                    extend: 'pdf',
+                    text: 'PDF <i class="fas fa-download"></i>',
+                    className: 'btn btn-primary  ml-3',
+                    title: 'Biometrics Logs',
+                    footer: true
+
+                },
+                {
+                    extend: 'print',
+                    text: 'Print <i class="fas fa-download"></i>',
+                    className: 'btn btn-primary ml-3',
+                    title: 'Biometrics Logs',
+                    footer: true
+                },
+            ],
+            bFilter: true,
+            bInfo: true,
             paging: true,
             pageLength: 10,
             searching: true,
@@ -679,7 +707,8 @@
                 </div>
             `,
                 infoEmpty: "Showing 0 entries",
-                infoFiltered: ""
+                infoFiltered: "",
+                search: "Search:",
             },
             drawCallback: function () {
                 if (data && data.length > 0) {
