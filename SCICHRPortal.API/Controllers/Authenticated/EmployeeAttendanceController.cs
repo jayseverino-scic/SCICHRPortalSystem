@@ -357,7 +357,6 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 DateTime ndLogEnd = new DateTime();
                 bool withND = false;
                 double shiftLateGracePeriod = 0;
-                double breakLateMinuteGracePeriod = 0;
                 EmployeeShift employeeShift = await EmployeeShiftService.GetByEmployee(item.EmployeeId);
                 if (employeeShift != null)
                 {

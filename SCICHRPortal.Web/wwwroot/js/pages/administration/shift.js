@@ -404,21 +404,21 @@
                 data: "shiftLateMinuteGracePeriod",
                 className: 'noVis dt-center'
             },
-            {
-                title: "Shift Late Total Minute Limit",
-                data: "shiftLateTotalMinuteLimit",
-                className: 'noVis dt-center'
-            },
-            {
-                title: "No Timelogs Count Limit",
-                data: "noTimeLogCountLimit",
-                className: 'noVis dt-center'
-            },
-            {
-                title: "No Leave Count Limit",
-                data: "noLeaveAbsentCountLimit",
-                className: 'noVis dt-center'
-            },
+            // {
+            //     title: "Shift Late Total Minute Limit",
+            //     data: "shiftLateTotalMinuteLimit",
+            //     className: 'noVis dt-center'
+            // },
+            // {
+            //     title: "No Timelogs Count Limit",
+            //     data: "noTimeLogCountLimit",
+            //     className: 'noVis dt-center'
+            // },
+            // {
+            //     title: "No Leave Count Limit",
+            //     data: "noLeaveAbsentCountLimit",
+            //     className: 'noVis dt-center'
+            // },
         ];
         let lastColumn = {
             data: "shiftId",

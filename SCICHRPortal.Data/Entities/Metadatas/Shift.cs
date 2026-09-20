@@ -25,9 +25,9 @@ namespace SCICHRPortal.Data.Entities.Metadatas
         public DateTime? SundayShiftStart { get; set; }
         public DateTime? SundayShiftEnd { get; set; }
         public int ShiftLateMinuteGracePeriod { get; set; }
-        public int ShiftLateTotalMinuteLimit { get; set; }
-        public int NoTimeLogCountLimit { get; set; }
-        public int NoLeaveAbsentCountLimit { get; set; }
+        //public int ShiftLateTotalMinuteLimit { get; set; }
+        //public int NoTimeLogCountLimit { get; set; }
+        //public int NoLeaveAbsentCountLimit { get; set; }
         public string? RestDays { get; set; }
     }
 }
