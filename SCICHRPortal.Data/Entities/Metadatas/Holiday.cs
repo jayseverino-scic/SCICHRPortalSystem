@@ -7,8 +7,9 @@ namespace SCICHRPortal.Data.Entities.Metadatas
         public string? HolidayName { get; set; }
         public DateTime? HolidayDate { get; set; }
         public int? HolidayType { get; set; }
-        public string? Projects { get; set; }
+        public string? ProjectCode{ get; set; }
 
         public HolidayType HolidayTypes { get; set; }
+        public Project? Project { get; set; }
     }
 }

@@ -307,10 +307,10 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
                 var allProjects = await ProjectService.GetAllAsync();
                 var projectDict = allProjects
-                    .Where(p => !string.IsNullOrEmpty(p.Code))
-                    .GroupBy(p => p.Code, StringComparer.OrdinalIgnoreCase)
+                    .Where(p => !string.IsNullOrEmpty(p.ProjectCode))
+                    .GroupBy(p => p.ProjectCode, StringComparer.OrdinalIgnoreCase)
                     .Select(g => g.First())
-                    .ToDictionary(p => p.Code, p => p.Id, StringComparer.OrdinalIgnoreCase);
+                    .ToDictionary(p => p.ProjectCode, p => p.Id, StringComparer.OrdinalIgnoreCase);
 
                 // 4. Prepare data for bulk insert using DataTable (fastest)
                 var dataTable = new DataTable();

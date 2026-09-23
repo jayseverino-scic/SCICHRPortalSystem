@@ -1,36 +1,4 @@
-﻿//{
-//  "$schema": "https://json.schemastore.org/launchsettings.json",
-//  "profiles": {
-//    "http": {
-//      "commandName": "Project",
-//      "dotnetRunMessages": true,
-//      "launchBrowser": false,
-//      "applicationUrl": "http://localhost:5200",
-//      "environmentVariables": {
-//        "ASPNETCORE_ENVIRONMENT": "Development"
-//      }
-//    },
-//    "https": {
-//      "commandName": "Project",
-//      "dotnetRunMessages": true,
-//      "launchBrowser": false,
-//      "applicationUrl": "https://localhost:7065;http://localhost:5200",
-//      "environmentVariables": {
-//        "ASPNETCORE_ENVIRONMENT": "Development"
-//      }
-//    }
-//  }
-//}
 {
-  "$schema": "https://json.schemastore.org/launchsettings.json",
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:62859/",
-      "sslPort": 44333
-    }
-  },
   "profiles": {
     "SCICHRPortal.API": {
       "commandName": "Project",
@@ -40,7 +8,8 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "https://localhost:7266;http://localhost:5266",
-      "dotnetRunMessages": true
+      "dotnetRunMessages": true,
+      "jsWebView2Debugging": true
     },
     "IIS Express": {
       "commandName": "IISExpress",
@@ -49,6 +18,15 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:62859/",
+      "sslPort": 44333
     }
   }
 }

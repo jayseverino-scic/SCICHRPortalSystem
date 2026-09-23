@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Enums;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SCICHRPortal.Data.Mappings.Metadatas
 {
@@ -16,6 +17,10 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
             entityBuilder.Property(h => h.HolidayDate).IsRequired();
             entityBuilder.Property(h => h.HolidayType).IsRequired().HasMaxLength(100);
 
+            entityBuilder.HasOne(e => e.Project)
+           .WithMany()
+           .HasForeignKey(u => u.ProjectCode)
+           .OnDelete(DeleteBehavior.NoAction);
             //entityBuilder.HasData(new Holiday[]
             //{
             //    new Holiday

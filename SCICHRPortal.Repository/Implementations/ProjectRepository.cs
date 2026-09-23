@@ -102,7 +102,7 @@ namespace SCICHRPortal.Repository.Implementations
         }
         public async Task<Project> GetProjectCodeAsync(string projectCode)
         {
-            var project = await Context.Project!.SingleOrDefaultAsync(p => p.Code!.ToUpper() == projectCode.ToUpper());
+            var project = await Context.Project!.SingleOrDefaultAsync(p => p.ProjectCode!.ToUpper() == projectCode.ToUpper());
             return project!;
         }
         public async Task<Project> GetProjectNameAsync(string projectName)

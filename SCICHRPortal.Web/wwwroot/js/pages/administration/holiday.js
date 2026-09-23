@@ -2,7 +2,7 @@
     //Events
     const CLICK_EVENT = 'click';
     const LOAD_EVENT = 'load';
-    const SYSTEM = 'library';
+    const SYSTEM = 'timekeeping';
 
     //Helpers
     const _apiHelper = new ApiHelper();
@@ -10,6 +10,12 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    let _project = [];
+    const _typeOfHolidays = {
+        '1': 'Regular',
+        '2': 'Special Non-Working',
+        '3': 'Local',
+    };
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#holiday-form').on('submit', onFormSubmit);
@@ -20,10 +26,45 @@
         $('#holiday-form').find(':submit').text('Add');
         $('#holiday-modal').modal('show');
     }
+    let getHolidayTypes = function (types) {
+        return _.map(normalizeHolidayTypes(types), function (type) {
+            return _typeofHolidaysLookup[type] || type;
+        });
+    }
+    let normalizeHolidayTypes = function (types) {
+        if (!types) {
+            return [];
+        }
 
+        let normalizedHolidayTypes = _.chain($.isArray(types) ? types : [types])
+            .map(function (type) {
+                return type != null ? type.toString().split(/[;,]/) : [];
+            })
+            .flatten()
+            .value();
+
+        return _.chain(normalizedHolidayTypes)
+            .map(function (type) {
+                return type != null ? type.toString().trim() : '';
+            })
+            .filter(function (type) {
+                return type !== '';
+            })
+            .uniq()
+            .value();
+    }
+    let typeOfHolidaysSelect2 = function (isMultiple) {
+        $('#holiday-form #HolidayTypes').select2({
+            multiple: isMultiple,
+            theme: "bootstrap",
+            width: 'element',
+            width: 'resolve',
+            //closeOnSelect: !params.autoClose,
+        });
+    }
     let onFormSubmit = async event => {
         event.preventDefault();
-
+        let selectedTypes = $('#HolidayTypes').val() || [];
         let form = $(event.target);
         $(event.target).validate();
         let button = $(event.target).find(':submit').text().toLowerCase();
@@ -31,10 +72,11 @@
         if ($(event.target).valid()) {
             $('#busy-indicator-container').removeClass('d-none');
             let response = '';
-
+            let typeOfHolidays = selectedTypes;
             let data = _formHelper.toJsonString(event.target);
             let currentTabTitle = $('.tab-pane.active .title').text();
             data.isApproved = true;
+            data.HolidayTypes = typeOfHolidays.join(';');
             if (button == 'add') {
                 response = await _apiHelper.post({
                     url: 'Authenticated/Holiday',
@@ -192,6 +234,44 @@
         columns.push(lastColumn);
         return columns;
     };
+
+    let renderDropDowns = async () => {
+        await getDropdownData();
+        _formHelper.renderDropdown({ name: 'employee-form #ProjectId', valueName: 'id', data: _project, text: 'name', placeHolder: '-' });
+    };
+
+    let getDropdownData = async () => {
+        let [departmentResp, projectResp] = await Promise.all([
+            _apiHelper.get({
+                url: `Authenticated/Department`
+            }),
+            _apiHelper.get({
+                url: `Authenticated/Project`
+            }),
+        ]);
+
+        let [departmentComponent, projectComponent] = await Promise.all(
+            [
+                departmentResp.json(),
+                projectResp.json(),
+            ]
+        );
+
+        _department = _.map(departmentComponent, (s) => {
+            return {
+                departmentId: s.departmentId,
+                description: s.departmentName
+            }
+        });
+        _project = _.map(projectComponent, (s) => {
+            return {
+                id: s.id,
+                name: s.name
+            }
+        });
+
+        console.log(_project)
+    }
 
     let initializeModals = e => {
         $('#enrollment-modal').modal({ backdrop: 'static', keyboard: false });

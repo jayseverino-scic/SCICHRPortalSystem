@@ -43,6 +43,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.HolidayName,
                 d.HolidayType,
                 d.HolidayDate,
+                d.ProjectCode,
                 IsTodayAnnouncement = dateToday.Date == d.CreatedAt.Date,
                 d.CreatedAt,
                 OrderNumber = orderNumber++
