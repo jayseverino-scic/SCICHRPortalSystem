@@ -42,7 +42,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var data = tuple.Item1.Select(d => new
             {
                 d.Id,
-                d.ProjectCode,
+                d.Code,
                 d.Name,
                 IsTodayAnnouncement = dateToday.Date == d.CreatedAt.Date,
                 d.CreatedAt,
@@ -119,7 +119,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         Project newProject = new()
                         {
-                            ProjectCode = project.Id.ToString() == null ? string.Empty : project.Id.ToString(),
+                            Code = project.Id.ToString() == null ? string.Empty : project.Id.ToString(),
                             Name = project.Name,
                             CreatedAt = DateTime.UtcNow,
                             CreatedBy = "manuel"

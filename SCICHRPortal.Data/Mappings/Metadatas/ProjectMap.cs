@@ -11,9 +11,9 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
         public ProjectMap(EntityTypeBuilder<Project> entityBuilder) 
         {
             entityBuilder.HasKey(x => x.Id);
-            entityBuilder.HasIndex(x => x.ProjectCode).IsUnique();
+            entityBuilder.HasIndex(x => x.Code).IsUnique();
             entityBuilder.Property(x => x.Name).IsRequired();
-            entityBuilder.Property(x => x.ProjectCode).IsRequired();
+            entityBuilder.Property(x => x.Code).IsRequired();
         }
     }
 }
