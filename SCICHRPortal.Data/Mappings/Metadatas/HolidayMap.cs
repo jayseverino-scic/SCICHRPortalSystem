@@ -19,7 +19,7 @@ namespace SCICHRPortal.Data.Mappings.Metadatas
 
             entityBuilder.HasOne(e => e.Project)
            .WithMany()
-           .HasForeignKey(u => u.ProjectCode)
+           .HasForeignKey(u => u.ProjectId)
            .OnDelete(DeleteBehavior.NoAction);
             //entityBuilder.HasData(new Holiday[]
             //{

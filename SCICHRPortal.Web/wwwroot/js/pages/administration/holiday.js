@@ -54,7 +54,7 @@
             .value();
     }
     let typeOfHolidaysSelect2 = function (isMultiple) {
-        $('#holiday-form #HolidayTypes').select2({
+        $('#holiday-form #HolidayType').select2({
             multiple: isMultiple,
             theme: "bootstrap",
             width: 'element',
@@ -64,7 +64,7 @@
     }
     let onFormSubmit = async event => {
         event.preventDefault();
-        let selectedTypes = $('#HolidayTypes').val() || [];
+        let selectedTypes = $('#HolidayType').val() || [];
         let form = $(event.target);
         $(event.target).validate();
         let button = $(event.target).find(':submit').text().toLowerCase();
@@ -277,6 +277,7 @@
         $('#enrollment-modal').modal({ backdrop: 'static', keyboard: false });
         $('#reasonModal').modal({ backdrop: 'static', keyboard: false });
         $('#viewApprovalRegister').modal({ backdrop: 'static', keyboard: false });
+        typeOfHolidaysSelect2(false);
     }
 
     let initializeGrids = e => {

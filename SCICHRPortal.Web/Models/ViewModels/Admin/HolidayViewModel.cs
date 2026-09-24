@@ -12,6 +12,8 @@ namespace SCICHRPortal.Web.Models.ViewModels.Admin
         public string? HolidayType { get; set; }
         [Required(ErrorMessage ="Holiday Date is required.")]
         public DateTime? HolidayDate { get; set; }
+        [Required(ErrorMessage = "Project is required.")]
+        public int ProjectId { get; set; }
 
     }
 }
