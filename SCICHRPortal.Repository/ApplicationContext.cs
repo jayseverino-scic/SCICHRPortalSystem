@@ -31,6 +31,7 @@ namespace SCICHRPortal.Repository
        
         public DbSet<Module>? Module { get; set; }
         public DbSet<Holiday>? Holiday { get; set; }
+        public DbSet<HolidayProject> HolidayProject { get; set; }
         public DbSet<Department> Department { get; set; }
         public DbSet<Shift> Shift { get; set; }
         public DbSet<Employee> Employee { get; set; }
@@ -54,6 +55,7 @@ namespace SCICHRPortal.Repository
             new UserRoleMap(modelBuilder.Entity<UserRole>());
             new ModuleMap(modelBuilder.Entity<Module>());
             new HolidayMap(modelBuilder.Entity<Holiday>());
+            new HolidayProjectMap(modelBuilder.Entity<HolidayProject>());
             new DepartmentMap(modelBuilder.Entity<Department>());
             new ShiftMap(modelBuilder.Entity<Shift>());
             new EmployeeMap(modelBuilder.Entity<Employee>());

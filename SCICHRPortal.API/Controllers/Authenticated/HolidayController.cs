@@ -5,6 +5,7 @@ using System.Drawing.Printing;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Enums;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
@@ -26,7 +27,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         public async Task<IActionResult> GetAsync()
         {
             var holiday = await HolidayService.GetAllAsync();
-            return Ok(holiday);
+            return Ok(holiday.Select(d => ToRow(d, 0)));
         }
 
         [HttpGet("Filter")]
@@ -35,19 +36,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             var tuple = await HolidayService.FilterAsync(pageNumber, pageSize, searchKeyword!);
             var maxOrderNumber = pageNumber * pageSize;
             var orderNumber = maxOrderNumber - pageSize + 1;
-            var dateToday = DateTime.Today;
-
-            var data = tuple.Item1.Select(d => new
-            {
-                d.HolidayId,
-                d.HolidayName,
-                d.HolidayType,
-                d.HolidayDate,
-                d.ProjectId,
-                IsTodayAnnouncement = dateToday.Date == d.CreatedAt.Date,
-                d.CreatedAt,
-                OrderNumber = orderNumber++
-            });
+            var data = tuple.Item1.Select(d => ToRow(d, orderNumber++));
 
             var dto = new
             {
@@ -57,36 +46,68 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(dto);
         }
 
+        private static object ToRow(Holiday d, int orderNumber)
+        {
+            var projects = d.Projects.OrderBy(project => project.Id)
+                .Select(project => new {
+                    project.Id,
+                    Name = project.Name ?? $"Project #{project.Id}",
+                    project.Deleted
+                }).ToArray();
+            return new
+            {
+                d.HolidayId,
+                d.HolidayName,
+                d.HolidayType,
+                HolidayTypeName = d.HolidayType switch
+                {
+                    (int)HolidayType.Regular => "Regular",
+                    (int)HolidayType.SpecialNonWorking => "Special Non-Working",
+                    (int)HolidayType.Local => "Local",
+                    _ => "Unknown"
+                },
+                d.HolidayDate,
+                ProjectName = projects.Length == 0 ? null : string.Join(", ", projects.Select(project => project.Name)),
+                AllProjects = projects.Length == 0,
+                ProjectIds = projects.Select(project => project.Id).ToArray(),
+                ProjectNames = projects.Select(project => project.Name).ToArray(),
+                Projects = projects,
+                IsTodayAnnouncement = DateTime.Today == d.CreatedAt.Date,
+                d.CreatedAt,
+                OrderNumber = orderNumber
+            };
+        }
+
 
         [HttpPost()]
-        public async Task<IActionResult> InsertAsync(Holiday holiday)
+        public async Task<IActionResult> InsertAsync(HolidayCreateRequest holiday)
         {
             if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
+                return BadRequest(ModelState);
 
-            var hasDuplicate = await HolidayService.HasDuplicateName(holiday);
-            if (hasDuplicate.IsDuplicated)
-                return Conflict(hasDuplicate);
-            holiday.CreatedBy = "manuel";
-            holiday.CreatedAt = DateTime.Now;
-            await HolidayService.InsertAsync(holiday);
-
-            return StatusCode(201, holiday.HolidayId);
+            var result = await HolidayService.CreateAsync(holiday);
+            return result.Status switch
+            {
+                HolidayWriteStatus.Invalid => BadRequest(new { result.Message }),
+                HolidayWriteStatus.Conflict => Conflict(new { result.Message }),
+                _ => StatusCode(201)
+            };
         }
 
 
         [HttpPut()]
-        public async Task<IActionResult> UpdateAsync(Holiday holiday)
+        public async Task<IActionResult> UpdateAsync(HolidayUpdateRequest holiday)
         {
             if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-            holiday.UpdatedBy = "manuel";
-            holiday.UpdatedAt = DateTime.Now;
-            var updated = await HolidayService.UpdateAsync(holiday);
-            if (!updated)
-                return NotFound(ResponseMessage.NotFound);
-
-            return Ok();
+                return BadRequest(ModelState);
+            var result = await HolidayService.UpdateAsync(holiday);
+            return result.Status switch
+            {
+                HolidayWriteStatus.Invalid => BadRequest(new { result.Message }),
+                HolidayWriteStatus.Conflict => Conflict(new { result.Message }),
+                HolidayWriteStatus.NotFound => NotFound(ResponseMessage.NotFound),
+                _ => Ok()
+            };
         }
 
 

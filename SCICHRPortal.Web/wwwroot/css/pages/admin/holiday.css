@@ -1,0 +1,138 @@
+#holiday-modal .modal-dialog {
+    width: calc(100% - 32px);
+    max-width: 900px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* Keep labels above Select2, which otherwise overlaps floated form labels. */
+#holiday-modal .form-group > label {
+    display: block;
+    float: none !important;
+    width: 100%;
+    margin-bottom: 6px;
+    padding: 0;
+    text-align: left;
+}
+
+#holiday-modal .form-control:not(.select2-hidden-accessible),
+#holiday-modal .select2-container--bootstrap .select2-selection {
+    min-height: 34px;
+    background-color: #fff;
+    border: 1.5px solid #4caf50 !important;
+    border-radius: 10px !important;
+    color: #35383d !important;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600 !important;
+    box-shadow: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#holiday-modal .form-control:not(.select2-hidden-accessible),
+#holiday-modal .select2-container--bootstrap .select2-selection--single {
+    height: 34px;
+    padding: 5px 12px;
+    line-height: 21px;
+}
+
+#holiday-modal .form-group > .select2-container {
+    display: block;
+    width: 100% !important;
+}
+
+#holiday-modal .select2-selection--single {
+    padding-right: 32px !important;
+}
+
+#holiday-modal .select2-selection--single .select2-selection__rendered {
+    padding: 0;
+    color: inherit;
+    line-height: 21px;
+}
+
+#holiday-modal .select2-selection--single .select2-selection__arrow {
+    right: 16px;
+}
+
+/* Let selected projects wrap while keeping a single row as compact as an input. */
+#holiday-modal .select2-selection--multiple {
+    height: auto;
+    padding: 4px 12px;
+}
+
+#holiday-modal .select2-selection--multiple .select2-selection__rendered {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-height: 23px;
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+}
+
+#holiday-modal .select2-selection--multiple .select2-selection__choice {
+    float: none;
+    max-width: 100%;
+    margin: 0;
+    padding: 0 6px;
+    border: 1px solid #c8e6c9;
+    border-radius: 5px;
+    background-color: #e8f5e9;
+    color: #2d4a2d;
+    line-height: 20px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#holiday-modal .select2-selection__choice__remove {
+    color: #2e7d32;
+    margin-right: 5px;
+}
+
+#holiday-modal .select2-search--inline {
+    float: none;
+    max-width: 100%;
+    margin: 0;
+}
+
+#holiday-modal .select2-selection--multiple .select2-search--inline .select2-search__field {
+    height: 22px;
+    min-width: 3em;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    color: #35383d;
+    font: inherit;
+    line-height: 22px;
+}
+
+#holiday-modal .form-control:focus,
+#holiday-modal .select2-container--focus .select2-selection,
+#holiday-modal .select2-container--open .select2-selection {
+    border-color: #43a047 !important;
+    box-shadow: 0 0 0 3.5px rgba(46, 125, 50, 0.16) !important;
+    outline: none;
+}
+
+#holiday-modal .select2-container--disabled .select2-selection {
+    background-color: #f1f5f1;
+    cursor: not-allowed;
+}
+
+#holiday-modal .select2-dropdown {
+    border-color: #4caf50;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+}
+
+#holiday-modal .select2-search--dropdown .select2-search__field {
+    border-color: #4caf50;
+    border-radius: 6px;
+}
+
+#holiday-modal .select2-results__option--highlighted[aria-selected] {
+    background-color: #2e7d32;
+    color: #fff;
+}

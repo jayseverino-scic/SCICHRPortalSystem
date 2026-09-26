@@ -7,9 +7,9 @@ namespace SCICHRPortal.Data.Entities.Metadatas
         public string? HolidayName { get; set; }
         public DateTime? HolidayDate { get; set; }
         public int? HolidayType { get; set; }
-        public int? ProjectId{ get; set; }
+        // No assignments means All Projects. Assignment history is stored internally.
+        public ICollection<Project> Projects { get; set; } = new List<Project>();
 
         public HolidayType HolidayTypes { get; set; }
-        public Project? Project { get; set; }
     }
 }

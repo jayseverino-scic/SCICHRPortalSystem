@@ -5,10 +5,10 @@ namespace SCICHRPortal.Data.Enums
     public enum HolidayType
     {
         [Description("Regular")]
-        Regular,
+        Regular = 1,
         [Description("Special Non-Working")]
-        SpecialNonWorking,
+        SpecialNonWorking = 2,
         [Description("Local")]
-        Local
+        Local = 3
     }
 }

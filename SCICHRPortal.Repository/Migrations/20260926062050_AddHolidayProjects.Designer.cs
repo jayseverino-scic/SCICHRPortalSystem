@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SCICHRPortal.Repository;
@@ -11,9 +12,11 @@ using SCICHRPortal.Repository;
 namespace SCICHRPortal.Repository.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20260926062050_AddHolidayProjects")]
+    partial class AddHolidayProjects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -891,6 +894,9 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Property<int>("HolidayTypes")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -898,6 +904,8 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("HolidayId");
+
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("Holiday");
                 });
@@ -2005,10 +2013,20 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Holiday", b =>
+                {
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.HolidayProject", b =>
                 {
                     b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Holiday", "Holiday")
-                        .WithMany()
+                        .WithMany("HolidayProjects")
                         .HasForeignKey("HolidayId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -2062,6 +2080,11 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Navigation("Company_Position");
 
                     b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.Metadatas.Holiday", b =>
+                {
+                    b.Navigation("HolidayProjects");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.User", b =>

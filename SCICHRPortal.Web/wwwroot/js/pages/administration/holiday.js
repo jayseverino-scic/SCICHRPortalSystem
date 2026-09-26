@@ -1,294 +1,221 @@
-﻿(function ($) {
-    //Events
-    const CLICK_EVENT = 'click';
-    const LOAD_EVENT = 'load';
-    const SYSTEM = 'timekeeping';
+(function ($) {
+    const api = new ApiHelper();
+    const formHelper = new FormHelper();
+    const dateHelper = new DateHelper();
+    const rules = HolidayFormRules;
+    let activeProjects = [];
+    let projectsAvailable = false;
+    let projectRequestId = 0;
+    let editAssignments = [];
+    let editAllProjects = false;
+    let grid;
 
-    //Helpers
-    const _apiHelper = new ApiHelper();
-    const _formHelper = new FormHelper();
-    const _dateHelper = new DateHelper();
-    const _numberHelper = new NumberHelper();
-    const _cookieHelper = new CookieHelper();
-    let _project = [];
-    const _typeOfHolidays = {
-        '1': 'Regular',
-        '2': 'Special Non-Working',
-        '3': 'Local',
-    };
-    let attachEvents = () => {
-        $('#add-button').on(CLICK_EVENT, onClickAddModal);
-        $('#holiday-form').on('submit', onFormSubmit);
-    };
+    function renderProjectOptions(selected = null) {
+        const select = $('#ProjectIds').empty();
+        if (projectsAvailable || editAllProjects) select.append($('<option>').val('__all__').text('All Projects'));
+        activeProjects.forEach(project => {
+            const assigned = editAssignments.find(item => item.id === project.id);
+            const inactive = assigned?.deleted === true;
+            select.append($('<option>').val(String(project.id)).text(`${project.name}${inactive ? ' (inactive)' : ''}`));
+        });
+        editAssignments.filter(project => !activeProjects.some(active => active.id === project.id)).forEach(project => {
+            select.append($('<option>').val(String(project.id)).text(`${project.name || `Project #${project.id}`} (inactive)`));
+        });
+        select.val(selected).trigger('change');
+    }
 
-    let onClickAddModal = function () {
-        $('#holiday-form')[0].reset();
-        $('#holiday-form').find(':submit').text('Add');
+    function configureProjectField() {
+        const select = $('#ProjectIds');
+        select.prop('multiple', true);
+        $('#local-project-group').removeClass('d-none');
+        select.prop('required', true);
+        $('#project-validation').addClass('d-none');
+    }
+
+    async function loadProjects() {
+        const requestId = ++projectRequestId;
+        const select = $('#ProjectIds');
+        const selection = select.val();
+        activeProjects = [];
+        projectsAvailable = false;
+        select.prop('disabled', true);
+        renderProjectOptions(selection);
+        try {
+            const response = await api.get({ url: 'Authenticated/Project' });
+            if (requestId !== projectRequestId) return;
+            if (!response.ok) throw new Error('Project request failed');
+            const projects = await response.json();
+            if (requestId !== projectRequestId) return;
+            activeProjects = projects
+                .filter(project => !project.deleted && Number.isInteger(Number(project.id)) && Number(project.id) > 0)
+                .map(project => ({ id: Number(project.id), name: project.name }));
+            projectsAvailable = true;
+            const current = select.val();
+            renderProjectOptions(current && current.length ? current : (Number($('#HolidayId').val()) === 0 ? ['__all__'] : []));
+            select.prop('disabled', false);
+        } catch (_error) {
+            if (requestId !== projectRequestId) return;
+            activeProjects = [];
+            projectsAvailable = false;
+            renderProjectOptions(Number($('#HolidayId').val()) > 0 ? select.val() : null);
+            toastr.error('Could not load projects.');
+        }
+    }
+
+    function openForCreate() {
+        editAssignments = [];
+        editAllProjects = false;
+        const form = $('#holiday-form')[0];
+        form.reset();
+        $('#HolidayId').val(0);
+        $('#HolidayType').val('1').trigger('change');
+        renderProjectOptions(['__all__']);
+        $('#holiday-modal-btn').text('Add');
+        configureProjectField();
+        $('#holiday-modal').modal('show');
+        loadProjects();
+    }
+
+    function openForEdit(row) {
+        editAllProjects = row.allProjects === true;
+        const projectIds = Array.isArray(row.projectIds) ? row.projectIds.map(Number).filter(id => Number.isSafeInteger(id) && id > 0) : [];
+        const projectDetails = Array.isArray(row.projects) ? row.projects : [];
+        editAssignments = projectIds.map((id, index) => {
+            const detail = projectDetails.find(project => Number(project.id) === id);
+            return { id, name: detail?.name || row.projectNames?.[index] || `Project #${id}`, deleted: detail?.deleted === true };
+        });
+        const form = $('#holiday-form')[0];
+        form.reset();
+        $('#HolidayId').val(row.holidayId);
+        $('#HolidayName').val(row.holidayName);
+        $('#HolidayDate').val(moment(row.holidayDate).format('YYYY-MM-DD'));
+        $('#HolidayType').val(String(row.holidayType)).trigger('change');
+        configureProjectField();
+        renderProjectOptions(editAllProjects ? ['__all__'] : projectIds.map(String));
+        $('#holiday-modal-btn').text('Update');
         $('#holiday-modal').modal('show');
     }
-    let getHolidayTypes = function (types) {
-        return _.map(normalizeHolidayTypes(types), function (type) {
-            return _typeofHolidaysLookup[type] || type;
-        });
-    }
-    let normalizeHolidayTypes = function (types) {
-        if (!types) {
-            return [];
-        }
 
-        let normalizedHolidayTypes = _.chain($.isArray(types) ? types : [types])
-            .map(function (type) {
-                return type != null ? type.toString().split(/[;,]/) : [];
-            })
-            .flatten()
-            .value();
-
-        return _.chain(normalizedHolidayTypes)
-            .map(function (type) {
-                return type != null ? type.toString().trim() : '';
-            })
-            .filter(function (type) {
-                return type !== '';
-            })
-            .uniq()
-            .value();
-    }
-    let typeOfHolidaysSelect2 = function (isMultiple) {
-        $('#holiday-form #HolidayType').select2({
-            multiple: isMultiple,
-            theme: "bootstrap",
-            width: 'element',
-            width: 'resolve',
-            //closeOnSelect: !params.autoClose,
-        });
-    }
-    let onFormSubmit = async event => {
+    async function submitForm(event) {
         event.preventDefault();
-        let selectedTypes = $('#HolidayType').val() || [];
-        let form = $(event.target);
-        $(event.target).validate();
-        let button = $(event.target).find(':submit').text().toLowerCase();
-        console.log(button);
-        if ($(event.target).valid()) {
-            $('#busy-indicator-container').removeClass('d-none');
-            let response = '';
-            let typeOfHolidays = selectedTypes;
-            let data = _formHelper.toJsonString(event.target);
-            let currentTabTitle = $('.tab-pane.active .title').text();
-            data.isApproved = true;
-            data.HolidayTypes = typeOfHolidays.join(';');
-            if (button == 'add') {
-                response = await _apiHelper.post({
-                    url: 'Authenticated/Holiday',
-                    data: data,
-                    requestOrigin: `${currentTabTitle} Tab`,
-                    requesterName: $('#current-user').text()
-                });
-                status = 'Created!';
-            } else {
-                response = await _apiHelper.put({
-                    url: 'Authenticated/Holiday',
-                    data: data,
-                    requestOrigin: `${currentTabTitle} Tab`,
-                    requesterName: $('#current-user').text()
-                });
-                status = 'Created!';
-            }
+        const form = $(event.currentTarget);
+        if (!form.valid()) return;
+        const payload = rules.buildPayload({
+            holidayId: $('#HolidayId').val(),
+            holidayName: $('#HolidayName').val(),
+            holidayDate: $('#HolidayDate').val(),
+            holidayType: $('#HolidayType').val(),
+            selectedProjects: $('#ProjectIds').val()
+        });
+        const editing = payload.holidayId > 0;
+        const validProject = payload.allProjects || payload.projectIds.length > 0;
+        $('#project-validation').toggleClass('d-none', validProject);
+        if (!validProject) return;
 
+        $('#busy-indicator-container').removeClass('d-none');
+        const request = {
+            url: 'Authenticated/Holiday',
+            data: payload,
+            requestOrigin: `${$('.tab-pane.active .title').text()} Tab`,
+            requesterName: $('#current-user').text()
+        };
+        try {
+            const response = editing ? await api.put(request) : await api.post(request);
             if (response.ok) {
-                $('#holiday-grid').DataTable().ajax.reload(null, false);
+                grid.ajax.reload(null, false);
                 toastr.success('Success');
-                $(event.target)[0].reset();
-                $(event.target)[0].elements[1].focus();
-                $(event.target).find(':submit').prop("disabled", false).text('Add');
                 $('#holiday-modal').modal('hide');
-            }
-            else if (response.status == 403) {
+            } else if (response.status === 403) {
                 noAccessAlert();
+            } else {
+                const error = await response.json().catch(() => null);
+                Swal.fire('Error!', error?.message || 'Could not save holiday.', 'error');
             }
-            else if (response.status === 409) {
-                let json = await response.json();
-                Swal.fire(
-                    'Error!',
-                    json.message,
-                    'error'
-                );
-            }
-
+        } catch (_error) {
+            Swal.fire('Error!', 'Could not save holiday. Please try again.', 'error');
+        } finally {
             $('#busy-indicator-container').addClass('d-none');
         }
-    };
-
-    let populateForm = (form, data) => {
-        $(form).find(':submit').text('Update');
-        $('#HolidayDate').val(data.holidayDate);
-        _formHelper.populateForm(form, data);
     }
 
-    let initializeGrid = async () => {
-        let columns = await getColumns();
-        let table = $('#holiday-grid').DataTable({
+    function textColumn(title, field) {
+        return {
+            title, data: field, className: 'noVis dt-center',
+            render: (data, type) => type === 'display' ? rules.escapeHtml(data) : data
+        };
+    }
+
+    function initializeGrid() {
+        grid = $('#holiday-grid').DataTable({
             bLengthChange: true,
             lengthMenu: [[5, 10, 20, 40, 80], [5, 10, 20, 40, 80]],
-            bFilter: true,
-            bInfo: true,
-            serverSide: true,
-            targets: 'no-sort',
-            bSort: false,
-            scrollY: "350px",
-            scrollX: true,
-            order: [1, 'asc'],
-            ajax: async function (params, success, settings) {
-                let gridInfo = $('#holiday-grid').DataTable().page.info();
-                let searchKeyword = params.search.value;
-                let pageSize = params.length;
-                let response = await _apiHelper.get({
-                    url: `Authenticated/Holiday/Filter?pageNumber=${gridInfo.page + 1}&pageSize=${pageSize}&searchKeyword=${searchKeyword}`,
-                });
-
-                if (response.ok) {
-                    let json = await response.json();
-                    let total = json.total;
-                    success({
-                        recordsFiltered: total,
-                        recordsTotal: total,
-                        data: json.data
-                    });
-
-
-                    $('#holiday-grid tbody').on('click', '.icon-edit', function () {
-                        var data = table.row($(this).closest('tr')).data();
-                        let form = $('#holiday-form');
-                        populateForm(form, data);
-                        let date = moment(data.holidayDate);
-                        form.find('#HolidayDate').val(date.format('yyyy-MM-DD'))
-                        $('#holiday-modal').modal('show');
-                    });
-
-                    $('.icon-delete').on('click', function (e) {
-                        var data = table.row($(this).closest('tr')).data();
-                        _formHelper.deleteRecord(e, data.holidayName, SYSTEM);
-                    });
-                } else {
-                    success(null);
-                }
-            },
-            columns: columns,
-            pageLength: 5,
+            bFilter: true, bInfo: true, serverSide: true, bSort: false,
+            scrollY: '350px', scrollX: true, pageLength: 5,
             dom: '<"pull-left">lBf<"pull-right">tipr',
-        });
-    }
-
-    let getColumns = async () => {
-        let columns = [
-            {
-                title: 'No.',
-                data: "holidayId",
-                width: "1.5em",
-                className: 'noVis dt-center',
-                render: (data, type, row, meta) => {
-                    let rowNumber = Number(meta.row) + 1;
-                    return rowNumber;
+            ajax: async (params, success) => {
+                const page = Math.floor(params.start / params.length) + 1;
+                const response = await api.get({
+                    url: `Authenticated/Holiday/Filter?pageNumber=${page}&pageSize=${params.length}&searchKeyword=${encodeURIComponent(params.search.value)}`
+                });
+                if (!response.ok) {
+                    success({ recordsFiltered: 0, recordsTotal: 0, data: [] });
+                    return;
+                }
+                const json = await response.json();
+                success({ recordsFiltered: json.total, recordsTotal: json.total, data: json.data });
+            },
+            columns: [
+                {
+                    title: 'No.', data: 'holidayId', className: 'noVis dt-center',
+                    render: (_data, _type, _row, meta) => meta.settings._iDisplayStart + meta.row + 1
                 },
-            },
-            {
-                title: 'Holiday Name',
-                data: "holidayName",
-                className: 'noVis dt-center',
-                render: (data, type, row, meta) => {
-                    return data;
+                textColumn('Holiday Name', 'holidayName'),
+                textColumn('Holiday Type', 'holidayTypeName'),
+                {
+                    title: 'Projects', data: null, className: 'noVis dt-center',
+                    render: (_data, type, row) => type === 'display' ? rules.projectSummary(row) : row.projectNames?.join(', ') || ''
                 },
-            },
-            {
-                title: "Holiday Type",
-                data: "holidayType",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return data
+                {
+                    title: 'Holiday Date', data: 'holidayDate', className: 'noVis dt-center',
+                    render: data => dateHelper.formatShortLocalDate(data)
                 },
-            },
-            {
-                title: "Holiday Date",
-                data: "holidayDate",
-                className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatShortLocalDate(data);
-                },
-            },
-
-        ];
-        let lastColumn = {
-            data: "holidayId",
-            width: "3em",
-            render: function (data, type, full) {
-                let buttons = '<a href="#" class="m-1 icon-edit" data-id="' + full.holidayId + '" data-endpoint="Authenticated/Holiday" data-table="holiday-grid"><i class="fas fa-edit"></i></a>';
-                buttons += '<a href="#" class="m-1 icon-delete" data-id="' + full.holidayId + '" data-endpoint="Authenticated/Holiday" data-table="holiday-grid"><i class="fas fa-trash border-icon"></i></a>';
-
-                return type === 'display' ?
-                    buttons
-                    :
-                    "";
-            },
-            className: 'noVis dt-center'
-        };
-        columns.push(lastColumn);
-        return columns;
-    };
-
-    let renderDropDowns = async () => {
-        await getDropdownData();
-        _formHelper.renderDropdown({ name: 'employee-form #ProjectId', valueName: 'id', data: _project, text: 'name', placeHolder: '-' });
-    };
-
-    let getDropdownData = async () => {
-        let [departmentResp, projectResp] = await Promise.all([
-            _apiHelper.get({
-                url: `Authenticated/Department`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/Project`
-            }),
-        ]);
-
-        let [departmentComponent, projectComponent] = await Promise.all(
-            [
-                departmentResp.json(),
-                projectResp.json(),
+                {
+                    data: 'holidayId', width: '3em', className: 'noVis dt-center',
+                    render: (data, type) => type === 'display'
+                        ? `<a href="#" class="m-1 icon-edit" data-id="${Number(data)}"><i class="fas fa-edit"></i></a>` +
+                          `<a href="#" class="m-1 icon-delete" data-id="${Number(data)}" data-endpoint="Authenticated/Holiday" data-table="holiday-grid"><i class="fas fa-trash border-icon"></i></a>`
+                        : ''
+                }
             ]
-        );
-
-        _department = _.map(departmentComponent, (s) => {
-            return {
-                departmentId: s.departmentId,
-                description: s.departmentName
-            }
         });
-        _project = _.map(projectComponent, (s) => {
-            return {
-                id: s.id,
-                name: s.name
-            }
+        $('#holiday-grid tbody').on('click', '.icon-edit', function (event) {
+            event.preventDefault();
+            openForEdit(grid.row($(this).closest('tr')).data());
         });
-
-        console.log(_project)
+        $('#holiday-grid tbody').on('click', '.icon-delete', function (event) {
+            const row = grid.row($(this).closest('tr')).data();
+            formHelper.deleteRecord(event, row.holidayName, 'timekeeping');
+        });
     }
-
-    let initializeModals = e => {
-        $('#enrollment-modal').modal({ backdrop: 'static', keyboard: false });
-        $('#reasonModal').modal({ backdrop: 'static', keyboard: false });
-        $('#viewApprovalRegister').modal({ backdrop: 'static', keyboard: false });
-        typeOfHolidaysSelect2(false);
-    }
-
-    let initializeGrids = e => {
-        initializeGrid();
-    }
-
 
     $(document).ready(function () {
-        initializeGrids();
-        attachEvents();
-        initializeModals();
+        $('#HolidayType').select2({ theme: 'bootstrap', width: '100%', dropdownParent: $('#holiday-modal') });
+        $('#ProjectIds').select2({ theme: 'bootstrap', width: '100%', dropdownParent: $('#holiday-modal') });
+        $('#ProjectIds').on('select2:select', event => {
+            const select = $('#ProjectIds');
+            if (event.params.data.id === '__all__') {
+                select.val(['__all__']).trigger('change');
+            } else {
+                const values = select.val() || [];
+                if (values.includes('__all__')) {
+                    select.val(values.filter(value => value !== '__all__')).trigger('change');
+                }
+            }
+        });
+        $('#HolidayType').on('change', configureProjectField);
+        $('#add-button').on('click', openForCreate);
+        $('#holiday-form').on('submit', submitForm);
+        initializeGrid();
+        loadProjects();
     });
-
 })(jQuery);

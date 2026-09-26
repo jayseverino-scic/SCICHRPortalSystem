@@ -17,13 +17,14 @@
     <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
     <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/pages/admin/masterdata.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/admin/holiday.css" asp-append-version="true" />
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 
 }
 <div class="modal" id="holiday-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 900px; width: 900px;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <form id="holiday-form">
+            <form id="holiday-form" novalidate>
                 <div class="form-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="addModalLabel">Holiday Form</h4>
@@ -38,8 +39,8 @@
                                         <input type="text" asp-for="HolidayName" class="form-control">
                                         <span asp-validation-for="HolidayName" class="text-danger"></span>
                                     </div>
-                                    <div class="form-group col-md-6">
-                                        <label asp-for="HolidayType" class="text-white select2-label"> Holiday Type</label>
+                                    <div class="form-group col-md-12">
+                                        <label asp-for="HolidayType" class="col-form-label">Holiday Type</label>
                                         <select asp-for="HolidayType" id="HolidayType" class="form-control" style="width:100%">
                                             <option value="1">Regular</option>
                                             <option value="2">Special Non-Working</option>
@@ -52,10 +53,10 @@
                                         <input type="date" asp-for="HolidayDate" class="form-control">
                                         <span asp-validation-for="HolidayDate" class="text-danger"></span>
                                     </div>
-                                    <div class="form-group col-md-6">
-                                        <label asp-for="ProjectId" class="text-white select2-label"> Project</label>
-                                        <select asp-for="ProjectId" id="ProjectId" class="form-control" style="width:100%" />
-                                        <span asp-validation-for="ProjectId" class="text-danger"></span>
+                                    <div class="form-group col-md-12" id="local-project-group">
+                                        <label for="ProjectIds" class="col-form-label">Project</label>
+                                        <select id="ProjectIds" name="projectIds" class="form-control" multiple style="width:100%"></select>
+                                        <span id="project-validation" class="text-danger d-none">Select a project or All Projects.</span>
                                     </div>
                                 </div>
                             </div>
@@ -103,5 +104,6 @@
     <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
     <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
-    <script src="~/js/pages/administration/holiday.js"></script>
+    <script src="~/js/pages/administration/holiday-form.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/holiday.js" asp-append-version="true"></script>
 }

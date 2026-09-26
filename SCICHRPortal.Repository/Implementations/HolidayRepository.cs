@@ -28,7 +28,8 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<Tuple<IEnumerable<Holiday>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
-            var holidays = Context.Holiday!
+            var holidays = Context.Holiday!.AsNoTracking()
+              .Include(e => e.Projects)
               .Where(e => e.Deleted == false);
 
             if (!String.IsNullOrWhiteSpace(searchKeyword))
@@ -38,7 +39,7 @@ namespace SCICHRPortal.Repository.Implementations
                         e.HolidayName!.ToLower().Contains(searchKeyword.ToLower()));
             }
 
-            var total = holidays.Count();
+            var total = await holidays.CountAsync();
 
             holidays = holidays
                 .OrderByDescending(e => e.HolidayId)
@@ -50,58 +51,63 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<IEnumerable<Holiday>> GetAllAsync()
         {
-            var holidays = await Context.Holiday!.Where(s => !s.Deleted)
+            var holidays = await Context.Holiday!.AsNoTracking().Where(s => !s.Deleted)
+              .Include(e => e.Projects)
               .ToListAsync();
             return holidays;
         }
 
         public async Task<Holiday> GetAsync(int id)
         {
-            var holiday = await Context.Holiday!
+            var holiday = await Context.Holiday!.AsNoTracking()
+                    .Include(e => e.Projects)
                     .SingleOrDefaultAsync(s => s.HolidayId == id && !s.Deleted);
             return holiday!;
         }
 
-        public async Task<DuplicateMessage> HasDuplicateName(Holiday holiday)
+        public async Task InsertAsync(Holiday holiday, IReadOnlyCollection<int> projectIds)
         {
-            DuplicateMessage message = new();
-            var title = holiday.HolidayName!.ToLower().StringSplitThenJoin();
-            var announcementMessage = holiday.HolidayName!.ToLower().StringSplitThenJoin();
-            var holidays = await Context.Holiday!
-               .Where(r => r.Deleted == false).ToListAsync();
-
-            var duplicatedTitle = holidays.Any(t => t.HolidayName!.ToLower().StringSplitThenJoin() == title);
-            var duplicatedMessage = holidays.Any(t => announcementMessage.ToLower() == t.HolidayName!.ToLower().StringSplitThenJoin());
-            var duplicatedDate = holidays.Any(t => t.CreatedAt.Date == DateTime.Now.Date);
-
-            if (duplicatedDate && duplicatedTitle)
-            {
-                message.Message = "Holiday Name Duplicated";
-            }
-            else if (duplicatedDate && duplicatedMessage)
-            {
-                message.Message = "Holiday Name Duplicated";
-            }
-
-            message.IsDuplicated = (duplicatedTitle || duplicatedMessage) && duplicatedDate;
-            return message;
-        }
-
-        public async Task InsertAsync(Holiday entity)
-        {
-            await Context.Holiday!.AddAsync(entity);
+            Context.Holiday!.Add(holiday);
+            foreach (var projectId in projectIds.Distinct())
+                Context.HolidayProject.Add(new HolidayProject {
+                    Holiday = holiday, ProjectId = projectId,
+                    CreatedAt = holiday.CreatedAt, CreatedBy = holiday.CreatedBy });
             await Context.SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateAsync(Holiday holiday)
+        public async Task UpdateAsync(Holiday holiday, IReadOnlyCollection<int> projectIds)
         {
-            var record = Context.Update(holiday);
-            if (record is null)
-                return false;
+            var tracked = await Context.Holiday!
+                .SingleAsync(existing => existing.HolidayId == holiday.HolidayId && !existing.Deleted);
+            tracked.HolidayName = holiday.HolidayName;
+            tracked.HolidayDate = holiday.HolidayDate;
+            tracked.HolidayType = holiday.HolidayType;
+            tracked.UpdatedAt = holiday.UpdatedAt;
+            tracked.UpdatedBy = holiday.UpdatedBy;
+
+            // Keep the audited join history separate from the public Projects read model.
+            // Removing skip-navigation entries would request physical join deletion.
+            var links = await Context.HolidayProject.IgnoreQueryFilters()
+                .Where(link => link.HolidayId == tracked.HolidayId).ToListAsync();
+            var selectedIds = projectIds.ToHashSet();
+            foreach (var link in links)
+            {
+                var removed = !selectedIds.Contains(link.ProjectId);
+                if (link.Deleted == removed)
+                    continue;
+                link.Deleted = removed;
+                link.UpdatedAt = holiday.UpdatedAt;
+                link.UpdatedBy = holiday.UpdatedBy;
+            }
+            var knownIds = links.Select(link => link.ProjectId).ToHashSet();
+            foreach (var projectId in selectedIds.Except(knownIds))
+                Context.HolidayProject.Add(new HolidayProject {
+                    Holiday = tracked, ProjectId = projectId,
+                    CreatedAt = holiday.UpdatedAt ?? holiday.CreatedAt, CreatedBy = holiday.UpdatedBy });
 
             await Context.SaveChangesAsync();
-            return true;
         }
+
     }
 }
 
