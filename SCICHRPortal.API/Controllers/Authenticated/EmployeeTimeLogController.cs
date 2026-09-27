@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Operations;
 using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Enums;
 using SCICHRPortal.Data.TimekeepingTables;
@@ -9,6 +10,7 @@ using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
+using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -30,6 +32,34 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             EmployeeService = employeeService;
             EmployeeShiftService = employeeShiftService;
             ProjectService = projectService;
+        }
+
+        [HttpGet("EmployeeLookup")]
+        public async Task<IActionResult> EmployeeLookupAsync(string? term, int page = 1)
+        {
+            if (page < 1 || page > 100000 || (term?.Length ?? 0) > 100)
+                return BadRequest("Enter a valid search term and page.");
+            var trimmed = term?.Trim() ?? "";
+            if (trimmed.Length < 2)
+                return Ok(new EmployeeTimeLogEmployeeLookupPage());
+            return Ok(await EmployeeTimeLogService.SearchEmployeesAsync(trimmed, page));
+        }
+
+        [HttpGet("EmployeeLookup/{employeeId:int}")]
+        public async Task<IActionResult> EmployeeLookupByIdAsync(int employeeId)
+        {
+            if (employeeId <= 0)
+                return BadRequest("Select a valid employee.");
+            var employee = await EmployeeService.GetAsync(employeeId);
+            if (employee is null || employee.Deleted)
+                return NotFound("The selected employee was not found or is inactive.");
+            return Ok(new EmployeeTimeLogEmployeeLookupItem
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeNo = employee.EmployeeNo,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName
+            });
         }
         [HttpGet()]
         public async Task<IActionResult> GetAsync()
@@ -72,9 +102,20 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(dto);
         }
 
+        [HttpGet("Page")]
+        public async Task<IActionResult> PageAsync([FromQuery] EmployeeTimeLogPageQuery query, CancellationToken cancellationToken = default)
+        {
+            if (!ModelState.IsValid || !query.IsValid())
+                return BadRequest("Enter valid paging, search, sort and date filters.");
+            return Ok(await EmployeeTimeLogService.GetPageAsync(query, cancellationToken));
+        }
+
         [HttpGet("FilterPerProject")]
         public async Task<IActionResult> FilterPerProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
         {
+            if (startDate.HasValue && endDate.HasValue && startDate.Value.Date > endDate.Value.Date)
+                return BadRequest("Start date must be on or before end date.");
+
             var tuple = await EmployeeTimeLogService.FilterByProjectAndDateRange(startDate, endDate, projectName);
 
             var data = tuple.Select(d => new
@@ -112,6 +153,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [HttpPost("Import")]
         public async Task<IActionResult> ImportAsync(DateTime? startImportDate, DateTime? endImportDate, string? projectName)
         {
+            if (!startImportDate.HasValue || !endImportDate.HasValue || string.IsNullOrWhiteSpace(projectName))
+                return BadRequest("Select a project and both dates before getting imported logs.");
+            if (startImportDate > endImportDate)
+                return BadRequest("Start date must be on or before end date.");
+
             IEnumerable<BiometricsLog> biometricsLogs = await BiometricsLogService.FilterByProjectAndDateRange(startImportDate, endImportDate, projectName);
             List<string> bioEmployees = new List<string>();
             List<string?> bioDates = new List<string?>();
@@ -309,26 +355,50 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         [HttpPost()]
-        public async Task<IActionResult> InsertAsync(EmployeeTimeLog employeeTimeLog)
+        public async Task<IActionResult> InsertAsync(EmployeeTimeLogInsertRequestModel request)
         {
             if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
+                return BadRequest("Check the time log fields and try again.");
+            if (request.EmployeeId <= 0)
+                return BadRequest("Select a valid employee.");
+            if (!request.DateIn.HasValue)
+                return BadRequest("Date In is required.");
+            if (!request.TimeIn.HasValue && !request.TimeOut.HasValue)
+                return BadRequest("Enter Time In or Time Out.");
+            if (request.TimeOut.HasValue && !request.DateOut.HasValue)
+                return BadRequest("Date Out is required when Time Out is entered.");
 
-            if (employeeTimeLog.TimeIn == null && employeeTimeLog.TimeOut == null)
-                return BadRequest("Bad Request.");
+            var dateIn = request.DateIn.Value.Date;
+            var dateOut = request.DateOut?.Date ?? dateIn;
+            if (dateOut < dateIn)
+                return BadRequest("Date Out cannot be before Date In.");
+
+            var employeeTimeLog = new EmployeeTimeLog
+            {
+                EmployeeId = request.EmployeeId,
+                DateIn = dateIn,
+                DateOut = dateOut,
+                TimeIn = request.TimeIn.HasValue ? dateIn.Add(request.TimeIn.Value.TimeOfDay) : null,
+                TimeOut = request.TimeOut.HasValue ? dateOut.Add(request.TimeOut.Value.TimeOfDay) : null,
+                ProjectTimeIn = request.ProjectTimeIn,
+                ProjectTimeOut = request.ProjectTimeOut,
+                DeviceTimeIn = request.DeviceTimeIn,
+                DeviceTimeOut = request.DeviceTimeOut
+            };
+            var scheduleError = await ApplyAssignedScheduleAsync(employeeTimeLog);
+            if (scheduleError is not null)
+                return scheduleError;
+
+            if (employeeTimeLog.TimeOut < employeeTimeLog.TimeIn && dateOut == dateIn)
+            {
+                employeeTimeLog.DateOut = dateOut.AddDays(1);
+                employeeTimeLog.TimeOut = employeeTimeLog.TimeOut.Value.AddDays(1);
+            }
+
             var hasDuplicate = await EmployeeTimeLogService.HasDuplicateName(employeeTimeLog);
             if (hasDuplicate.IsDuplicated)
                 return Conflict(hasDuplicate);
 
-            if (employeeTimeLog.TimeOut < employeeTimeLog.TimeIn && employeeTimeLog.DateIn == employeeTimeLog.DateOut)
-            {
-                employeeTimeLog.DateOut = employeeTimeLog.DateOut!.Value.AddDays(1);
-                employeeTimeLog.TimeOut = employeeTimeLog.TimeOut.Value.AddDays(1);
-            }
-            if (employeeTimeLog.ShiftStart > employeeTimeLog.ShiftEnd)
-            {
-                employeeTimeLog.ShiftEnd = employeeTimeLog.ShiftEnd!.Value.AddDays(1);
-            }
             employeeTimeLog.SystemRemarks = "Manual Add";
             employeeTimeLog.CreatedAt = DateTime.UtcNow;
             employeeTimeLog.CreatedBy = "manuel";
@@ -337,20 +407,89 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return StatusCode(201, employeeTimeLog.TimeLogId);
         }
 
+        private async Task<IActionResult?> ApplyAssignedScheduleAsync(EmployeeTimeLog employeeTimeLog)
+        {
+            if (employeeTimeLog.EmployeeId <= 0)
+                return BadRequest("Select a valid employee.");
+            if (!employeeTimeLog.DateIn.HasValue)
+                return BadRequest("Date In is required.");
+
+            var employee = await EmployeeService.GetAsync(employeeTimeLog.EmployeeId);
+            if (employee is null || employee.Deleted)
+                return NotFound("The selected employee was not found or is inactive.");
+
+            EmployeeShift? shift;
+            try
+            {
+                shift = await EmployeeShiftService.GetByEmployee(employeeTimeLog.EmployeeId);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("more than one element", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Multiple assigned shifts were found for this employee. Resolve the assignment before saving a time log.");
+            }
+
+            if (shift is null || shift.Deleted)
+                return BadRequest("No assigned shift was found for this employee.");
+            var dateIn = employeeTimeLog.DateIn.Value.Date;
+            var (weekdayStart, weekdayEnd) = GetWeekdayShiftTimes(shift, dateIn.DayOfWeek);
+            if (!weekdayStart.HasValue || !weekdayEnd.HasValue)
+                return BadRequest($"The assigned shift has incomplete {dateIn.DayOfWeek} times.");
+
+            var shiftStart = dateIn.Add(weekdayStart.Value.TimeOfDay);
+            var shiftEnd = dateIn.Add(weekdayEnd.Value.TimeOfDay);
+            employeeTimeLog.ShiftStart = shiftStart;
+            employeeTimeLog.ShiftEnd = shiftEnd < shiftStart ? shiftEnd.AddDays(1) : shiftEnd;
+            employeeTimeLog.IsFlexibleShift = shift.IsFlexibleShift;
+            employeeTimeLog.IsNoShift = shift.IsNoShift;
+            employeeTimeLog.IsNoBreak = shift.IsNoBreak;
+            return null;
+        }
+
+        private static (DateTime? Start, DateTime? End) GetWeekdayShiftTimes(EmployeeShift shift, DayOfWeek weekday) => weekday switch
+        {
+            DayOfWeek.Monday => (shift.MondayShiftStart, shift.MondayShiftEnd),
+            DayOfWeek.Tuesday => (shift.TuesdayShiftStart, shift.TuesdayShiftEnd),
+            DayOfWeek.Wednesday => (shift.WednesdayShiftStart, shift.WednesdayShiftEnd),
+            DayOfWeek.Thursday => (shift.ThursdayShiftStart, shift.ThursdayShiftEnd),
+            DayOfWeek.Friday => (shift.FridayShiftStart, shift.FridayShiftEnd),
+            DayOfWeek.Saturday => (shift.SaturdayShiftStart, shift.SaturdayShiftEnd),
+            DayOfWeek.Sunday => (shift.SundayShiftStart, shift.SundayShiftEnd),
+            _ => (null, null)
+        };
+
         [HttpPut()]
         public async Task<IActionResult> UpdateAsync(EmployeeTimeLog employeeTimeLog)
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
+            var persisted = await EmployeeTimeLogService.GetAsync(employeeTimeLog.TimeLogId);
+            if (persisted is null)
+                return NotFound(ResponseMessage.NotFound);
+
+            if (persisted.EmployeeId != employeeTimeLog.EmployeeId || persisted.DateIn?.Date != employeeTimeLog.DateIn?.Date)
+            {
+                var scheduleError = await ApplyAssignedScheduleAsync(employeeTimeLog);
+                if (scheduleError is not null)
+                    return scheduleError;
+            }
+            else
+            {
+                employeeTimeLog.ShiftStart = persisted.ShiftStart;
+                employeeTimeLog.ShiftEnd = persisted.ShiftEnd;
+                employeeTimeLog.IsFlexibleShift = persisted.IsFlexibleShift;
+                employeeTimeLog.IsNoShift = persisted.IsNoShift;
+                employeeTimeLog.IsNoBreak = persisted.IsNoBreak;
+            }
+
             if (employeeTimeLog.TimeOut < employeeTimeLog.TimeIn && employeeTimeLog.DateIn == employeeTimeLog.DateOut)
             {
                 employeeTimeLog.DateOut = employeeTimeLog.DateOut!.Value.AddDays(1);
                 employeeTimeLog.TimeOut = employeeTimeLog.TimeOut.Value.AddDays(1);
             }
-            if (employeeTimeLog.ShiftStart > employeeTimeLog.ShiftEnd)
-            {
-                employeeTimeLog.ShiftEnd = employeeTimeLog.ShiftEnd!.Value.AddDays(1);
-            }
+            var hasDuplicate = await EmployeeTimeLogService.HasDuplicateName(employeeTimeLog);
+            if (hasDuplicate.IsDuplicated)
+                return Conflict(hasDuplicate);
+
             employeeTimeLog.SystemRemarks = "Manual Edit";
             employeeTimeLog.UpdatedAt = DateTime.Now;
             employeeTimeLog.UpdatedBy = "manuel";

@@ -16,6 +16,12 @@ namespace SCICHRPortal.Service.Implementations
             EmployeeTimeLogRepository = employeeTimeLogRepository;
         }
 
+        public Task<EmployeeTimeLogEmployeeLookupPage> SearchEmployeesAsync(string term, int page) =>
+            EmployeeTimeLogRepository.SearchEmployeesAsync(term, page);
+
+        public Task<EmployeeTimeLogPage> GetPageAsync(EmployeeTimeLogPageQuery query, CancellationToken cancellationToken = default) =>
+            EmployeeTimeLogRepository.GetPageAsync(query, cancellationToken);
+
         public async Task<bool> DeleteAsync(int id)
         {
             return await EmployeeTimeLogRepository.DeleteAsync(id);

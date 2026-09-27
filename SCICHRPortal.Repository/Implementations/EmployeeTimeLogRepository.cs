@@ -7,11 +7,41 @@ using SCICHRPortal.Utility.Extensions;
 
 namespace SCICHRPortal.Repository.Implementations
 {
-    public class EmployeeTimeLogRepository : Repository, IEmployeeTimeLogRepository
+    public partial class EmployeeTimeLogRepository : Repository, IEmployeeTimeLogRepository
     {
         public EmployeeTimeLogRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
     : base(context, xscribeContext, timekeepingContext)
         {
+        }
+
+        public async Task<EmployeeTimeLogEmployeeLookupPage> SearchEmployeesAsync(string term, int page)
+        {
+            const int pageSize = 20;
+            var normalized = term.Trim().ToUpper();
+            var rows = await Context.Employee!
+                .AsNoTracking()
+                .Where(e => !e.Deleted &&
+                    ((e.EmployeeNo ?? "").ToUpper().Contains(normalized) ||
+                     (e.FirstName ?? "").ToUpper().Contains(normalized) ||
+                     (e.LastName ?? "").ToUpper().Contains(normalized) ||
+                     ((e.FirstName ?? "") + " " + (e.LastName ?? "")).ToUpper().Contains(normalized) ||
+                     ((e.LastName ?? "") + " " + (e.FirstName ?? "")).ToUpper().Contains(normalized)))
+                .OrderBy(e => e.EmployeeId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize + 1)
+                .Select(e => new EmployeeTimeLogEmployeeLookupItem
+                {
+                    EmployeeId = e.EmployeeId,
+                    EmployeeNo = e.EmployeeNo,
+                    FirstName = e.FirstName,
+                    LastName = e.LastName
+                })
+                .ToListAsync();
+            return new EmployeeTimeLogEmployeeLookupPage
+            {
+                Data = rows.Take(pageSize).ToList(),
+                More = rows.Count > pageSize
+            };
         }
         public async Task<bool> DeleteAsync(int id)
         {
@@ -78,20 +108,20 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<DuplicateMessage> HasDuplicateName(EmployeeTimeLog employeeTimeLog)
         {
-            DuplicateMessage message = new();
-            var employeeTimeLogs = await Context.EmployeeTimeLog!
-               .Where(r => r.Deleted == false).ToListAsync();
+            var dateIn = employeeTimeLog.DateIn?.Date;
+            var dateOut = employeeTimeLog.DateOut?.Date;
+            var duplicated = await Context.EmployeeTimeLog!.AnyAsync(t =>
+                !t.Deleted && t.TimeLogId != employeeTimeLog.TimeLogId &&
+                t.EmployeeId == employeeTimeLog.EmployeeId &&
+                t.DateIn.HasValue && t.DateIn.Value.Date == dateIn &&
+                t.DateOut.HasValue && t.DateOut.Value.Date == dateOut &&
+                t.TimeIn == employeeTimeLog.TimeIn && t.TimeOut == employeeTimeLog.TimeOut);
 
-            var duplicated = employeeTimeLogs.Any(t => t.EmployeeId == employeeTimeLog.EmployeeId
-                        && t.TimeIn == employeeTimeLog.TimeIn && t.TimeOut == employeeTimeLog.TimeOut);
-
-            if (duplicated)
+            return new DuplicateMessage
             {
-                message.Message = "EmployeeTimeLog Duplicated";
-            }
-
-            message.IsDuplicated = duplicated;
-            return message;
+                IsDuplicated = duplicated,
+                Message = duplicated ? "A time log with the same employee, dates, and times already exists." : null
+            };
         }
 
         public async Task InsertAsync(EmployeeTimeLog entity)
@@ -111,9 +141,36 @@ namespace SCICHRPortal.Repository.Implementations
         }
         public async Task<IEnumerable<EmployeeTimeLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
         {
-            IEnumerable<EmployeeTimeLog> employeeTimeLog = await Context.EmployeeTimeLog!.Include(e => e.Employee).Where(d => !d.Deleted).ToListAsync();
-            employeeTimeLog = employeeTimeLog!.Where(b => !b.Deleted && b.DateIn >= startDate && b.DateIn <= endDate && b.ProjectTimeIn!.ToUpper() == projectName!.ToUpper()).ToList();
-                return employeeTimeLog;
+            var query = Context.EmployeeTimeLog!
+                .AsNoTracking()
+                .Include(e => e.Employee)
+                .Where(e => !e.Deleted);
+
+            if (startDate.HasValue)
+            {
+                var start = startDate.Value.Date;
+                query = query.Where(e => e.DateIn >= start);
+            }
+            if (endDate.HasValue)
+            {
+                var end = endDate.Value.Date;
+                // An exclusive next-day boundary includes the entire end date.
+                if (end < DateTime.MaxValue.Date)
+                {
+                    var endExclusive = end.AddDays(1);
+                    query = query.Where(e => e.DateIn < endExclusive);
+                }
+                else
+                {
+                    query = query.Where(e => e.DateIn <= DateTime.MaxValue);
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(projectName))
+            {
+                var project = projectName.ToUpper();
+                query = query.Where(e => e.ProjectTimeIn != null && e.ProjectTimeIn.ToUpper() == project);
+            }
+            return await query.ToListAsync();
         }
         public async Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByProjectAsync(int projectId, DateTime logDate)
         {

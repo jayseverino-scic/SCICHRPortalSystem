@@ -11,6 +11,8 @@ namespace SCICHRPortal.Repository.Interfaces
          IRetriever<EmployeeTimeLog, int>,
          IListRetriever<EmployeeTimeLog>
     {
+        Task<EmployeeTimeLogEmployeeLookupPage> SearchEmployeesAsync(string term, int page);
+        Task<EmployeeTimeLogPage> GetPageAsync(EmployeeTimeLogPageQuery query, CancellationToken cancellationToken = default);
         Task<bool> DeleteAsync(int id);
         Task<bool> UpdateAsync(EmployeeTimeLog employeeTimeLog);
         

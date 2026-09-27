@@ -30,6 +30,10 @@
                         <h4 class="modal-title" id="addModalLabel">Time Log Form</h4>
                     </div>
                     <div class="modal-body">
+                        <div id="employee-lookup-status" class="text-warning" role="status" aria-live="polite"></div>
+                        <div id="project-lookup-status" class="text-warning" role="status" aria-live="polite"></div>
+                        <div id="device-lookup-status" class="text-warning" role="status" aria-live="polite"></div>
+                        <div id="employee-time-log-status" class="text-danger" role="alert" aria-live="assertive"></div>
                         <div class="row">
                             <div class="row col-md-12 mx-auto" align="center">
                                 <input name="timeLogId" id="TimeLogId" hidden type="number" value=0 class="form-control">
@@ -81,7 +85,7 @@
                                             <span asp-validation-for="ProjectTimeOut" class="text-danger"></span>
                                         </div>
                                         <div class="form-group col-md-12">
-                                            <label asp-for="DeviceTimeOut" class="col-form-label">Project Out</label>
+                                            <label asp-for="DeviceTimeOut" class="col-form-label">Device Out</label>
                                             <select asp-for="DeviceTimeOut" id="deviceTimeOut" style="width:100%;" class="form-control select borrow-initial"></select>
                                             <span asp-validation-for="DeviceTimeOut" class="text-danger"></span>
                                         </div>
@@ -131,25 +135,9 @@
                 <button class="btn btn-primary add-new-btn" id="add-button">New Log</button>
             </div>
         </div>
+        <div id="project-filter-status" role="status" aria-live="polite"></div>
+        <div id="time-log-page-status" role="status" aria-live="polite"></div>
         <br />
-        @*         <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
-            <div>
-                <div class="form-label">From</div>
-                <input id="start-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
-            </div>
-            <div>
-                <div class="form-label">To</div>
-                <input id="end-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
-            </div>
-            <div>
-                <div class="form-label">Timekeeping Device</div>
-                <select id="biometrics" class="form-control select" style="width:200px"></select>
-            </div>
-            <div>
-                <div class="form-label" style="color: transparent;">Button</div>
-                <button id="filter" class="btn btn-primary" style="height: 38px; width: 80px;">Filter</button>
-            </div>
-        </div> *@
         <table id="employee-time-log-grid" class="display" cellspacing="0" width="100%" style="background-color:cornflowerblue">
         </table>
     </div>
@@ -173,5 +161,5 @@
     <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
     <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
-    <script src="~/js/pages/administration/employee-time-log.js"></script>
+    <script src="~/js/pages/administration/employee-time-log.js" asp-append-version="true"></script>
 }
