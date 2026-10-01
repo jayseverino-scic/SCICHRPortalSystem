@@ -1,4 +1,4 @@
-﻿@model SCICHRPortal.Web.Models.ViewModels.Administration.EmployeeTimeLogViewModel
+@model SCICHRPortal.Web.Models.ViewModels.Administration.EmployeeTimeLogViewModel
 @{
     ViewData["Title"] = "Administration System";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -21,7 +21,7 @@
 
 }
 <div class="modal" id="employee-time-log-modal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document" style="max-width: 500px; width: 500px;">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <form id="employee-time-log-form">
 
@@ -34,63 +34,78 @@
                         <div id="project-lookup-status" class="text-warning" role="status" aria-live="polite"></div>
                         <div id="device-lookup-status" class="text-warning" role="status" aria-live="polite"></div>
                         <div id="employee-time-log-status" class="text-danger" role="alert" aria-live="assertive"></div>
-                        <div class="row">
-                            <div class="row col-md-12 mx-auto" align="center">
-                                <input name="timeLogId" id="TimeLogId" hidden type="number" value=0 class="form-control">
-                                <div class="col-md-12 mr-auto row">
-                                    <div class="col-12 row m-0">
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="EmployeeNo" class="text-white select2-label">Employee Number</label>
-                                            <select asp-for="EmployeeNo" id="employeeNo" style="width:100%;" class="form-control select borrow-initial"></select>
-                                            <span asp-validation-for="EmployeeNo" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="EmployeeName" class="text-white select2-label">Employee Name</label>
-                                            <select asp-for="EmployeeName" id="employeeName" style="width:100%;" class="form-control select borrow-initial"></select>
-                                            <span asp-validation-for="EmployeeName" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="DateIn" class="col-form-label">Date In</label>
-                                            <input type="date" asp-for="DateIn" id="dateIn" class="form-control lowercase borrow-initial">
-                                            <span asp-validation-for="DateIn" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="TimeIn" class="col-form-label">Time In</label>
-                                            <input type="time" asp-for="TimeIn" id="timeIn" class="form-control lowercase borrow-initial">
-                                            <span asp-validation-for="TimeIn" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="ProjectTimeIn" class="col-form-label">Project In</label>
-                                            <select asp-for="ProjectTimeIn" id="projectTimeIn" style="width:100%;" class="form-control select borrow-initial"></select>
-                                            <span asp-validation-for="ProjectTimeIn" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="DeviceTimeIn" class="col-form-label">Device In</label>
-                                            <select asp-for="DeviceTimeIn" id="deviceTimeIn" style="width:100%;" class="form-control select borrow-initial"></select>
-                                            <span asp-validation-for="DeviceTimeIn" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="DateOut" class="col-form-label">Date Out</label>
-                                            <input type="date" asp-for="DateOut" id="dateOut" class="form-control lowercase borrow-initial">
-                                            <span asp-validation-for="DateOut" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="TimeOut" class="col-form-label">Time Out</label>
-                                            <input type="time" asp-for="TimeOut" id="timeOut" class="form-control lowercase borrow-initial">
-                                            <span asp-validation-for="TimeOut" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="ProjectTimeOut" class="col-form-label">Project Out</label>
-                                            <select asp-for="ProjectTimeOut" id="projectTimeOut" style="width:100%;" class="form-control select borrow-initial"></select>
-                                            <span asp-validation-for="ProjectTimeOut" class="text-danger"></span>
-                                        </div>
-                                        <div class="form-group col-md-12">
-                                            <label asp-for="DeviceTimeOut" class="col-form-label">Device Out</label>
-                                            <select asp-for="DeviceTimeOut" id="deviceTimeOut" style="width:100%;" class="form-control select borrow-initial"></select>
-                                            <span asp-validation-for="DeviceTimeOut" class="text-danger"></span>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div id="time-log-edit-rule" role="status"></div>
+                        <input name="timeLogId" id="TimeLogId" hidden type="number" value="0">
+                        <div class="time-log-fields">
+                            <div class="form-group">
+                                <label asp-for="EmployeeNo" class="text-white select2-label">Employee Number</label>
+                                <select asp-for="EmployeeNo" id="employeeNo" style="width:100%;" class="form-control select borrow-initial"></select>
+                                <span asp-validation-for="EmployeeNo" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="EmployeeName" class="text-white select2-label">Employee Name</label>
+                                <select asp-for="EmployeeName" id="employeeName" style="width:100%;" class="form-control select borrow-initial"></select>
+                                <span asp-validation-for="EmployeeName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DateIn" class="col-form-label">Date In</label>
+                                <input type="date" asp-for="DateIn" id="dateIn" class="form-control lowercase borrow-initial">
+                                <span asp-validation-for="DateIn" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="TimeIn" class="col-form-label">Time In</label>
+                                <input type="time" asp-for="TimeIn" id="timeIn" class="form-control lowercase borrow-initial">
+                                <span asp-validation-for="TimeIn" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ProjectTimeIn" class="col-form-label">Project In</label>
+                                <select asp-for="ProjectTimeIn" id="projectTimeIn" style="width:100%;" class="form-control select borrow-initial"></select>
+                                <span asp-validation-for="ProjectTimeIn" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DeviceTimeIn" class="col-form-label">Device In</label>
+                                <select asp-for="DeviceTimeIn" id="deviceTimeIn" style="width:100%;" class="form-control select borrow-initial"></select>
+                                <span asp-validation-for="DeviceTimeIn" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DateOut" class="col-form-label">Date Out</label>
+                                <input type="date" asp-for="DateOut" id="dateOut" class="form-control lowercase borrow-initial">
+                                <span asp-validation-for="DateOut" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="TimeOut" class="col-form-label">Time Out</label>
+                                <input type="time" asp-for="TimeOut" id="timeOut" class="form-control lowercase borrow-initial">
+                                <span asp-validation-for="TimeOut" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ProjectTimeOut" class="col-form-label">Project Out</label>
+                                <select asp-for="ProjectTimeOut" id="projectTimeOut" style="width:100%;" class="form-control select borrow-initial"></select>
+                                <span asp-validation-for="ProjectTimeOut" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DeviceTimeOut" class="col-form-label">Device Out</label>
+                                <select asp-for="DeviceTimeOut" id="deviceTimeOut" style="width:100%;" class="form-control select borrow-initial"></select>
+                                <span asp-validation-for="DeviceTimeOut" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="time-log-additional-fields">
+                            <div class="form-group time-log-ob-field">
+                                <label for="isOB" class="time-log-ob-label">
+                                    <input asp-for="IsOB" id="isOB" type="checkbox" aria-describedby="time-log-ob-description" />
+                                    <span>OB</span>
+                                </label>
+                                <span id="time-log-ob-description" class="time-log-help">Official Business</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="timeLogAttachment">Attachment</label>
+                                <input id="timeLogAttachment" type="file" class="form-control"
+                                       accept=".pdf,.jpg,.jpeg,.png,.docx,.xls,.xlsx" aria-describedby="time-log-attachment-help" />
+                                <small id="time-log-attachment-help" class="time-log-help">One attachment, up to 10 MB. PDF, JPG/JPEG, PNG, DOCX, XLS or XLSX.</small>
+                                <div id="time-log-attachment-info"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="timeLogComment">Comment</label>
+                                <textarea id="timeLogComment" class="form-control" rows="4" readonly></textarea>
                             </div>
                         </div>
 
@@ -161,5 +176,6 @@
     <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
     <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/pages/administration/time-log-record.js" asp-append-version="true"></script>
     <script src="~/js/pages/administration/employee-time-log.js" asp-append-version="true"></script>
 }

@@ -7,6 +7,7 @@ namespace SCICHRPortal.Web.Models.ViewModels.Administration
     public class EmployeeTimeLogViewModel
     {
         public int TimeLogId { get; set; }
+        public bool IsOB { get; set; }
         [Required(ErrorMessage = "Employee is required.")]
         public int EmployeeId { get; set; }
         [Required(ErrorMessage ="Employee number is required.")]

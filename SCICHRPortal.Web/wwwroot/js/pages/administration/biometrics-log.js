@@ -106,11 +106,16 @@
         }
 
         let fileName = fileInput.val().replace(/C:\\fakepath\\/i, '');
+        const projectName = $('#project').val();
+        if (!projectName) {
+            Swal.fire('Project required', 'Select a project before importing the file.', 'error');
+            return;
+        }
         _uploadDownloadModalHelper.show('uploading', { filename: fileName });
 
         var request = _apiHelper.ajaxRequest('POST', {
             url: 'Authenticated/BiometricsLog/Import',
-            data: $('#upload-file')[0].files[0],
+            dataObject: { file: fileInput[0].files[0], projectName },
             xhr: function () {
                 let xhr = new window.XMLHttpRequest();
                 xhr.upload.addEventListener("progress", function (evt) {

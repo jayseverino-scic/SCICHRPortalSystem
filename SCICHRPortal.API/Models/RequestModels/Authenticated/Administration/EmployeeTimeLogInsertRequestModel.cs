@@ -6,6 +6,7 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
     {
         [Required(ErrorMessage ="Employee is required.")]
         public int EmployeeId { get; set; }
+        public bool IsOB { get; set; }
         public DateTime? DateIn { get; set; }
         public DateTime? DateOut { get; set; }
         public DateTime? TimeIn { get; set; }

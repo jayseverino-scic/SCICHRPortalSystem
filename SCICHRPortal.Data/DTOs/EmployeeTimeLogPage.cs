@@ -51,5 +51,9 @@ public class EmployeeTimeLogPageRow
     public string? DeviceTimeIn { get; set; }
     public string? DeviceTimeOut { get; set; }
     public string? SystemRemarks { get; set; }
+    public bool IsOB { get; set; }
+    public bool HasAttachment { get; set; }
+    public string? CommentPreview { get; set; }
+    public long Version { get; set; }
     public DateTime? CreatedAt { get; set; }
 }

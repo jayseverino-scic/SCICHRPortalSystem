@@ -123,12 +123,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [HttpPost("Import")]
         [Consumes("multipart/form-data")]
         [Authorize]
-        public async Task<ActionResult> UploadFileAsync(IFormFile file)
+        public async Task<ActionResult> UploadFileAsync(IFormFile file, [FromForm] string? projectName)
         {
+            if (string.IsNullOrWhiteSpace(projectName))
+                return BadRequest("Select a project before importing an Excel file.");
             if (file == null)
                 return BadRequest(ResponseMessage.BadRequest);
 
-            var extension = Path.GetExtension(file.FileName);
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (extension != ".xls" && extension != ".xlsx")
             {
                 return StatusCode(415, ResponseMessage.FileNotSupported);
@@ -186,7 +188,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             Date = parsedDate,
                             Time = parsedDate.Date + parsedTime.TimeOfDay,
                             LogType = logType,
-                            DeviceName = deviceName,
+                            DeviceName = string.IsNullOrWhiteSpace(deviceName) ? null : deviceName,
+                            ProjectName = projectName.Trim(),
+                            ImportSource = "File",
                             CreatedAt = DateTime.Now,
                             CreatedBy = "Manuel"
                         });
@@ -280,6 +284,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             LogType = timeLog.LogType?.ToString() ?? string.Empty,
                             DeviceName = timeLog.DeviceSerialNumber ?? string.Empty,
                             ProjectName = projectName ?? string.Empty,
+                            ImportSource = "Biometrics",
                             CreatedAt = DateTime.Now,
                             CreatedBy = "Manuel"
                         });
@@ -331,12 +336,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [HttpPost("ImportWithProgress")]
         [Consumes("multipart/form-data")]
         [Authorize]
-        public async Task<ActionResult> UploadFileWithProgressAsync(IFormFile file)
+        public async Task<ActionResult> UploadFileWithProgressAsync(IFormFile file, [FromForm] string? projectName)
         {
+            if (string.IsNullOrWhiteSpace(projectName))
+                return BadRequest("Select a project before importing an Excel file.");
             if (file == null)
                 return BadRequest(ResponseMessage.BadRequest);
 
-            var extension = Path.GetExtension(file.FileName);
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (extension != ".xls" && extension != ".xlsx")
             {
                 return StatusCode(415, ResponseMessage.FileNotSupported);
@@ -394,7 +401,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                             Date = parsedDate,
                             Time = parsedDate.Date + parsedTime.TimeOfDay,
                             LogType = logType,
-                            DeviceName = deviceName,
+                            DeviceName = string.IsNullOrWhiteSpace(deviceName) ? null : deviceName,
+                            ProjectName = projectName.Trim(),
+                            ImportSource = "File",
                             CreatedAt = DateTime.Now,
                             CreatedBy = "Manuel"
                         });

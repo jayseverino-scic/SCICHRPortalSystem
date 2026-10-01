@@ -61,7 +61,9 @@ public partial class EmployeeTimeLogRepository
                 ShiftStart = e.ShiftStart, ShiftEnd = e.ShiftEnd, IsFlexibleShift = e.IsFlexibleShift,
                 IsNoShift = e.IsNoShift, IsNoBreak = e.IsNoBreak, ProjectTimeIn = e.ProjectTimeIn,
                 ProjectTimeOut = e.ProjectTimeOut, DeviceTimeIn = e.DeviceTimeIn, DeviceTimeOut = e.DeviceTimeOut,
-                SystemRemarks = e.SystemRemarks, CreatedAt = e.CreatedAt
+                SystemRemarks = e.SystemRemarks, CreatedAt = e.CreatedAt, IsOB = e.IsOB,
+                HasAttachment = e.Attachment != null, Version = e.Version,
+                CommentPreview = e.Comment == null ? null : e.Comment.Length > 120 ? e.Comment.Substring(0, 120) + "…" : e.Comment
             }).ToListAsync(cancellationToken);
         return new EmployeeTimeLogPage { Draw = request.Draw, RecordsTotal = total, RecordsFiltered = filtered, Data = rows };
     }

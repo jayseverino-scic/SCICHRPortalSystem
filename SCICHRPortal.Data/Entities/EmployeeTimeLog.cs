@@ -25,6 +25,10 @@ namespace SCICHRPortal.Data.Entities
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
         public string? SystemRemarks { get; set; }
+        public bool IsOB { get; set; }
+        public string? Comment { get; set; }
+        public long Version { get; set; }
+        public TimeLogAttachment? Attachment { get; set; }
         public string? DeviceTimeIn { get; set;  }
         public string? DeviceTimeOut { get; set; }
         public string? ProjectTimeIn { get; set; }

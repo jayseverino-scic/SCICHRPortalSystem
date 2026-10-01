@@ -37,6 +37,7 @@ namespace SCICHRPortal.Repository
         public DbSet<Employee> Employee { get; set; }
         public DbSet<EmployeeShift> EmployeeShift { get; set; }
         public DbSet<EmployeeTimeLog> EmployeeTimeLog { get; set; }
+        public DbSet<TimeLogAttachment> TimeLogAttachment { get; set; }
         public DbSet<EmployeeAttendance> EmployeeAttendance { get; set; }
         public DbSet<CutOff> CutOff { get; set; }
         public DbSet<LeaveType> LeaveType { get; set; }
@@ -61,6 +62,10 @@ namespace SCICHRPortal.Repository
             new EmployeeMap(modelBuilder.Entity<Employee>());
             new EmployeeShiftMap(modelBuilder.Entity<EmployeeShift>());
             new EmployeeTimeLogMap(modelBuilder.Entity<EmployeeTimeLog>());
+            modelBuilder.Entity<EmployeeTimeLog>().Property(e => e.Version).HasDefaultValue(0L);
+            modelBuilder.Entity<EmployeeTimeLog>().Property(e => e.IsOB).HasDefaultValue(false);
+            modelBuilder.Entity<TimeLogAttachment>().HasKey(e => e.TimeLogAttachmentId);
+            modelBuilder.Entity<TimeLogAttachment>().HasIndex(e => e.TimeLogId).IsUnique();
             new EmployeeAttendanceMap(modelBuilder.Entity<EmployeeAttendance>());
             new CutOffMap(modelBuilder.Entity<CutOff>());
             new LeaveTypeMap(modelBuilder.Entity<LeaveType>());

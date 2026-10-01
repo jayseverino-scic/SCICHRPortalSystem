@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     //Events
     const CLICK_EVENT = 'click';
     const LOAD_EVENT = 'load';
@@ -364,6 +364,10 @@
         abortEmployeeLookup();
         editingRecord = null;
         editedLookupFields.clear();
+        attachmentRetry = null;
+        detailRequestVersion++;
+        $('#timeLogAttachment').val('');
+        applyRecordRules();
         hideShowColumnBaseOnAction(true);
         $('#employee-time-log-form')[0].reset();
         setEmployeeChoice(null);
@@ -398,123 +402,151 @@
         return fallback;
     };
 
+    let attachmentRetry = null;
+    let detailRequestVersion = 0;
+
+    async function getRecord(id) {
+        const response = await _apiHelper.get({ url: `Authenticated/EmployeeTimeLog/${id}` });
+        if (!response.ok) throw new Error(await responseMessage(response, 'The current time record could not be loaded.'));
+        return response.json();
+    }
+
+    function applyRecordRules() {
+        const form = $('#employee-time-log-form');
+        form.find('.borrow-initial').prop('disabled', false);
+        for (const field of TimeLogRecord.lockedFields(editingRecord)) {
+            form.find(field === 'employeeId' ? '#employeeNo, #employeeName' : '#' + field).prop('disabled', true);
+        }
+        $('#time-log-edit-rule').text(TimeLogRecord.isProtected(editingRecord)
+            ? 'Only empty record fields can be filled. OB and an attachment can still be added.' : '');
+        $('#timeLogComment').val(editingRecord?.comment || '');
+        $('#isOB').prop('checked', !!editingRecord?.isOB).prop('disabled', false);
+        $('#timeLogAttachment').prop('disabled', !!editingRecord?.attachment);
+        const info = $('#time-log-attachment-info').empty();
+        if (editingRecord?.attachment) {
+            $('<button type="button" class="btn btn-link">').text(editingRecord.attachment.fileName)
+                .on('click', () => downloadAttachment(editingRecord).catch(error => setFormStatus(error.message))).appendTo(info);
+        }
+    }
+
+    async function downloadAttachment(record) {
+        if (!record?.attachment) throw new Error('This time record no longer has an attachment.');
+        const response = await _apiHelper.get({
+            url: `Authenticated/EmployeeTimeLog/${record.timeLogId}/attachment/${record.attachment.timeLogAttachmentId}`
+        });
+        if (!response.ok) throw new Error('The attachment could not be downloaded.');
+        const url = URL.createObjectURL(await response.blob());
+        const anchor = document.createElement('a');
+        anchor.href = url; anchor.download = record.attachment.fileName;
+        document.body.appendChild(anchor); anchor.click(); anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function finishRecordSave() {
+        attachmentRetry = null;
+        editingRecord = null;
+        $('#employee-time-log-form')[0].reset();
+        abortEmployeeLookup();
+        setEmployeeChoice(null);
+        $('#employee-time-log-modal').modal('hide');
+        const refreshed = await refreshCurrentFilter();
+        $('#time-log-page-status').text(refreshed ? 'Time record saved. Adjust filters if it is outside the current view.'
+            : 'Time record saved, but refreshing the grid failed. Try Filter again.');
+        toastr.success('Time record saved.');
+    }
+
+    async function uploadPendingAttachment() {
+        // Reload because an earlier upload may have succeeded despite a lost response.
+        const current = await getRecord(attachmentRetry.id);
+        if (!current.attachment) {
+            const file = $('#timeLogAttachment')[0].files[0];
+            if (!file) throw new Error('Select one attachment to upload.');
+            const body = new FormData();
+            body.append('file', file);
+            body.append('version', current.version);
+            const response = await fetch(`${_apiHelper.baseApiUrl}/Authenticated/EmployeeTimeLog/${current.timeLogId}/attachment`, {
+                method: 'POST', headers: { Authorization: `Bearer ${_cookieHelper.get('jsonWebToken')}` }, body
+            });
+            if (!response.ok) throw new Error(await responseMessage(response, 'The attachment could not be uploaded.'));
+        }
+        await finishRecordSave();
+    }
+
     let onFormSubmit = async event => {
         event.preventDefault();
         if (isSubmitting) return;
         const form = $(event.target);
+        const selectedFile = $('#timeLogAttachment')[0].files[0];
+        if (selectedFile && (selectedFile.size <= 0 || selectedFile.size > 10 * 1024 * 1024 ||
+            !/\.(pdf|jpe?g|png|docx|xls|xlsx)$/i.test(selectedFile.name))) {
+            setFormStatus('Select a nonempty PDF, JPG/JPEG, PNG, DOCX, XLS or XLSX file up to 10 MB.');
+            return;
+        }
+        if (attachmentRetry) {
+            isSubmitting = true; form.find(':submit').prop('disabled', true);
+            try { await uploadPendingAttachment(); }
+            catch (error) { setFormStatus('Time record saved. Attachment upload failed: ' + error.message + ' Retry the attachment.'); }
+            finally { isSubmitting = false; form.find(':submit').prop('disabled', false); }
+            return;
+        }
         form.validate();
         if (!form.valid()) return;
-
-        setFormStatus('');
-        const data = _formHelper.toJsonString(event.target);
-        const numberId = Number($('#employee-time-log-form #employeeNo').val());
-        const nameId = Number($('#employee-time-log-form #employeeName').val());
-        const employeeId = numberId;
-        if (hydrationController || !Number.isInteger(employeeId) || employeeId <= 0 || employeeId !== nameId) {
-            setFormStatus('Select an employee in both fields before saving this time log. Wait for the selection to finish loading.');
+        const lockedEmployee = TimeLogRecord.lockedFields(editingRecord).has('employeeId');
+        const numberId = lockedEmployee ? editingRecord.employeeId : Number($('#employeeNo').val());
+        const nameId = lockedEmployee ? editingRecord.employeeId : Number($('#employeeName').val());
+        if ((!lockedEmployee && hydrationController) || !Number.isInteger(numberId) || numberId <= 0 || numberId !== nameId) {
+            setFormStatus('Select an employee in both fields and wait for the selection to finish loading.');
             return;
         }
-        if (!data.DateIn) {
-            setFormStatus('Date In is required.');
+        const values = _formHelper.toJsonString(event.target);
+        values.EmployeeId = numberId;
+        values.IsOB = $('#isOB').prop('checked');
+        const data = TimeLogRecord.payload(editingRecord, values);
+        if (!data.DateIn || (!data.TimeIn && !data.TimeOut) || (data.TimeOut && !values.DateOut)) {
+            setFormStatus('Enter Date In and at least one time. Date Out is required for Time Out.');
             return;
         }
-        if (data.TimeOut && !data.DateOut) {
-            setFormStatus('Date Out is required when Time Out is entered.');
-            return;
-        }
-
         const isAdd = !editingRecord;
-        data.EmployeeId = employeeId;
-        data.TimeLogId = isAdd ? 0 : Number(editingRecord.timeLogId);
-        delete data.timeLogId;
-        data.DateOut = data.DateOut || data.DateIn;
-        data.TimeIn = data.TimeIn ? `${data.DateIn}T${data.TimeIn}` : null;
-        data.TimeOut = data.TimeOut ? `${data.DateOut}T${data.TimeOut}` : null;
-        delete data.EmployeeNo;
-        delete data.EmployeeName;
-
-        if (isAdd) {
-            delete data.ShiftStart;
-            delete data.ShiftEnd;
-            delete data.IsFlexibleShift;
-            delete data.IsNoShift;
-            delete data.IsNoBreak;
-        } else {
-            data.ShiftStart = editingRecord.shiftStart;
-            data.ShiftEnd = editingRecord.shiftEnd;
-            data.IsFlexibleShift = editingRecord.isFlexibleShift;
-            data.IsNoShift = editingRecord.isNoShift;
-            data.IsNoBreak = editingRecord.isNoBreak;
-            for (const field of ['ProjectTimeIn', 'ProjectTimeOut', 'DeviceTimeIn', 'DeviceTimeOut']) {
-                const recordField = field.charAt(0).toLowerCase() + field.slice(1);
-                const lookupLoaded = field.startsWith('Project') ? projectsLoaded : devicesLoaded;
-                if (!lookupLoaded && !editedLookupFields.has(recordField) && !data[field]) {
-                    data[field] = editingRecord[recordField];
-                }
-            }
-        }
-        Object.keys(data).forEach(key => {
-            if (data[key] === null || data[key] === undefined || data[key] === '') delete data[key];
-        });
-
         isSubmitting = true;
         form.find(':submit').prop('disabled', true);
         $('#busy-indicator-container').removeClass('d-none');
+        setFormStatus('');
         try {
-            const currentTabTitle = $('.tab-pane.active .title').text();
             const request = {
                 url: 'Authenticated/EmployeeTimeLog', data,
-                requestOrigin: `${currentTabTitle} Tab`,
-                requesterName: $('#current-user').text(), requestSystem: SYSTEM
+                requestOrigin: 'Employee Time Logs', requesterName: $('#current-user').text(), requestSystem: SYSTEM
             };
             const response = await (isAdd ? _apiHelper.post(request) : _apiHelper.put(request));
             if (!response.ok) {
-                let fallback = response.status === 403
-                    ? 'You do not have permission to save this time log. Contact an administrator.'
-                    : response.status === 409
-                        ? 'This time log conflicts with an existing record. Review the dates and try again.'
-                        : 'The time log could not be saved. Review the fields and try again.';
-                const detail = await responseMessage(response, fallback);
-                setFormStatus(response.status === 403
-                    ? `Permission denied. ${detail} Contact an administrator if you need access.`
-                    : detail);
+                setFormStatus(await responseMessage(response, 'The time record could not be saved.'));
                 return;
             }
-
-            const selectedProject = $('#project').val();
-            const filterStart = $('#start-import-filter').val();
-            const filterEnd = $('#end-import-filter').val();
-            const outsideFilter =
-                (selectedProject && (!data.ProjectTimeIn || data.ProjectTimeIn.toUpperCase() !== selectedProject.toUpperCase())) ||
-                (filterStart && data.DateIn < filterStart) ||
-                (filterEnd && data.DateIn > filterEnd);
-            const refreshed = await refreshCurrentFilter();
-            if (refreshed !== null) {
-                $('#time-log-page-status').text(refreshed
-                    ? (outsideFilter
-                        ? 'Time log saved outside the active filter. Change the project or dates to see it.'
-                        : 'Time log saved. The active filter has been refreshed.')
-                    : 'Time log saved, but the active filter refresh failed. Check the dates and click Filter to try again.');
+            const saved = await response.json();
+            if (selectedFile) {
+                attachmentRetry = { id: isAdd ? saved : saved.timeLogId };
+                form.find('.borrow-initial, #isOB').prop('disabled', true);
+                form.find(':submit').text('Retry attachment');
+                await uploadPendingAttachment();
+            } else {
+                await finishRecordSave();
             }
-            toastr.success(`Record ${isAdd ? 'created' : 'updated'} successfully`);
-            form[0].reset();
-            abortEmployeeLookup();
-            setEmployeeChoice(null);
-            form.find(':submit').text('Add');
-            editingRecord = null;
-            $('#employee-time-log-modal').modal('hide');
         } catch (error) {
-            setFormStatus('Network or connection error while saving. Your entries are still here; try again.');
+            setFormStatus(attachmentRetry
+                ? 'Time record saved. Attachment upload failed: ' + error.message + ' Retry the attachment.'
+                : 'Network or connection error while saving. Your entries are still here.');
         } finally {
             isSubmitting = false;
             form.find(':submit').prop('disabled', false);
             $('#busy-indicator-container').addClass('d-none');
         }
     };
+
     let populateForm = (form, data) => {
         abortEmployeeLookup();
         setEmployeeChoice(null);
         editingRecord = data;
+        attachmentRetry = null;
+        $('#timeLogAttachment').val('');
         editedLookupFields.clear();
         setFormStatus('');
         $(form).find(':submit').text('Update');
@@ -543,6 +575,7 @@
             }
             select.val(value).trigger('change.select2');
         }
+        applyRecordRules();
         if (data.employeeId) {
             hydrateEmployee(Number(data.employeeId));
         }
@@ -750,11 +783,37 @@
     };
 
     let attachTableEvents = () => {
-        $('#employee-time-log-grid tbody').on('click', '.icon-edit', function () {
-            var rowData = dataTable.row($(this).closest('tr')).data();
-            let form = $('#employee-time-log-form');
-            populateForm(form, rowData);
-            $('#employee-time-log-modal').modal('show');
+        $('#employee-time-log-grid tbody').on('click', '.icon-download-attachment', async function (event) {
+            event.preventDefault();
+            const button = $(this);
+            if (button.prop('disabled')) return;
+            const row = dataTable.row(button.closest('tr')).data();
+            button.prop('disabled', true).attr('aria-busy', 'true');
+            $('#time-log-page-status').text('Downloading attachment...');
+            try {
+                const record = await getRecord(row.timeLogId);
+                await downloadAttachment(record);
+                $('#time-log-page-status').text('');
+            } catch (error) {
+                $('#time-log-page-status').text(error.message);
+            } finally {
+                button.prop('disabled', false).removeAttr('aria-busy');
+            }
+        });
+
+        $('#employee-time-log-grid tbody').on('click', '.icon-edit', async function (event) {
+            event.preventDefault();
+            if (isSubmitting) return;
+            const row = dataTable.row($(this).closest('tr')).data();
+            const requestVersion = ++detailRequestVersion;
+            $('#time-log-page-status').text('Loading current record...');
+            try {
+                const record = await getRecord(row.timeLogId);
+                if (requestVersion !== detailRequestVersion) return;
+                populateForm($('#employee-time-log-form'), record);
+                $('#employee-time-log-modal').modal('show');
+                $('#time-log-page-status').text('');
+            } catch (error) { $('#time-log-page-status').text(error.message); }
         });
 
         $('#employee-time-log-grid tbody').on('click', '.return-btn', function () {
@@ -770,9 +829,18 @@
             $('#employee-time-log-modal').modal('show');
         });
 
-        $('#employee-time-log-grid tbody').on('click', '.icon-delete', function (e) {
-            var rowData = dataTable.row($(this).closest('tr')).data();
-            _formHelper.deleteRecord(e, rowData.timeLogId + ' log', SYSTEM);
+        $('#employee-time-log-grid tbody').on('click', '.icon-delete', async function (event) {
+            event.preventDefault();
+            const row = dataTable.row($(this).closest('tr')).data();
+            if (!window.confirm('Delete this time record?')) return;
+            try {
+                const response = await _apiHelper.delete({
+                    url: `Authenticated/EmployeeTimeLog/${row.timeLogId}?version=${row.version}`,
+                    requestOrigin: 'Employee Time Logs', requesterName: $('#current-user').text(), requestSystem: SYSTEM
+                });
+                if (!response.ok) throw new Error(await responseMessage(response, 'The time record could not be deleted.'));
+                await refreshCurrentFilter();
+            } catch (error) { $('#time-log-page-status').text(error.message); }
         });
     };
 
@@ -910,10 +978,22 @@
                 className: 'noVis dt-center'
             }, 
             {
-                title: "System Remarks",
+                title: "System Log Type",
                 data: "systemRemarks",
                 className: 'noVis dt-right',
                 orderable: true
+            },
+            {
+                title: "OB", data: "isOB", orderable: false, searchable: false, className: 'dt-center',
+                render: value => '<input type="checkbox" disabled ' + (value ? 'checked' : '') + ' aria-label="OB">'
+            },
+            {
+                title: "Attachment", data: "hasAttachment", orderable: false, searchable: false,
+                render: value => value ? 'Attached' : ''
+            },
+            {
+                title: "Comment", data: "commentPreview", orderable: false, searchable: false,
+                render: $.fn.dataTable.render.text()
             },
             {
                 title: "Actions",
@@ -922,6 +1002,9 @@
                 render: function (data, type, full) {
                     let buttons = '<a href="#" class="m-1 icon-edit" data-id="' + full.timeLogId + '" data-endpoint="Authenticated/EmployeeTimeLog" data-table="employee-time-log-grid"><i class="fas fa-edit"></i></a>';
                     buttons += '<a href="#" class="m-1 icon-delete" data-id="' + full.timeLogId + '" data-endpoint="Authenticated/EmployeeTimeLog" data-table="employee-time-log-grid"><i class="fas fa-trash border-icon"></i></a>';
+                    if (full.hasAttachment) {
+                        buttons += '<button type="button" class="btn btn-link btn-sm m-1 p-0 icon-download-attachment" title="Download attachment" aria-label="Download attachment"><i class="fas fa-download" aria-hidden="true"></i></button>';
+                    }
                     return type === 'display' ? buttons : "";
                 },
                 className: 'noVis dt-center',

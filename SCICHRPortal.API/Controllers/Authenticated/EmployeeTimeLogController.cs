@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using Microsoft.CodeAnalysis.Operations;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.DTOs;
@@ -24,6 +26,27 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IEmployeeService EmployeeService { get; }
         private IEmployeeShiftService EmployeeShiftService { get; }
         private IProjectService ProjectService { get; }
+        private string Actor => User.Identity?.Name ?? User.FindFirstValue(ClaimTypes.Sid) ?? "Authenticated user";
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> DetailsAsync(int id)
+        {
+            var record = await EmployeeTimeLogService.GetAsync(id);
+            return record is null ? NotFound(ResponseMessage.NotFound) : Ok(ToDetails(record));
+        }
+
+        private static object ToDetails(EmployeeTimeLog record) => new
+        {
+            record.TimeLogId, record.EmployeeId, record.DateIn, record.DateOut, record.TimeIn, record.TimeOut,
+            record.ProjectTimeIn, record.ProjectTimeOut, record.DeviceTimeIn, record.DeviceTimeOut,
+            record.ShiftStart, record.ShiftEnd, record.IsFlexibleShift, record.IsNoShift, record.IsNoBreak,
+            record.SystemRemarks, record.IsOB, record.Comment, record.Version,
+            Attachment = record.Attachment is null ? null : new
+            {
+                record.Attachment.TimeLogAttachmentId, record.Attachment.FileName,
+                record.Attachment.ContentType, record.Attachment.Size
+            }
+        };
 
         public EmployeeTimeLogController(IEmployeeTimeLogService employeeTimeLogService, IBiometricsLogService biometricsLogService, IEmployeeService employeeService, IEmployeeShiftService employeeShiftService, IProjectService projectService)
         {
@@ -182,6 +205,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         employeeTimeLog.DateIn = Convert.ToDateTime(date);
                         employeeTimeLog.DateOut = Convert.ToDateTime(date);
                         biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date?.ToShortDateString() == Convert.ToDateTime(date).ToShortDateString()).OrderBy(e => e.Date).FirstOrDefault();
+                        if (biometricsLog is null) continue;
+                        var timeInSource = biometricsLog.ImportSource;
                         employeeTimeLog.TimeIn = biometricsLog!.Time;
                         employeeTimeLog.ProjectTimeIn = biometricsLog.ProjectName;
                         employeeTimeLog.DeviceTimeIn = biometricsLog.DeviceName;
@@ -321,9 +346,15 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         employeeTimeLog.IsNoShift = shift!.IsNoShift;
                         employeeTimeLog.IsNoBreak = shift.IsNoBreak;
                         employeeTimeLog.IsFlexibleShift = shift.IsFlexibleShift;
-                        employeeTimeLog.SystemRemarks = "Biometrics";
+                        employeeTimeLog.SystemRemarks = timeInSource == "File" || biometricsLog?.ImportSource == "File" ? "File" : "Biometrics";
+                        employeeTimeLog.ProjectTimeIn = TimeLogChanges.Optional(employeeTimeLog.ProjectTimeIn);
+                        employeeTimeLog.ProjectTimeOut = TimeLogChanges.Optional(employeeTimeLog.ProjectTimeOut);
+                        employeeTimeLog.DeviceTimeIn = TimeLogChanges.Optional(employeeTimeLog.DeviceTimeIn);
+                        employeeTimeLog.DeviceTimeOut = TimeLogChanges.Optional(employeeTimeLog.DeviceTimeOut);
+                        employeeTimeLog.Comment = TimeLogChanges.Append(null, Actor,
+                            [$"Imported time record ({employeeTimeLog.SystemRemarks})"], DateTime.UtcNow);
                         employeeTimeLog.CreatedAt = DateTime.UtcNow;
-                        employeeTimeLog.CreatedBy = "manuel";
+                        employeeTimeLog.CreatedBy = Actor;
                         timeLogs.Add(employeeTimeLog);
                         await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
                     }
@@ -333,8 +364,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 d.TimeLogId,
                 d.EmployeeId,
-                employeeNo = d.Employee!.EmployeeId.ToString(),
-                EmployeeName = d.Employee!.LastName + "," + d.Employee.FirstName,
+                employeeNo = d.EmployeeId.ToString(),
+                EmployeeName = d.Employee?.LastName + "," + d.Employee?.FirstName,
                 d.DateIn,
                 d.DateOut,
                 d.TimeIn,
@@ -383,8 +414,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 ProjectTimeIn = request.ProjectTimeIn,
                 ProjectTimeOut = request.ProjectTimeOut,
                 DeviceTimeIn = request.DeviceTimeIn,
-                DeviceTimeOut = request.DeviceTimeOut
+                DeviceTimeOut = TimeLogChanges.Optional(request.DeviceTimeOut),
+                IsOB = request.IsOB
             };
+            employeeTimeLog.ProjectTimeIn = TimeLogChanges.Optional(employeeTimeLog.ProjectTimeIn);
+            employeeTimeLog.ProjectTimeOut = TimeLogChanges.Optional(employeeTimeLog.ProjectTimeOut);
+            employeeTimeLog.DeviceTimeIn = TimeLogChanges.Optional(employeeTimeLog.DeviceTimeIn);
             var scheduleError = await ApplyAssignedScheduleAsync(employeeTimeLog);
             if (scheduleError is not null)
                 return scheduleError;
@@ -401,7 +436,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             employeeTimeLog.SystemRemarks = "Manual Add";
             employeeTimeLog.CreatedAt = DateTime.UtcNow;
-            employeeTimeLog.CreatedBy = "manuel";
+            employeeTimeLog.CreatedBy = Actor;
+            employeeTimeLog.Comment = TimeLogChanges.Append(null, Actor,
+                [$"Created time record (Manual Add); OB: {(employeeTimeLog.IsOB ? "Yes" : "No")}"], DateTime.UtcNow);
             await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
 
             return StatusCode(201, employeeTimeLog.TimeLogId);
@@ -458,13 +495,40 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         };
 
         [HttpPut()]
-        public async Task<IActionResult> UpdateAsync(EmployeeTimeLog employeeTimeLog)
+        public async Task<IActionResult> UpdateAsync(EmployeeTimeLogUpdateRequestModel request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-            var persisted = await EmployeeTimeLogService.GetAsync(employeeTimeLog.TimeLogId);
+            if (!ModelState.IsValid || request.Version is null || request.Version < 0)
+                return BadRequest("Reload the record and provide its current version.");
+            var persisted = await EmployeeTimeLogService.GetAsync(request.TimeLogId);
             if (persisted is null)
                 return NotFound(ResponseMessage.NotFound);
+            if (request.Version != persisted.Version)
+                return Conflict("This time record changed. Close and reopen it before saving.");
+
+            var employeeTimeLog = new EmployeeTimeLog
+            {
+                TimeLogId = persisted.TimeLogId, EmployeeId = request.EmployeeId,
+                DateIn = request.DateIn, DateOut = request.DateOut, TimeIn = request.TimeIn, TimeOut = request.TimeOut,
+                ProjectTimeIn = TimeLogChanges.Optional(request.ProjectTimeIn),
+                ProjectTimeOut = TimeLogChanges.Optional(request.ProjectTimeOut),
+                DeviceTimeIn = TimeLogChanges.Optional(request.DeviceTimeIn),
+                DeviceTimeOut = TimeLogChanges.Optional(request.DeviceTimeOut), IsOB = request.IsOB,
+                CreatedAt = persisted.CreatedAt, CreatedBy = persisted.CreatedBy,
+                SystemRemarks = persisted.SystemRemarks, Comment = persisted.Comment,
+                ShiftStart = persisted.ShiftStart, ShiftEnd = persisted.ShiftEnd,
+                IsFlexibleShift = persisted.IsFlexibleShift, IsNoShift = persisted.IsNoShift, IsNoBreak = persisted.IsNoBreak,
+                Attachment = persisted.Attachment
+            };
+            var protectionError = TimeLogChanges.ProtectedFieldError(persisted, employeeTimeLog);
+            if (protectionError is not null) return BadRequest(protectionError);
+            if (request.EmployeeId <= 0 || !request.DateIn.HasValue)
+                return BadRequest("Employee and Date In are required.");
+            if (request.TimeOut.HasValue && !request.DateOut.HasValue)
+                return BadRequest("Date Out is required when Time Out is entered.");
+            if (!request.TimeIn.HasValue && !request.TimeOut.HasValue)
+                return BadRequest("Enter Time In or Time Out.");
+            if (request.DateOut?.Date < request.DateIn.Value.Date)
+                return BadRequest("Date Out cannot be before Date In.");
 
             if (persisted.EmployeeId != employeeTimeLog.EmployeeId || persisted.DateIn?.Date != employeeTimeLog.DateIn?.Date)
             {
@@ -472,45 +536,68 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 if (scheduleError is not null)
                     return scheduleError;
             }
-            else
-            {
-                employeeTimeLog.ShiftStart = persisted.ShiftStart;
-                employeeTimeLog.ShiftEnd = persisted.ShiftEnd;
-                employeeTimeLog.IsFlexibleShift = persisted.IsFlexibleShift;
-                employeeTimeLog.IsNoShift = persisted.IsNoShift;
-                employeeTimeLog.IsNoBreak = persisted.IsNoBreak;
-            }
-
-            if (employeeTimeLog.TimeOut < employeeTimeLog.TimeIn && employeeTimeLog.DateIn == employeeTimeLog.DateOut)
+            var isProtected = TimeLogChanges.IsProtected(persisted);
+            if (!isProtected || !persisted.DateIn.HasValue)
+                employeeTimeLog.DateIn = request.DateIn.Value.Date;
+            if (!isProtected || !persisted.DateOut.HasValue)
+                employeeTimeLog.DateOut = request.DateOut?.Date ?? employeeTimeLog.DateIn;
+            if (employeeTimeLog.TimeIn.HasValue && (!isProtected || !persisted.TimeIn.HasValue))
+                employeeTimeLog.TimeIn = employeeTimeLog.DateIn!.Value.Date.Add(employeeTimeLog.TimeIn.Value.TimeOfDay);
+            if (employeeTimeLog.TimeOut.HasValue && (!isProtected || !persisted.TimeOut.HasValue))
+                employeeTimeLog.TimeOut = employeeTimeLog.DateOut!.Value.Date.Add(employeeTimeLog.TimeOut.Value.TimeOfDay);
+            if (!isProtected && employeeTimeLog.TimeOut < employeeTimeLog.TimeIn && employeeTimeLog.DateIn == employeeTimeLog.DateOut)
             {
                 employeeTimeLog.DateOut = employeeTimeLog.DateOut!.Value.AddDays(1);
                 employeeTimeLog.TimeOut = employeeTimeLog.TimeOut.Value.AddDays(1);
             }
-            var hasDuplicate = await EmployeeTimeLogService.HasDuplicateName(employeeTimeLog);
-            if (hasDuplicate.IsDuplicated)
-                return Conflict(hasDuplicate);
+            // Date normalization and overnight handling may not alter populated imported values either.
+            protectionError = TimeLogChanges.ProtectedFieldError(persisted, employeeTimeLog);
+            if (protectionError is not null) return BadRequest(protectionError);
+            var changes = TimeLogChanges.Describe(persisted, employeeTimeLog);
+            if (changes.Count == 0) return Ok(ToDetails(persisted));
+            var identityChanged = persisted.EmployeeId != employeeTimeLog.EmployeeId ||
+                persisted.DateIn != employeeTimeLog.DateIn || persisted.DateOut != employeeTimeLog.DateOut ||
+                persisted.TimeIn != employeeTimeLog.TimeIn || persisted.TimeOut != employeeTimeLog.TimeOut;
+            if (identityChanged)
+            {
+                var hasDuplicate = await EmployeeTimeLogService.HasDuplicateName(employeeTimeLog);
+                if (hasDuplicate.IsDuplicated) return Conflict(hasDuplicate);
+            }
 
-            employeeTimeLog.SystemRemarks = "Manual Edit";
-            employeeTimeLog.UpdatedAt = DateTime.Now;
-            employeeTimeLog.UpdatedBy = "manuel";
-            var updated = await EmployeeTimeLogService.UpdateAsync(employeeTimeLog);
-            if (!updated)
-                return NotFound(ResponseMessage.NotFound);
-
-            return Ok();
+            if (!isProtected) employeeTimeLog.SystemRemarks = "Manual Edit";
+            employeeTimeLog.Comment = TimeLogChanges.Append(persisted.Comment, Actor, changes, DateTime.UtcNow);
+            employeeTimeLog.UpdatedAt = DateTime.UtcNow;
+            employeeTimeLog.UpdatedBy = Actor;
+            employeeTimeLog.Version = persisted.Version + 1;
+            return await SaveRecordAsync(employeeTimeLog);
         }
 
         [HttpDelete("{employeeTimeLogId}")]
-        public async Task<IActionResult> DeleteAsync(int employeeTimeLogId)
+        public async Task<IActionResult> DeleteAsync(int employeeTimeLogId, [FromQuery] long? version)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
+            if (!ModelState.IsValid || version is null) return BadRequest("Reload the record before deleting it.");
+            var record = await EmployeeTimeLogService.GetAsync(employeeTimeLogId);
+            if (record is null) return NotFound(ResponseMessage.NotFound);
+            if (version != record.Version) return Conflict("This time record changed. Refresh before deleting.");
+            record.Deleted = true;
+            record.Comment = TimeLogChanges.Append(record.Comment, Actor, ["Deleted time record"], DateTime.UtcNow);
+            record.UpdatedAt = DateTime.UtcNow;
+            record.UpdatedBy = Actor;
+            record.Version++;
+            return await SaveRecordAsync(record);
+        }
 
-            var deleted = await EmployeeTimeLogService.DeleteAsync(employeeTimeLogId);
-            if (!deleted)
-                return NotFound(ResponseMessage.NotFound);
-
-            return Ok();
+        private async Task<IActionResult> SaveRecordAsync(EmployeeTimeLog record)
+        {
+            try
+            {
+                return await EmployeeTimeLogService.UpdateAsync(record)
+                    ? Ok(ToDetails(record)) : NotFound(ResponseMessage.NotFound);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("This time record changed. Close and reopen it before saving.");
+            }
         }
     }
 }

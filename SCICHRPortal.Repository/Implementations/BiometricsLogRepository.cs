@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -129,6 +129,7 @@ namespace SCICHRPortal.Repository.Implementations
             var existing = await Context.BiometricsLog.FindAsync(biometricsLog.BiometricsLogId);
             if (existing != null)
             {
+                biometricsLog.ImportSource = existing.ImportSource;
                 Context.Entry(existing).CurrentValues.SetValues(biometricsLog);
                 existing.UpdatedAt = DateTime.Now;
                 await Context.SaveChangesAsync();
@@ -293,7 +294,7 @@ namespace SCICHRPortal.Repository.Implementations
             await connection.OpenAsync();
 
             using var writer = connection.BeginBinaryImport(
-                "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\") FROM STDIN (FORMAT BINARY)"
+                "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\", \"ImportSource\") FROM STDIN (FORMAT BINARY)"
             );
 
             foreach (var log in logs)
@@ -309,6 +310,7 @@ namespace SCICHRPortal.Repository.Implementations
                 await writer.WriteAsync(log.ProjectName ?? string.Empty);
                 await writer.WriteAsync(log.CreatedAt, NpgsqlTypes.NpgsqlDbType.Timestamp);
                 await writer.WriteAsync(log.CreatedBy ?? string.Empty);
+                await writer.WriteAsync(log.ImportSource, NpgsqlTypes.NpgsqlDbType.Text);
             }
 
             await writer.CompleteAsync();
@@ -358,7 +360,7 @@ namespace SCICHRPortal.Repository.Implementations
             try
             {
                 using var writer = connection.BeginBinaryImport(
-                    "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\") FROM STDIN (FORMAT BINARY)"
+                    "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\", \"ImportSource\") FROM STDIN (FORMAT BINARY)"
                 );
 
                 foreach (var log in logs)
@@ -374,6 +376,7 @@ namespace SCICHRPortal.Repository.Implementations
                     await writer.WriteAsync(log.ProjectName ?? string.Empty);
                     await writer.WriteAsync(log.CreatedAt, NpgsqlTypes.NpgsqlDbType.Timestamp);
                     await writer.WriteAsync(log.CreatedBy ?? string.Empty);
+                await writer.WriteAsync(log.ImportSource, NpgsqlTypes.NpgsqlDbType.Text);
                 }
 
                 await writer.CompleteAsync();
@@ -405,7 +408,7 @@ namespace SCICHRPortal.Repository.Implementations
             await connection.OpenAsync();
 
             using var writer = connection.BeginBinaryImport(
-                "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\") FROM STDIN (FORMAT BINARY)"
+                "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\", \"ImportSource\") FROM STDIN (FORMAT BINARY)"
             );
 
             int batchCount = 0;
@@ -426,6 +429,7 @@ namespace SCICHRPortal.Repository.Implementations
                 await writer.WriteAsync(log.ProjectName ?? string.Empty);
                 await writer.WriteAsync(log.CreatedAt, NpgsqlTypes.NpgsqlDbType.Timestamp);
                 await writer.WriteAsync(log.CreatedBy ?? string.Empty);
+                await writer.WriteAsync(log.ImportSource, NpgsqlTypes.NpgsqlDbType.Text);
 
                 totalProcessed++;
 

@@ -43,6 +43,10 @@ var builder = WebApplication.CreateBuilder(args);
 OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("Manuel A. Rivas Jr.");
 // Add services to the container.
 builder.Services.AddDerivedClassesServices();
+builder.Services.AddSingleton<ITimeLogAttachmentStorage>(_ =>
+    new SCICHRPortal.API.Storage.LocalTimeLogAttachmentStorage(Path.GetFullPath(
+        builder.Configuration["TimeLogAttachments:LocalPath"] ?? "App_Data/TimeLogAttachments",
+        builder.Environment.ContentRootPath)));
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

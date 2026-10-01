@@ -359,6 +359,9 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+# Private time-record uploads (never publish or commit these files).
+**/App_Data/TimeLogAttachments/
+
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /SCICHRPortal.Web/Views/Login/Index.cshtml

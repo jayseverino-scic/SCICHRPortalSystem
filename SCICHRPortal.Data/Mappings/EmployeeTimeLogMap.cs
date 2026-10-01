@@ -10,6 +10,10 @@ namespace SCICHRPortal.Data.Mappings
         public EmployeeTimeLogMap(EntityTypeBuilder<EmployeeTimeLog> entityBuilder) 
         { 
             entityBuilder.HasKey(e => e.TimeLogId);
+            entityBuilder.Property(e => e.Version).IsConcurrencyToken();
+            entityBuilder.HasOne(e => e.Attachment).WithOne()
+                .HasForeignKey<TimeLogAttachment>(e => e.TimeLogId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entityBuilder.Property(e => e.DateIn).IsRequired();
             entityBuilder.Property(e => e.DateOut).IsRequired();

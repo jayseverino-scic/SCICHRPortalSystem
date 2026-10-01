@@ -3,19 +3,17 @@
     align-items: center;
     justify-content: center;
     min-height: calc(100% - 60px);
-}
-
-@media (max-width: 520px) {
-    #employee-time-log-modal .modal-dialog {
-        width: calc(100% - 20px) !important;
-        max-width: calc(100% - 20px) !important;
-    }
+    height: auto;
+    width: 500px;
+    max-width: calc(100% - 24px);
+    margin: 30px auto;
 }
 
 #employee-time-log-modal .modal-content {
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 150px) !important;
+    max-height: calc(100vh - 60px) !important;
+    max-height: calc(100dvh - 60px) !important;
     background: rgba(245, 252, 245, 0.55) !important;
     backdrop-filter: blur(28px) saturate(160%) !important;
     -webkit-backdrop-filter: blur(28px) saturate(160%) !important;
@@ -25,7 +23,23 @@
     overflow: visible !important;
 }
 
+#employee-time-log-form,
+#employee-time-log-form .form-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#employee-time-log-form {
+    max-height: inherit;
+}
+
+#employee-time-log-form .form-content {
+    flex: 1 1 auto;
+}
+
 #employee-time-log-modal .modal-header {
+    flex-shrink: 0;
     background: linear-gradient(135deg, rgba(46,125,50,0.85), rgba(27,94,32,0.90)) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -47,17 +61,15 @@
     background: rgba(255, 255, 255, 0.28) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    padding: 24px 26px 10px;
-    max-height: calc(100vh - 300px) !important;
-    overflow-y: scroll !important;
+    padding: 24px 26px;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto !important;
     overflow-x: hidden !important;
     scrollbar-width: thin;
     scrollbar-color: rgba(46,125,50,0.30) transparent;
     font-family: 'Inter', sans-serif !important;
     flex: 1 1 auto !important;
-    flex-direction: column;
-    overflow: hidden;
-    padding: 24px 26px 10px;
 }
 
     #employee-time-log-modal .modal-body::-webkit-scrollbar {
@@ -70,7 +82,7 @@
         border-radius: 4px;
     }
 
-#announcement-modal .modal-body::-webkit-scrollbar-track {
+#employee-time-log-modal .modal-body::-webkit-scrollbar-track {
     background: rgba(200, 230, 200, 0.2) !important;
     border-radius: 4px;
 }
@@ -190,6 +202,104 @@
 
 #employee-time-log-modal .form-group {
     margin-bottom: 18px;
+}
+
+#employee-time-log-modal .time-log-fields > .form-group > label {
+    display: block;
+    float: none !important;
+    padding: 0;
+}
+
+#employee-time-log-modal .time-log-fields > .form-group:last-child,
+#employee-time-log-modal .time-log-additional-fields > .form-group:last-child {
+    margin-bottom: 0;
+}
+
+#employee-time-log-modal .time-log-additional-fields {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(46, 125, 50, 0.22);
+}
+
+#employee-time-log-modal .time-log-ob-field,
+#employee-time-log-modal .time-log-ob-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#employee-time-log-modal .time-log-ob-label {
+    margin: 0;
+    cursor: pointer;
+}
+
+#employee-time-log-modal #isOB {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: #2e7d32;
+}
+
+#employee-time-log-modal .time-log-help {
+    display: block;
+    color: #526452;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+#employee-time-log-modal #timeLogAttachment {
+    height: auto !important;
+    min-height: 42px;
+    padding: 8px !important;
+}
+
+#employee-time-log-modal #time-log-attachment-help {
+    margin-top: 7px;
+}
+
+#employee-time-log-modal #time-log-attachment-info:not(:empty) {
+    margin-top: 8px;
+}
+
+#employee-time-log-modal #time-log-attachment-info button {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+
+#employee-time-log-modal #timeLogComment {
+    height: auto !important;
+    min-height: 112px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+#employee-time-log-modal #time-log-edit-rule:not(:empty) {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid #c2d9c3;
+    border-radius: 10px;
+    background: #edf6ee;
+    color: #375b38;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+    #employee-time-log-modal .modal-dialog {
+        min-height: calc(100% - 24px);
+        margin: 12px auto;
+    }
+
+    #employee-time-log-modal .modal-content {
+        max-height: calc(100vh - 24px) !important;
+        max-height: calc(100dvh - 24px) !important;
+    }
+
+    #employee-time-log-modal .modal-body {
+        padding: 20px;
+    }
 }
 
 

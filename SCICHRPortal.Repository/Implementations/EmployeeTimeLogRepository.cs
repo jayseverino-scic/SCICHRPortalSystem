@@ -102,6 +102,7 @@ namespace SCICHRPortal.Repository.Implementations
         public async Task<EmployeeTimeLog> GetAsync(int id)
         {
             var item = await Context.EmployeeTimeLog!
+                    .AsNoTracking().Include(s => s.Attachment)
                     .SingleOrDefaultAsync(s => s.TimeLogId == id && !s.Deleted);
             return item!;
         }
@@ -126,17 +127,26 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task InsertAsync(EmployeeTimeLog entity)
         {
+            await using var transaction = await Context.Database.BeginTransactionAsync();
             await Context.EmployeeTimeLog!.AddAsync(entity);
             await Context.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
 
         public async Task<bool> UpdateAsync(EmployeeTimeLog employeeTimeLog)
         {
-            var record = Context.Update(employeeTimeLog);
+            var record = await Context.EmployeeTimeLog.SingleOrDefaultAsync(e => e.TimeLogId == employeeTimeLog.TimeLogId && !e.Deleted);
             if (record is null)
                 return false;
 
+            Context.Entry(record).CurrentValues.SetValues(employeeTimeLog);
+            Context.Entry(record).Property(e => e.Version).OriginalValue = employeeTimeLog.Version - 1;
+            if (employeeTimeLog.Attachment is { TimeLogAttachmentId: 0 } attachment)
+                Context.TimeLogAttachment.Add(attachment);
+            // The record, its comment, attachment and existing audit trail commit together.
+            await using var transaction = await Context.Database.BeginTransactionAsync();
             await Context.SaveChangesAsync();
+            await transaction.CommitAsync();
             return true;
         }
         public async Task<IEnumerable<EmployeeTimeLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName)
