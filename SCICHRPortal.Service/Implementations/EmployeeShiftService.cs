@@ -24,6 +24,13 @@ namespace SCICHRPortal.Service.Implementations
             return await EmployeeShiftRepository.UpdateAsync(entity);
         }
 
+        public async Task<bool> UpdateFlagsAsync(int assignedShiftId, EmployeeShiftAssignmentChange change, string actor)
+        {
+            if (assignedShiftId <= 0 || change.EmployeeId <= 0) return false;
+            if (change.IsNoShift) change.IsFlexibleShift = false;
+            return await EmployeeShiftRepository.UpdateFlagsAsync(assignedShiftId, change, actor);
+        }
+
         public async Task<Tuple<IEnumerable<EmployeeShift>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
             return await EmployeeShiftRepository.FilterAsync(pageNumber, pageSize, searchKeyword);
@@ -37,9 +44,43 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await EmployeeShiftRepository.EmployeeShiftFilterPerProject(projectId, shiftId);
         }
+        public async Task<EmployeeShiftFilterPage> GetShiftFilterAsync(int projectId, int shiftId, string filterType, int? skip, int? take, string? searchKeyword, CancellationToken cancellationToken = default)
+        {
+            return await EmployeeShiftRepository.GetShiftFilterAsync(projectId, shiftId, filterType, skip, take, searchKeyword, cancellationToken);
+        }
         public async Task<EmployeeShift> GetAsync(int id)
         {
             return await EmployeeShiftRepository.GetAsync(id);
+        }
+
+        public async Task<EmployeeShiftAssignmentResult> AssignFilteredAsync(EmployeeShiftFilteredAssignmentRequest request, string actor, CancellationToken cancellationToken = default)
+        {
+            if (request.ProjectId < 0 || request.ShiftId < 0 || request.ScheduleId < 0 ||
+                (request.ApplyAssignmentToFilter && request.ScheduleId == null) ||
+                request.FlagFilters == null || request.FlagFilters.Count > 3 ||
+                request.FlagFilters.Any(filter => filter == null || filter.ProjectId < 0 || filter.ShiftId < 0 ||
+                    filter.FilterType is not ("All" or "Assigned" or "Unassigned") || (filter.SearchKeyword?.Length ?? 0) > 200 ||
+                    (filter.IsFlexibleShift == null && filter.IsNoShift == null && filter.IsNoBreak == null)) ||
+                (!request.ApplyAssignmentToFilter && request.FlagFilters.Count == 0) ||
+                request.FilterType is not ("All" or "Assigned" or "Unassigned") ||
+                (request.SearchKeyword?.Length ?? 0) > 200 || request.Changes == null ||
+                request.Changes.Any(change => change == null || change.EmployeeId <= 0) ||
+                (request.ScheduleId == null && request.Changes.Any(change => change.IsAssigned && !change.PreserveSchedule)) ||
+                request.Changes.Select(change => change.EmployeeId).Distinct().Count() != request.Changes.Count)
+            {
+                return new(EmployeeShiftAssignmentStatus.Invalid, Message: "Enter valid filters, a schedule and unique employee edits.");
+            }
+            request.SearchKeyword = request.SearchKeyword?.Trim();
+            foreach (var filter in request.FlagFilters) filter.SearchKeyword = filter.SearchKeyword?.Trim();
+            foreach (var change in request.Changes)
+            {
+                if (request.ScheduleId == 0 && !change.PreserveSchedule) change.IsAssigned = false;
+                if (change.IsNoShift)
+                {
+                    change.IsFlexibleShift = false;
+                }
+            }
+            return await EmployeeShiftRepository.AssignFilteredAsync(request, actor, cancellationToken);
         }
         public async Task<IEnumerable<EmployeeShift>> GetAllAsync()
         {

@@ -69,7 +69,7 @@
             body: JSON.stringify(params.data)
         });
 
-        if (response.status === 401 && !params.data.IsLogin) {
+        if (response.status === 401 && !params.data?.IsLogin) {
             this.logOut();
         }
 

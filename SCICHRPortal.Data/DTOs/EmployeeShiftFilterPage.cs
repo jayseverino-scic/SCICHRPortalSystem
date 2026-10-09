@@ -1,22 +1,27 @@
-﻿using Microsoft.VisualBasic;
-using System.ComponentModel.DataAnnotations;
-using SCICHRPortal.Data.Entities.Metadatas;
-using SCICHRPortal.Data.XscribeTables;
-
-namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
+namespace SCICHRPortal.Data.DTOs
 {
-    public class EmployeeShiftUpdateRequestModel
+    public class EmployeeShiftFilterPage
     {
-        public int AssignedShiftId { get; set; }
-        public bool PreserveSchedule { get; set; }
-        [Required(ErrorMessage = "Shift is required.")]
-        public int ShiftId { get; set; }
-        [Required(ErrorMessage = "Employee is required.")]
+        public List<EmployeeShiftFilterRow> Data { get; set; } = [];
+        public int Total { get; set; }
+        public int FilteredTotal { get; set; }
+        public bool AllFlexibleShiftSelected { get; set; }
+        public bool AllNoShiftSelected { get; set; }
+        public bool AllNoBreakSelected { get; set; }
+    }
+
+    public class EmployeeShiftFilterRow
+    {
         public int EmployeeId { get; set; }
-        [Required(ErrorMessage = "Department is required.")]
+        public string? EmployeeNo { get; set; }
+        public string? EmployeeName { get; set; }
         public int? DepartmentId { get; set; }
-        [Required(ErrorMessage = "Project is required.")]
+        public string? DepartmentName { get; set; }
         public int? ProjectId { get; set; }
+        public string? ProjectName { get; set; }
+        public int AssignedShiftId { get; set; }
+        public int ShiftId { get; set; }
+        public string? ShiftName { get; set; }
         public DateTime? ShiftDate { get; set; }
         public DateTime? MondayShiftStart { get; set; }
         public DateTime? MondayShiftEnd { get; set; }
@@ -32,13 +37,9 @@ namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
         public DateTime? SaturdayShiftEnd { get; set; }
         public DateTime? SundayShiftStart { get; set; }
         public DateTime? SundayShiftEnd { get; set; }
+        public bool IsAssigned { get; set; }
         public bool IsFlexibleShift { get; set; }
         public bool IsNoShift { get; set; }
         public bool IsNoBreak { get; set; }
-        public Boolean? IsAssigned { get; set; }
-        public Employee? Employee { get; set; }
-        public Department? Department { get; set; }
-        public Project? Project { get; set; }
-        public Shift? Shift { get; set; }
     }
 }

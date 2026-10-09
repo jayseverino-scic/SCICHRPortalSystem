@@ -1,12 +1,10 @@
-﻿using iText.Kernel.Geom;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using System;
+using System.Security.Claims;
 using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
 using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities.Metadatas;
-using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
 
@@ -18,17 +16,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class EmployeeShiftController : ControllerBase
     {
         private IEmployeeShiftService EmployeeShiftService { get; }
-        private IEmployeeService EmployeeService { get; }
         private IShiftService ShiftService { get; }
-        private IDepartmentService DepartmentService { get; }
-        private IProjectService ProjectService { get; }
-        public EmployeeShiftController(IEmployeeShiftService employeeShiftService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IProjectService projectService)
+        public EmployeeShiftController(IEmployeeShiftService employeeShiftService, IShiftService shiftService)
         {
             EmployeeShiftService = employeeShiftService;
-            EmployeeService = employeeService;
             ShiftService = shiftService;
-            DepartmentService = departmentService;
-            ProjectService = projectService;
         }
 
         [Authorize] 
@@ -39,56 +31,22 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(employeeShifts);
         }
 
+        private string Actor => User?.Identity?.Name ?? User?.FindFirstValue(ClaimTypes.Sid) ?? "Authenticated user";
+
         [Authorize]
         [HttpGet("Filter")]
-        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword)
+        public async Task<IActionResult> FilterAsync(int pageNumber = 1, int pageSize = 10, string? searchKeyword = null, CancellationToken cancellationToken = default)
         {
-            var tuple = await EmployeeShiftService.FilterAsync(pageNumber, pageSize, searchKeyword!);
-            var maxOrderNumber = pageNumber * pageSize;
-            var orderNumber = maxOrderNumber - pageSize + 1;
-            IEnumerable<EmployeeShift> employeeShiftsList = await EmployeeShiftService.GetAllAsync();
-            List<EmployeeShift> employeeShifts = employeeShiftsList.ToList();
-            IEnumerable<Employee> employees = await EmployeeService.GetAllAsync();
-            IEnumerable<Department> departments = await DepartmentService.GetAllAsync();
-            IEnumerable<Project> companies = await ProjectService.GetAllAsync(); 
-            IEnumerable<Shift> shifts = await ShiftService.GetAllAsync();
-
-            List<Employee> mergedList = employees
-            .GroupJoin(
-                tuple.Item1, left => left.EmployeeId, right => right.EmployeeId,
-                (x, y) => new { Left = x, Rights = y }
-            )
-            .SelectMany(
-                x => x.Rights.DefaultIfEmpty(),
-                (x, y) => new Employee
-                {
-                    EmployeeId = x.Left.EmployeeId,
-                    DepartmentId = x.Left.DepartmentId,
-                    ProjectId = x.Left.ProjectId,
-                    LastName = x.Left.LastName,
-                    FirstName = x.Left.FirstName
-                }
-            ).ToList();
-
-            if (mergedList != null)
+            if (pageNumber < 1 || pageSize is < 1 or > 80 ||
+                (long)pageNumber * pageSize > int.MaxValue || (searchKeyword?.Length ?? 0) > 200)
             {
-                foreach(Employee employee in mergedList)
-                {
-                    EmployeeShift employeeShift = new EmployeeShift
-                    {
-                        AssignedShiftId = 0,
-                        ShiftId = 0,
-                        EmployeeId = employee.EmployeeId,
-                        DepartmentId = (int)employee.DepartmentId!,
-                        ProjectId = employee.ProjectId!,
-                        Employee = employee,
-                        Department = departments.Where(d => d.DepartmentId == employee.DepartmentId).SingleOrDefault()
-                    };
-                    employeeShifts.Add(employeeShift);
-                }
+                return BadRequest("Enter valid paging and search filters.");
             }
-            employeeShifts.AddRange(tuple.Item1);
-            var data = employeeShifts.Select(d => new
+
+            var skip = (pageNumber - 1) * pageSize;
+            var result = await EmployeeShiftService.GetShiftFilterAsync(0, 0, "All", skip, pageSize, searchKeyword, cancellationToken);
+            // Preserve the legacy Filter row names while sharing the database-paged query.
+            var data = result.Data.Select((d, index) => new
             {
                 d.AssignedShiftId,
                 d.ShiftDate,
@@ -110,19 +68,19 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 d.IsNoBreak,
                 d.IsNoShift,
                 d.EmployeeId,
-                EmployeeName = $"{d.Employee!.LastName}, {d.Employee!.FirstName}",
+                d.EmployeeName,
                 d.DepartmentId,
-                DepartmentName = d.Department?.DepartmentName,
+                d.DepartmentName,
                 d.ProjectId,
-                CompanyBranchName = d.Project?.Name,
+                CompanyBranchName = d.ProjectName,
                 d.ShiftId,
-                ShiftName = d.Shift?.ShiftName,
-                OrderNumber = orderNumber++
-            });
+                d.ShiftName,
+                OrderNumber = skip + index + 1
+            }).ToList();
             var dto = new
             {
                 Data = data,
-                Total = employeeShifts.Count()
+                Total = result.FilteredTotal
             };
 
             return Ok(dto);
@@ -130,196 +88,76 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
         [Authorize]
         [HttpGet("ShiftFilter")]
-        public async Task<IActionResult> EmployeeShiftFilterAsync(int projectId, int shiftId, string filterType)
+        public async Task<IActionResult> EmployeeShiftFilterAsync(int projectId = 0, int shiftId = 0, string filterType = "All", int? skip = null, int? take = null, string? searchKeyword = null, CancellationToken cancellationToken = default)
         {
-            IEnumerable<Employee>? employees = await EmployeeService.GetEmployeeByProject(projectId);
-            if (employees == null)
-                return BadRequest();
-            IEnumerable<EmployeeShift>? employeeShiftsList = await EmployeeShiftService.EmployeeShiftFilterPerProject(projectId, shiftId); 
-            List<EmployeeShiftUpdateRequestModel> listToDisplay = new List<EmployeeShiftUpdateRequestModel>();
-            int[] assignedIds = employeeShiftsList.Select(x => x.EmployeeId).ToArray();
-            List<EmployeeShift> employeeShifts = new List<EmployeeShift>();
-            IEnumerable<Department> departmentList = await DepartmentService.GetAllAsync();
-            List<Department> departments = departmentList.ToList();
-            IEnumerable<Project> companyList = await ProjectService.GetAllAsync();
-            List<Project> companies = companyList.ToList();
-            employees = employees.Where(item => !assignedIds.Any(x => x == item.EmployeeId)).ToList();
-
-            List<Employee> mergedList = employees
-            .GroupJoin(
-                employeeShifts, left => left.EmployeeId, right => right.EmployeeId,
-                (x, y) => new { Left = x, Rights = y }
-            )
-            .SelectMany(
-                x => x.Rights.DefaultIfEmpty(),
-                (x, y) => new Employee
-                {
-                    EmployeeId = x.Left.EmployeeId,
-                    DepartmentId = x.Left.DepartmentId,
-                    ProjectId = x.Left.ProjectId,
-                    LastName = x.Left.LastName,
-                    FirstName = x.Left.FirstName
-                }
-            ).ToList();
-            if (filterType == "Assigned")
+            if (projectId < 0 || shiftId < 0 || skip < 0 || take is < 1 or > 80 ||
+                (searchKeyword?.Length ?? 0) > 200 || filterType is not ("All" or "Assigned" or "Unassigned"))
             {
-                employeeShiftsList = await EmployeeShiftService.EmployeeShiftFilterPerProject(projectId, shiftId);
-                foreach(EmployeeShift employeeShift in employeeShiftsList.ToList())
-                {
-                    EmployeeShiftUpdateRequestModel employeeShiftUpdateRequestModel = new EmployeeShiftUpdateRequestModel
-                    {
-                        AssignedShiftId = employeeShift.AssignedShiftId,
-                        ShiftId = employeeShift.ShiftId,
-                        EmployeeId = employeeShift.EmployeeId,
-                        DepartmentId = employeeShift.DepartmentId,
-                        ProjectId = employeeShift.ProjectId,
-                        ShiftDate = employeeShift.ShiftDate,
-                        MondayShiftStart = employeeShift.MondayShiftStart,
-                        MondayShiftEnd = employeeShift.MondayShiftEnd,
-                        TuesdayShiftStart = employeeShift.TuesdayShiftStart,
-                        TuesdayShiftEnd = employeeShift.TuesdayShiftEnd,
-                        WednesdayShiftStart = employeeShift.WednesdayShiftStart,
-                        WednesdayShiftEnd = employeeShift.WednesdayShiftEnd,
-                        ThursdayShiftStart = employeeShift.ThursdayShiftStart,
-                        ThursdayShiftEnd = employeeShift.ThursdayShiftEnd,
-                        FridayShiftStart = employeeShift.FridayShiftStart,
-                        FridayShiftEnd = employeeShift.FridayShiftEnd,
-                        SaturdayShiftStart = employeeShift.SaturdayShiftStart,
-                        SaturdayShiftEnd = employeeShift.SaturdayShiftEnd,
-                        SundayShiftStart = employeeShift.SundayShiftStart,
-                        SundayShiftEnd = employeeShift.SundayShiftEnd,
-                        IsFlexibleShift = employeeShift.IsFlexibleShift,
-                        IsNoShift = employeeShift.IsNoShift,
-                        IsNoBreak = employeeShift.IsNoBreak,
-                        IsAssigned = true,
-                        Employee = employeeShift.Employee,
-                        Department = employeeShift.Department,
-                        Shift = employeeShift.Shift
-                    };
-                    listToDisplay.Add(employeeShiftUpdateRequestModel);
-                }
+                return BadRequest("Enter valid project, shift, status, paging and search filters.");
             }
-            else
-            {
-                if (mergedList != null)
-                {
-                    foreach (Employee employee in mergedList)
-                    {
-                        EmployeeShift employeeWithShift = await EmployeeShiftService.GetByEmployee(employee.EmployeeId);
-                        if (employeeWithShift == null)
-                        {
-                            EmployeeShift employeeShift = new EmployeeShift
-                            {
-                                AssignedShiftId = 0,
-                                ShiftId = 0,
-                                EmployeeId = employee.EmployeeId,
-                                DepartmentId = employee.DepartmentId == null ? 0 : employee.DepartmentId,
-                                ProjectId = employee.ProjectId,
-                                Employee = employee,
-                                Department = departments.Where(d => d.DepartmentId == employee.DepartmentId).SingleOrDefault(),
-                                Project = companies.Where(d => d.Id == employee.ProjectId).SingleOrDefault()
-                            };
-                            employeeShifts.Add(employeeShift);
-                        }
-                    }
-                }
-                if (filterType == "All")
-                    employeeShifts.AddRange(employeeShiftsList);
-                foreach (EmployeeShift employeeShift in employeeShifts.ToList())
-                {
-                    EmployeeShiftUpdateRequestModel employeeShiftUpdateRequestModel = new EmployeeShiftUpdateRequestModel
-                    {
-                        AssignedShiftId = employeeShift.AssignedShiftId,
-                        ShiftId = employeeShift.ShiftId,
-                        EmployeeId = employeeShift.EmployeeId,
-                        DepartmentId = employeeShift.DepartmentId,
-                        ProjectId = employeeShift.ProjectId,
-                        ShiftDate = employeeShift.ShiftDate,
-                        MondayShiftStart = employeeShift.MondayShiftStart,
-                        MondayShiftEnd = employeeShift.MondayShiftEnd,
-                        TuesdayShiftStart = employeeShift.TuesdayShiftStart,
-                        TuesdayShiftEnd = employeeShift.TuesdayShiftEnd,
-                        WednesdayShiftStart = employeeShift.WednesdayShiftStart,
-                        WednesdayShiftEnd = employeeShift.WednesdayShiftEnd,
-                        ThursdayShiftStart = employeeShift.ThursdayShiftStart,
-                        ThursdayShiftEnd = employeeShift.ThursdayShiftEnd,
-                        FridayShiftStart = employeeShift.FridayShiftStart,
-                        FridayShiftEnd = employeeShift.FridayShiftEnd,
-                        SaturdayShiftStart = employeeShift.SaturdayShiftStart,
-                        SaturdayShiftEnd = employeeShift.SaturdayShiftEnd,
-                        SundayShiftStart = employeeShift.SundayShiftStart,
-                        SundayShiftEnd = employeeShift.SundayShiftEnd,
-                        IsFlexibleShift = employeeShift.IsFlexibleShift,
-                        IsNoShift = employeeShift.IsNoShift,
-                        IsNoBreak = employeeShift.IsNoBreak,
-                        IsAssigned = employeeShift.ShiftId == 0? false:true,
-                        Employee = employeeShift.Employee,
-                        Department = employeeShift.Department,
-                        Shift = employeeShift.Shift
-                    };
-                    listToDisplay.Add(employeeShiftUpdateRequestModel);
-                }
-            }
-          
-            var data = listToDisplay.Select(d => new
-            {
-                d.AssignedShiftId,
-                d.ShiftDate,
-                d.MondayShiftStart,
-                d.MondayShiftEnd,
-                d.TuesdayShiftStart,
-                d.TuesdayShiftEnd,
-                d.WednesdayShiftStart,
-                d.WednesdayShiftEnd,
-                d.ThursdayShiftStart,
-                d.ThursdayShiftEnd,
-                d.FridayShiftStart,
-                d.FridayShiftEnd,
-                d.SaturdayShiftStart,
-                d.SaturdayShiftEnd,
-                d.SundayShiftStart,
-                d.SundayShiftEnd,
-                d.IsFlexibleShift,
-                d.IsNoShift,
-                d.IsNoBreak,
-                d.EmployeeId,
-                EmployeeName = $"{d.Employee?.LastName}, {d.Employee?.FirstName}",
-                d.DepartmentId,
-                DepartmentName = d.Department?.DepartmentName,
-                d.ProjectId,
-                ProjectName = d.Project?.Name,
-                d.ShiftId,
-                ShiftName = d.Shift?.ShiftName,
-                d.IsAssigned 
-            });
 
-            return Ok(data);
+            var result = await EmployeeShiftService.GetShiftFilterAsync(projectId, shiftId, filterType, skip, take, searchKeyword, cancellationToken);
+
+            if (!skip.HasValue && !take.HasValue)
+            {
+                return Ok(result.Data);
+            }
+
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpPost("AssignFiltered")]
+        public async Task<IActionResult> AssignFilteredAsync(EmployeeShiftFilteredAssignmentRequest request, CancellationToken cancellationToken = default)
+        {
+            var result = await EmployeeShiftService.AssignFilteredAsync(request, Actor, cancellationToken);
+            return result.Status switch
+            {
+                EmployeeShiftAssignmentStatus.Success => Ok(new { result.Affected }),
+                EmployeeShiftAssignmentStatus.Conflict => Conflict(result.Message),
+                _ => BadRequest(result.Message)
+            };
         }
 
         [Authorize]
         [HttpPost()]
         public async Task<IActionResult> UpdateShiftAssignmentAsync(List<EmployeeShiftUpdateRequestModel> employeeShift, int shiftId)
         {
-            if (shiftId == 0)
-                return BadRequest();
-            Shift shift = await ShiftService.GetAsync(shiftId);
-            DateTime? mondayShiftStart = shift.MondayShiftStart;
-            DateTime? mondayShiftEnd = shift.MondayShiftEnd;
-            DateTime? tuesdayShiftStart = shift.TuesdayShiftStart;
-            DateTime? tuesdayShiftEnd = shift.TuesdayShiftEnd;
-            DateTime? wednesdayShiftStart = shift.WednesdayShiftStart;
-            DateTime? wednesdayShiftEnd = shift.WednesdayShiftEnd;
-            DateTime? thursdayShiftStart = shift.ThursdayShiftStart;
-            DateTime? thursdayShiftEnd = shift.ThursdayShiftEnd;
-            DateTime? fridayShiftStart = shift.FridayShiftStart;
-            DateTime? fridayShiftEnd = shift.FridayShiftEnd;
-            DateTime? saturdayShiftStart = shift.SaturdayShiftStart;
-            DateTime? saturdayShiftEnd = shift.SaturdayShiftEnd;
-            DateTime? sundayShiftStart = shift.SundayShiftStart;
-            DateTime? sundayShiftEnd = shift.SundayShiftEnd;
+            if (shiftId < 0 || (shiftId == 0 && employeeShift.Any(item => item.IsAssigned == true && !item.PreserveSchedule)))
+                return BadRequest("Select a schedule to assign.");
+            Shift? shift = null;
+            if (employeeShift.Any(item => item.IsAssigned == true && !item.PreserveSchedule))
+            {
+                shift = await ShiftService.GetAsync(shiftId);
+                if (shift == null) return BadRequest("The selected schedule is unavailable.");
+            }
+            DateTime? mondayShiftStart = shift?.MondayShiftStart;
+            DateTime? mondayShiftEnd = shift?.MondayShiftEnd;
+            DateTime? tuesdayShiftStart = shift?.TuesdayShiftStart;
+            DateTime? tuesdayShiftEnd = shift?.TuesdayShiftEnd;
+            DateTime? wednesdayShiftStart = shift?.WednesdayShiftStart;
+            DateTime? wednesdayShiftEnd = shift?.WednesdayShiftEnd;
+            DateTime? thursdayShiftStart = shift?.ThursdayShiftStart;
+            DateTime? thursdayShiftEnd = shift?.ThursdayShiftEnd;
+            DateTime? fridayShiftStart = shift?.FridayShiftStart;
+            DateTime? fridayShiftEnd = shift?.FridayShiftEnd;
+            DateTime? saturdayShiftStart = shift?.SaturdayShiftStart;
+            DateTime? saturdayShiftEnd = shift?.SaturdayShiftEnd;
+            DateTime? sundayShiftStart = shift?.SundayShiftStart;
+            DateTime? sundayShiftEnd = shift?.SundayShiftEnd;
 
             foreach (var item in employeeShift)
             {
+                if (item.PreserveSchedule)
+                {
+                    var updated = await EmployeeShiftService.UpdateFlagsAsync(item.AssignedShiftId, new EmployeeShiftAssignmentChange
+                    {
+                        EmployeeId = item.EmployeeId, IsFlexibleShift = item.IsFlexibleShift,
+                        IsNoShift = item.IsNoShift, IsNoBreak = item.IsNoBreak
+                    }, Actor);
+                    if (!updated) return NotFound("The employee assignment is unavailable. Your pending changes have been kept.");
+                    continue;
+                }
+                if (item.IsNoShift) item.IsFlexibleShift = false;
                 if (item.IsAssigned == true && item.AssignedShiftId != 0)
                 {
                     EmployeeShift shiftAssignment = new EmployeeShift
@@ -347,8 +185,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         IsFlexibleShift = item.IsFlexibleShift,
                         IsNoBreak = item.IsNoBreak,
                         IsNoShift = item.IsNoShift,
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = "manuel"
+                        UpdatedBy = Actor
                     };
                     await EmployeeShiftService.UpdateAsync(shiftAssignment);
                 }
@@ -379,10 +216,17 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                         IsFlexibleShift = item.IsFlexibleShift,
                         IsNoBreak = item.IsNoBreak,
                         IsNoShift = item.IsNoShift,
-                        CreatedBy = "manuel",
+                        CreatedBy = Actor,
                         CreatedAt = DateTime.UtcNow
                     };
-                    await EmployeeShiftService.InsertAsync(shiftAssignment);
+                    try
+                    {
+                        await EmployeeShiftService.InsertAsync(shiftAssignment);
+                    }
+                    catch (EmployeeShiftAssignmentConflictException)
+                    {
+                        return Conflict("An employee was assigned while saving. Refresh the affected employee and try again.");
+                    }
                 }
                 if (item.IsAssigned == false && item.AssignedShiftId != 0)
                 {

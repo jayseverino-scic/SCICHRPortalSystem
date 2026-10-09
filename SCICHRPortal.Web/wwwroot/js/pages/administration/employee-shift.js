@@ -1,319 +1,511 @@
-﻿(function ($) {
-    // Events
-    const CLICK_EVENT = 'click';
-
-    // Helpers
+(function ($) {
+    const SYSTEM = 'administration';
     const _apiHelper = new ApiHelper();
-    const _formHelper = new FormHelper();
     const _dateHelper = new DateHelper();
-    const _numberHelper = new NumberHelper();
     const _stringHelper = new StringHelper();
-
-    // State management
-    let _department = [];
+    const _pendingChanges = new Map();
+    const _pendingFields = new Map();
+    const _originalRows = new Map();
+    const _bulkFlags = new Map();
+    const _weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const _editableFields = ['isSelected', 'isAssigned', 'isFlexibleShift', 'isNoShift', 'isNoBreak', 'shiftId',
+        ..._weekdays.flatMap(day => [`${day}ShiftStart`, `${day}ShiftEnd`])];
     let _projects = [];
     let _shift = [];
-    let _currentFilterType = 'All';
-    let _currentDepartmentId = 0;
-    let _currentProjectId = 0;
-    let _currentShiftId = 0;
+    let _requestVersion = 0;
+    let _searchTimer = null;
+    let _isSaving = false;
+    let _isExporting = false;
+    let _refreshAfterSave = false;
+    let _bulkAssignment = null;
+    let _activePageFilter = null;
+    let _filteredCount = 0;
+    let _savedFlagSummary = {};
+    let _pageLoading = false;
     let dataTable = null;
 
-    // NEW: Cell dependency handler
-    // UPDATED: Cell dependency handler with shift time management
-    let handleCellDependencies = function (rowData, changedColumn, rowIndex) {
-        const updatedColumns = [];
+    const updatePendingStatus = () => {
+        const count = _pendingChanges.size;
+        const operation = Number($('#assignment-shift').val()) === -1 ? 'Unassign' : 'Assign';
+        const assignment = _bulkAssignment
+            ? `${operation} all employees matching ${_bulkAssignment.description} (${_bulkAssignment.count} at selection), with ${count} individual edit(s). Uncheck Select all to cancel.`
+            : '';
+        const flags = Array.from(_bulkFlags, ([field, selection]) =>
+            `${selection.value === false ? 'Turn off ' : ''}${field === 'isFlexibleShift' ? 'Flexible Shift' : field === 'isNoShift' ? 'No Shift' : 'No Break'} for all matching ${selection.description} (${selection.count} at selection)`);
+        const pendingMessage = [assignment, ...flags].filter(Boolean).join(' · ') ||
+            (count ? `${count} employee(s) with pending changes` : '');
+        $('#employee-shift-pending').text(pendingMessage).prop('hidden', !pendingMessage);
+        $('#save').prop('disabled', _isSaving || (!_bulkAssignment && !_bulkFlags.size && count === 0));
+        $('#cancel-pending').prop('disabled', _isSaving || _refreshAfterSave || (!_bulkAssignment && !_bulkFlags.size && count === 0));
+    };
 
-        console.log(`Handling dependencies for ${changedColumn} in row ${rowIndex}`);
+    const matchesFilter = (row, filter) => {
+        const words = filter.searchKeyword.toLowerCase().split(/\s+/).filter(Boolean);
+        const fields = [row.employeeNo, row.employeeName, row.projectName, row.shiftName].map(value => (value || '').toLowerCase());
+        return (!filter.projectId || row.projectId === filter.projectId) &&
+            (!filter.shiftId || row.shiftId === filter.shiftId) &&
+            (filter.filterType === 'All' || row.isAssigned === (filter.filterType === 'Assigned')) &&
+            words.every(word => fields.some(field => field.includes(word)));
+    };
 
-        switch (changedColumn) {
-            case 'isNoShift':
-                if (rowData.isNoShift) {
-                    // If "No Shift" is checked, uncheck other shift-related options AND nullify shift times
-                    if (rowData.isAssigned) {
-                        rowData.isAssigned = false;
-                        updatedColumns.push('isAssigned');
-                    }
-                    if (rowData.isFlexibleShift) {
-                        rowData.isFlexibleShift = false; // CORRECTED: was isFlexibleBreak
-                        updatedColumns.push('isFlexibleShift');
-                    }
+    const matchesBulkFilter = row => !!_bulkAssignment && matchesFilter(row, _bulkAssignment.filter);
 
-                    // Nullify shift start and end times
-                    rowData.mondayShiftStart = null;
-                    rowData.mondayShiftEnd = null;
-                    rowData.tuesdayShiftStart = null;
-                    rowData.tuesdayShiftEnd = null;
-                    rowData.wednesdayShiftStart = null;
-                    rowData.wednesdayShiftEnd = null;
-                    rowData.thursdayShiftStart = null;
-                    rowData.thursdayShiftEnd = null;
-                    rowData.fridayShiftStart = null;
-                    rowData.fridayShiftEnd = null;
-                    rowData.saturdayShiftStart = null;
-                    rowData.saturdayShiftEnd = null;
-                    rowData.sundayShiftStart = null;
-                    rowData.sundayShiftEnd = null;
-
-                    console.log(`No Shift selected - cleared shift times for row ${rowIndex}`);
-                }
-                break;
-
-            // case 'isNoBreak':
-            //     if (rowData.isNoBreak) {
-            //         // If "No Break" is checked, uncheck other break-related options AND nullify break times
-            //         if (rowData.isFlexibleBreak) {
-            //             rowData.isFlexibleBreak = false;
-            //             updatedColumns.push('isFlexibleBreak');
-            //         }
-
-            //         // Nullify break times only
-            //         rowData.breakStart = null;
-            //         rowData.breakEnd = null;
-
-            //         console.log(`No Break selected - cleared break times for row ${rowIndex}`);
-            //     }
-            //     break;
-
-            case 'isFlexibleShift':
-                if (rowData.isFlexibleShift && rowData.isNoShift) {
-                    rowData.isNoShift = false;
-                    updatedColumns.push('isNoShift');
-                }
-                break;
-
-            // case 'isFlexibleBreak':
-            //     if (rowData.isFlexibleBreak && rowData.isNoBreak) {
-            //         rowData.isNoBreak = false;
-            //         updatedColumns.push('isNoBreak');
-            //     }
-            //     break;
-
-            case 'isAssigned':
-                if (rowData.isAssigned && rowData.isNoShift) {
-                    rowData.isNoShift = false;
-                    updatedColumns.push('isNoShift');
-                }
-                break;
-
-            // Handle when shift times are manually set - this might indicate a shift is being assigned
-            case 'mondayShiftStart':
-            case 'mondayShiftEnd':
-            case 'tuesdayShiftStart':
-            case 'tuesdayShiftEnd':
-            case 'wednesdayShiftStart':
-            case 'wednesdayShiftEnd':
-            case 'thursdayShiftStart':
-            case 'thursdayShiftEnd':
-            case 'fridayShiftStart':
-            case 'fridayShiftEnd':
-            case 'saturdayShiftStart':
-            case 'saturdayShiftEnd':
-            case 'sundayShiftStart':
-            case 'sundayShiftEnd':
-            // case 'breakStart':
-            // case 'breakEnd':
-                // If any time is set and "No Shift" is checked, uncheck "No Shift"
-                if ((rowData.shiftStart || rowData.shiftEnd ) && rowData.isNoShift) {
-                    rowData.isNoShift = false;
-                    updatedColumns.push('isNoShift');
-                    console.log(`Time value set - automatically unchecked No Shift for row ${rowIndex}`);
-                }
-                break;
+    const assignmentBaseline = row => {
+        const result = matchesBulkFilter(row)
+            ? { ...row, isSelected: true, isAssigned: true, isNoShift: false }
+            : { ...row, isSelected: false };
+        for (const [field, selection] of _bulkFlags) {
+            if (!matchesFilter(row, selection.filter)) continue;
+            result[field] = selection.value !== false;
+            if (field === 'isFlexibleShift' && result[field]) result.isNoShift = false;
+            if (field === 'isNoShift' && result[field]) {
+                result.isFlexibleShift = false;
+                for (const day of _weekdays) result[`${day}ShiftStart`] = result[`${day}ShiftEnd`] = null;
+            }
         }
-
-        console.log(`Dependencies handled. Updated columns: ${updatedColumns.join(', ')}`);
-        return { updatedRowData: rowData, updatedColumns };
+        return result;
     };
 
-    // Event attachment
-    let attachEvents = () => {
-        console.log('Attaching events...');
-
-        // Remove existing events to prevent duplicates
-        $('#assigned').off(CLICK_EVENT);
-        $('#unAssigned').off(CLICK_EVENT);
-        $('#all').off(CLICK_EVENT);
-        $('#save').off(CLICK_EVENT);
-        $('#project').off('change');
-        $('#shift').off('change');
-
-        // Filter button events
-        $('#assigned').on(CLICK_EVENT, (event) => {
-            event.preventDefault();
-            setActiveFilterButton(event.currentTarget);
-            _currentFilterType = 'Assigned';
-
-            // Only load data if project is selected
-            if (_currentProjectId && _currentProjectId > 0) {
-                loadEmployeeShiftData();
-            } else {
-                showProjectRequiredMessage();
+    const overlayEditedFields = (row, pending, fields, original) => {
+        for (const field of fields) row[field] = pending[field];
+        // An explicit flag edit includes its mutually exclusive counterpart,
+        // even when that counterpart was already false at the time of editing.
+        if (fields.has('isNoShift') && pending.isNoShift) {
+            row.isNoShift = true;
+            row.isFlexibleShift = false;
+        } else if (fields.has('isFlexibleShift') && pending.isFlexibleShift) {
+            row.isFlexibleShift = true;
+            row.isNoShift = false;
+        }
+        if (row.isNoShift) row.isFlexibleShift = false;
+        for (const day of _weekdays) {
+            for (const field of [`${day}ShiftStart`, `${day}ShiftEnd`]) {
+                if (row.isNoShift) row[field] = null;
+                else if (!fields.has(field)) row[field] = original[field];
             }
-        });
-
-        $('#unAssigned').on(CLICK_EVENT, (event) => {
-            event.preventDefault();
-            setActiveFilterButton(event.currentTarget);
-            _currentFilterType = 'Unassigned';
-
-            if (_currentProjectId && _currentProjectId > 0) {
-                loadEmployeeShiftData();
-            } else {
-                showProjectRequiredMessage();
-            }
-        });
-
-        $('#all').on(CLICK_EVENT, (event) => {
-            event.preventDefault();
-            setActiveFilterButton(event.currentTarget);
-            _currentFilterType = 'All';
-
-            if (_currentProjectId && _currentProjectId > 0) {
-                loadEmployeeShiftData();
-            } else {
-                showProjectRequiredMessage();
-            }
-        });
-
-        // Save button
-        $('#save').on(CLICK_EVENT, onEmployeeShiftSubmit);
-
-        // Project dropdown change - clear data and show empty grid
-        $('#project').on('change', () => {
-            _currentProjectId = $('#project').val() || 0;
-
-            // Clear the table when project changes
-            if (dataTable) {
-                renderEmployeeShiftGrid([]);
-            }
-
-            // Optionally auto-load if shift is also selected
-            const shiftId = $('#shift').val() || 0;
-            if (_currentProjectId > 0 && shiftId > 0) {
-                loadEmployeeShiftData();
-            }
-        });
-
-        // Shift dropdown change - clear data and show empty grid
-        $('#shift').on('change', () => {
-            _currentShiftId = $('#shift').val() || 0;
-
-            // Clear the table when shift changes
-            if (dataTable) {
-                renderEmployeeShiftGrid([]);
-            }
-
-            // Optionally auto-load if project is also selected
-            if (_currentProjectId > 0 && _currentShiftId > 0) {
-                loadEmployeeShiftData();
-            }
-        });
-
-        console.log('Events attached successfully');
+        }
+        return row;
     };
 
-    let setActiveFilterButton = (activeButton) => {
-        $('#assigned, #unAssigned, #all').removeClass('active').addClass('btn-outline-secondary');
-        $(activeButton).removeClass('btn-outline-secondary').addClass('active btn-primary');
-    };
-    let loadEmployeeShiftData = async () => {
-        console.log('Loading employee shift data...');
-        await getEmployeeShiftData(_currentProjectId, _currentShiftId, _currentFilterType);
+    const overlayPageRows = rows => rows.map(serverRow => {
+        const id = serverRow.employeeId;
+        const pending = _pendingChanges.get(id);
+        _originalRows.set(id, { ...serverRow });
+        if (!pending) {
+            return assignmentBaseline(serverRow);
+        }
+        const row = assignmentBaseline(serverRow);
+        overlayEditedFields(row, pending, _pendingFields.get(id) || new Set(), serverRow);
+        _pendingChanges.set(id, row);
+        return row;
+    });
+
+    const applyRowChange = (row, column, value) => {
+        if (_isSaving || _refreshAfterSave) return;
+        const previous = { ...row };
+        const originalRow = _originalRows.get(row.employeeId);
+        const original = originalRow ? assignmentBaseline(originalRow) : null;
+        row[column] = value;
+        if (column === 'isSelected') {
+            // Selection is independent of the employee's persisted assignment.
+            row.isAssigned = value || (!matchesBulkFilter(originalRow || row) && !!originalRow?.isAssigned);
+        }
+        if (column === 'isNoShift' && value) {
+            row.isFlexibleShift = false;
+            for (const day of _weekdays) {
+                row[`${day}ShiftStart`] = null;
+                row[`${day}ShiftEnd`] = null;
+            }
+        } else if (column === 'isFlexibleShift' && value) {
+            row.isNoShift = false;
+        }
+        if (column === 'isSelected' || column === 'isAssigned') {
+            const target = Number($('#assignment-shift').val()) || 0;
+            row.shiftId = value && target === -1 ? 0 : value && target > 0 ? target : original?.shiftId || 0;
+        }
+        const fields = new Set(_pendingFields.get(row.employeeId) || []);
+        for (const field of _editableFields) {
+            if (field !== column && (row[field] ?? null) === (previous[field] ?? null)) continue;
+            if (original && (row[field] ?? null) === (original[field] ?? null)) fields.delete(field);
+            else fields.add(field);
+        }
+        if (original) Object.assign(row, overlayEditedFields({ ...original }, row, fields, originalRow));
+        if (original && fields.size) {
+            _pendingChanges.set(row.employeeId, { ...row });
+            _pendingFields.set(row.employeeId, fields);
+        } else {
+            _pendingChanges.delete(row.employeeId);
+            _pendingFields.delete(row.employeeId);
+        }
+        updatePendingStatus();
     };
 
-    // Update getEmployeeShiftData to handle empty data properly
-    let getEmployeeShiftData = async (projectId, shiftId, filterType) => {
-        console.log('Fetching employee shift data...');
-
+    const requestGridPage = async (request, callback) => {
+        const version = ++_requestVersion;
+        const empty = { draw: request.draw, recordsTotal: 0, recordsFiltered: 0, data: [] };
+        const parameters = new URLSearchParams({
+            projectId: Number($('#project').val()) || 0,
+            shiftId: Number($('#shift').val()) || 0,
+            filterType: $('#status').val() || 'All',
+            skip: request.start,
+            take: request.length,
+            searchKeyword: (request.search.value || '').trim()
+        });
+        _pageLoading = true;
+        if (dataTable) updateHeaderCheckboxes();
+        $('#employee-shift-page-status').text('Loading employees...');
         try {
-            // Check if project is selected
-            if (!projectId || projectId == 0) {
-                console.warn('No project selected - showing empty grid');
-                renderEmployeeShiftGrid([]);
+            const response = await _apiHelper.get({ url: `Authenticated/EmployeeShift/ShiftFilter?${parameters}` });
+            if (version !== _requestVersion) return;
+            if (!response.ok) throw new Error('Page unavailable');
+            const result = await response.json();
+            if (version !== _requestVersion) return;
+            if (!result || !Array.isArray(result.data) || result.data.length > request.length ||
+                !Number.isInteger(result.total) || !Number.isInteger(result.filteredTotal) ||
+                result.filteredTotal < 0 || result.total < result.filteredTotal) throw new Error('Invalid page');
+            if (request.start > 0 && request.start >= result.filteredTotal) {
+                dataTable.page(Math.max(0, Math.ceil(result.filteredTotal / request.length) - 1)).draw('page');
                 return;
             }
-
-            let response = await _apiHelper.get({
-                url: `Authenticated/EmployeeShift/ShiftFilter?projectId=${projectId}&shiftId=${shiftId}&filterType=${filterType}`,
-            });
-
-            if (response.ok) {
-                let data = await response.json();
-                console.log('Employee shift data loaded:', data ? data.length : 0, 'records');
-
-                // Always pass data (even empty) to render function
-                renderEmployeeShiftGrid(data || []);
-            } else {
-                console.error('Failed to load employee shift data:', response.status);
-                renderEmployeeShiftGrid([]);
-            }
-        } catch (error) {
-            console.error('Error loading employee shift data:', error);
-            renderEmployeeShiftGrid([]);
+            _refreshAfterSave = false;
+            _pageLoading = false;
+            _activePageFilter = {
+                projectId: Number(parameters.get('projectId')), shiftId: Number(parameters.get('shiftId')),
+                filterType: parameters.get('filterType'), searchKeyword: parameters.get('searchKeyword')
+            };
+            _filteredCount = result.filteredTotal;
+            _savedFlagSummary = result.filteredTotal > 0 ? {
+                isFlexibleShift: result.allFlexibleShiftSelected === true,
+                isNoShift: result.allNoShiftSelected === true,
+                isNoBreak: result.allNoBreakSelected === true
+            } : {};
+            callback({ draw: request.draw, recordsTotal: result.total, recordsFiltered: result.filteredTotal,
+                data: overlayPageRows(result.data) });
+            $('#employee-shift-page-status').text('');
+        } catch (_) {
+            if (version !== _requestVersion) return;
+            _refreshAfterSave = false;
+            _pageLoading = false;
+            _activePageFilter = null;
+            _filteredCount = 0;
+            _savedFlagSummary = {};
+            callback(empty);
+            $('#employee-shift-page-status').text('Could not load employees. Change a filter or refresh to try again.');
         }
     };
 
+    const updateHeaderCheckboxes = () => {
+        const rows = dataTable.rows({ page: 'current' }).data().toArray();
+        for (const field of ['isAssigned', 'isFlexibleShift', 'isNoShift', 'isNoBreak']) {
+            const selector = field === 'isAssigned' ? '#select-all' : `.flag-select-all[data-column="${field}"]`;
+            if (field === 'isAssigned') {
+                $(selector).prop('checked', !!_bulkAssignment).prop('indeterminate', false)
+                    .prop('disabled', _isSaving || _refreshAfterSave || _pageLoading || (!_bulkAssignment && !_filteredCount));
+                continue;
+            }
+            let checked = _bulkFlags.has(field) ? _bulkFlags.get(field).value !== false : _savedFlagSummary[field] === true;
+            const opposite = field === 'isNoShift' ? 'isFlexibleShift' : field === 'isFlexibleShift' ? 'isNoShift' : null;
+            const oppositeSelection = opposite ? _bulkFlags.get(opposite) : null;
+            if (!_bulkFlags.has(field) && oppositeSelection && oppositeSelection.value !== false &&
+                JSON.stringify(oppositeSelection.filter) === JSON.stringify(_activePageFilter)) checked = false;
+            $(selector).prop('checked', checked).prop('indeterminate', false)
+                .prop('disabled', _isSaving || _refreshAfterSave || _pageLoading || !_activePageFilter || !_filteredCount);
+        }
+        dataTable.buttons().enable(!_isExporting && !_isSaving && !_refreshAfterSave && !_pageLoading && !!_activePageFilter && _filteredCount > 0);
+    };
 
-    // let loadEmployeeShiftData = async () => {
-    //     console.log('Loading employee shift data...');
-    //     await getEmployeeShiftData(_currentDepartmentId, _currentShiftId, _currentFilterType);
-    // };
+    const currentFilterSelection = () => {
+        if (!_activePageFilter || !_filteredCount) return null;
+        const filter = { ..._activePageFilter };
+        const project = filter.projectId ? _projects.find(item => item.id === filter.projectId)?.name || `Project ${filter.projectId}` : 'All projects';
+        const shift = filter.shiftId ? _shift.find(item => item.shiftId === filter.shiftId)?.shiftName || `Shift ${filter.shiftId}` : 'All shifts';
+        return { filter, count: _filteredCount,
+            description: `${project} / ${shift} / ${filter.filterType}${filter.searchKeyword ? ` / Search: ${filter.searchKeyword}` : ''}` };
+    };
 
-    // let getEmployeeShiftData = async (departmentId, shiftId, filterType) => {
-    //     console.log('Fetching employee shift data...');
+    const selectAllFiltered = checked => {
+        if (_isSaving || _refreshAfterSave || _pageLoading) return;
+        if (checked) {
+            const selection = currentFilterSelection();
+            if (!selection) return;
+            _bulkAssignment = selection;
+        } else {
+            _bulkAssignment = null;
+        }
+        refreshSelectionRows();
+    };
 
-    //     try {
-    //         let response = await _apiHelper.get({
-    //             url: `Authenticated/EmployeeShift/ShiftFilter?departmentId=${departmentId}&shiftId=${shiftId}&filterType=${filterType}`,
-    //         });
+    const refreshSelectionRows = () => {
+        // Only explicit edits survive changes to the inherited bulk baseline.
+        for (const [id, pending] of _pendingChanges) {
+            const original = _originalRows.get(id);
+            if (!original) continue;
+            const baseline = assignmentBaseline(original);
+            const edited = { ...baseline };
+            const fields = _pendingFields.get(id) || new Set();
+            overlayEditedFields(edited, pending, fields, original);
+            for (const field of fields) {
+                if (!_bulkAssignment && !_bulkFlags.size && (edited[field] ?? null) === (baseline[field] ?? null)) fields.delete(field);
+            }
+            if (fields.size) _pendingChanges.set(id, edited);
+            else {
+                _pendingChanges.delete(id);
+                _pendingFields.delete(id);
+            }
+        }
+        dataTable.rows({ page: 'current' }).every(function () {
+            const row = this.data();
+            this.data(overlayPageRows([_originalRows.get(row.employeeId) || row])[0]);
+        });
+        // DataTables also clones scrolling headers; update the displayed row inputs
+        // without a server draw so both selection and cancellation are immediate.
+        $('#content-container').find('#employee-shift-grid tbody .row-check').each(function () {
+            const $input = $(this);
+            const row = dataTable.row($input.data('row')).data();
+            const column = $input.attr('data-column') || $input.attr('data-name');
+            if (row && column) $input.prop('checked', !!row[column]);
+        });
+        updatePendingStatus();
+        updateHeaderCheckboxes();
+    };
 
-    //         if (response.ok) {
-    //             let data = await response.json();
-    //             console.log('Employee shift data loaded:', data ? data.length : 0, 'records');
-    //             renderEmployeeShiftGrid(data || []);
-    //         } else {
-    //             console.error('Failed to load employee shift data:', response.status);
-    //             renderEmployeeShiftGrid([]);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error loading employee shift data:', error);
-    //         renderEmployeeShiftGrid([]);
-    //     }
-    // };
-    // let getEmployeeShiftData = async (projectId, shiftId, filterType) => {
-    //     console.log('Fetching employee shift data...');
+    const selectFilteredFlag = (field, value) => {
+        if (_isSaving || _refreshAfterSave || _pageLoading || !['isFlexibleShift', 'isNoShift', 'isNoBreak'].includes(field)) return;
+        const selection = currentFilterSelection();
+        if (!selection) return;
+        const opposite = field === 'isNoShift' ? 'isFlexibleShift' : field === 'isFlexibleShift' ? 'isNoShift' : null;
+        if (value && opposite && JSON.stringify(_bulkFlags.get(opposite)?.filter) === JSON.stringify(selection.filter)) _bulkFlags.delete(opposite);
+        _bulkFlags.delete(field);
+        _bulkFlags.set(field, { ...selection, value });
+        refreshSelectionRows();
+    };
 
-    //     try {
-    //         if (projectId != null && projectId > 0) {
-    //             let response = await _apiHelper.get({
-    //                 url: `Authenticated/EmployeeShift/ShiftFilter?projectId=${projectId}&shiftId=${shiftId}&filterType=${filterType}`,
-    //             });
+    const attachEvents = () => {
+        $('#project, #shift, #status').on('change.employeeShift', () => {
+            clearTimeout(_searchTimer);
+            _requestVersion++;
+            dataTable.search(($('#employee-shift-grid_filter input').val() || '').trim());
+            dataTable.ajax.reload(null, true);
+        });
+        $('#save').on('click.employeeShift', onEmployeeShiftSubmit);
+        $('#assignment-shift').on('change.employeeShift', updatePendingStatus);
+        const $table = $('#content-container');
+        $table.on('click.employeeShift', '#cancel-pending', event => {
+            event.preventDefault();
+            if (_isSaving || _refreshAfterSave) return;
+            _pendingChanges.clear();
+            _pendingFields.clear();
+            _bulkAssignment = null;
+            _bulkFlags.clear();
+            refreshSelectionRows();
+        });
+        $table.on('change.employeeShift', '.row-check', function () {
+            const $input = $(this);
+            const index = $input.data('row');
+            const row = dataTable.row(index);
+            const value = row.data();
+            if (!value) return;
+            applyRowChange(value, $input.data('column') || $input.data('name'), $input.prop('checked'));
+            row.data(value);
+            updateHeaderCheckboxes();
+        });
+        $table.on('change.employeeShift', '#select-all', function () {
+            selectAllFiltered($(this).prop('checked'));
+        });
+        $table.on('change.employeeShift', '.flag-select-all', function () {
+            if (_isSaving || _refreshAfterSave || _pageLoading) return;
+            const field = $(this).attr('data-column');
+            if (!['isFlexibleShift', 'isNoShift', 'isNoBreak'].includes(field)) return;
+            const checked = $(this).prop('checked');
+            selectFilteredFlag(field, checked);
+        });
+    };
 
-    //             if (response.ok) {
-    //                 let data = await response.json();
-    //                 console.log('Employee shift data loaded:', data ? data.length : 0, 'records');
-    //                 renderEmployeeShiftGrid(data || []);
-    //             } else {
-    //                 console.error('Failed to load employee shift data:', response.status);
-    //                 renderEmployeeShiftGrid([]);
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.error('Error loading employee shift data:', error);
-    //         renderEmployeeShiftGrid([]);
-    //     }
-    // };
+    const onEmployeeShiftSubmit = async event => {
+        event.preventDefault();
+        if (_isSaving || (!_bulkAssignment && !_bulkFlags.size && !_pendingChanges.size)) return;
+        const selectedSchedule = Number($('#assignment-shift').val()) || 0;
+        const unassign = selectedSchedule === -1;
+        const shiftId = unassign ? 0 : selectedSchedule;
+        const changes = Array.from(_pendingChanges.values());
+        const flagFilters = Array.from(_bulkFlags, ([field, selection]) => ({ ...selection.filter, [field]: selection.value !== false,
+            ...(selection.value === false ? {} : field === 'isFlexibleShift' ? { isNoShift: false } : field === 'isNoShift' ? { isFlexibleShift: false } : {}) }));
+        const filteredSave = !!_bulkAssignment || flagFilters.length > 0;
+        const data = changes.map(row => ({
+            employeeId: row.employeeId, assignedShiftId: row.assignedShiftId, shiftId: row.shiftId,
+            departmentId: row.departmentId ?? 0, projectId: row.projectId ?? 0,
+            preserveSchedule: !unassign && row.assignedShiftId > 0 && (!row.isSelected || (!shiftId &&
+                ['isFlexibleShift', 'isNoShift', 'isNoBreak'].some(field => _pendingFields.get(row.employeeId)?.has(field)))),
+            isAssigned: unassign ? false : row.isAssigned || (row.assignedShiftId === 0 && !_pendingFields.get(row.employeeId)?.has('isSelected')),
+            isFlexibleShift: row.isFlexibleShift,
+            isNoShift: row.isNoShift, isNoBreak: row.isNoBreak
+        }));
+        if ((_bulkAssignment || data.some(row => row.isAssigned && !row.preserveSchedule)) && !shiftId && !unassign) {
+            toastr.warning('Select a schedule or Unassigned before saving.');
+            return;
+        }
+        _isSaving = true;
+        updatePendingStatus();
+        $('#project, #shift, #status, #assignment-shift').prop('disabled', true);
+        $('#employee-shift-grid_wrapper input[type="checkbox"]').prop('disabled', true);
+        try {
+            const response = await _apiHelper.post({
+                url: filteredSave ? 'Authenticated/EmployeeShift/AssignFiltered' : `Authenticated/EmployeeShift?shiftId=${shiftId}`,
+                data: filteredSave ? { ...(_bulkAssignment?.filter || {}), applyAssignmentToFilter: !!_bulkAssignment,
+                    flagFilters, scheduleId: !_bulkAssignment && !selectedSchedule ? null : shiftId, changes: data.map(row => ({
+                    employeeId: row.employeeId, preserveSchedule: row.preserveSchedule, isAssigned: row.isAssigned, isFlexibleShift: row.isFlexibleShift,
+                    isNoShift: row.isNoShift, isNoBreak: row.isNoBreak
+                })) } : data,
+                requestOrigin: 'Employee Shift Assignment', requesterName: $('#current-user').text(), requestSystem: SYSTEM
+            });
+            if (!response.ok) {
+                toastr.error(response.status === 409 ? 'An assignment changed. Refresh the affected employee and try again.' :
+                    response.status === 403 ? 'Access denied.' : 'Could not save assignments. Your pending changes have been kept.');
+                return;
+            }
+            _pendingChanges.clear();
+            _pendingFields.clear();
+            _originalRows.clear();
+            _bulkAssignment = null;
+            _bulkFlags.clear();
+            _refreshAfterSave = true;
+            toastr.success('Employee shift assignments updated.');
+            dataTable.ajax.reload(null, false);
+        } catch (_) {
+            toastr.error('Could not save assignments. Your pending changes have been kept.');
+        } finally {
+            _isSaving = false;
+            $('#project, #shift, #status, #assignment-shift').prop('disabled', false);
+            $('#employee-shift-grid_wrapper input[type="checkbox"]').prop('disabled', _refreshAfterSave);
+            updatePendingStatus();
+            updateHeaderCheckboxes();
+        }
+    };
+
+    const escapeExportText = value => String(value ?? '').replace(/[&<>"']/g, character =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+
+    const exportFiltered = async (type, event, table, node, config, buttonContext) => {
+        event?.preventDefault?.();
+        if (_isExporting || _isSaving || _refreshAfterSave || _pageLoading || !_activePageFilter) return;
+        if (!_filteredCount) {
+            toastr.info('No employees match these filters.');
+            return;
+        }
+        // Open the print window during the click, before awaiting the API response.
+        const printWindow = type === 'print' ? window.open('', '_blank') : null;
+        if (type === 'print' && !printWindow) {
+            toastr.error('Allow popups to open the print view.');
+            return;
+        }
+        const filter = { ..._activePageFilter };
+        const version = _requestVersion;
+        _isExporting = true;
+        updateHeaderCheckboxes();
+        $('#employee-shift-page-status').text('Loading all filtered employees for export...');
+        try {
+            if (printWindow) {
+                printWindow.opener = null;
+                printWindow.document.write('<p>Loading filtered employee shifts...</p>');
+            }
+            // Omitting skip/take preserves the endpoint's full-filter array contract.
+            const response = await _apiHelper.get({ url: `Authenticated/EmployeeShift/ShiftFilter?${new URLSearchParams(filter)}` });
+            if (!response.ok) throw new Error('Export unavailable');
+            const rows = await response.json();
+            if (!Array.isArray(rows) || rows.some(row => !row || !Number.isInteger(row.employeeId))) throw new Error('Invalid export');
+            if (version !== _requestVersion) {
+                printWindow?.close();
+                toastr.info('The table changed while loading. Export again with the current filters.');
+                return;
+            }
+            if (!rows.length) {
+                printWindow?.close();
+                toastr.info('No employees match these filters.');
+                return;
+            }
+            const columns = getEmployeeShiftColumns().filter(column => column.visible !== false && column.data !== 'isSelected');
+            const header = columns.map(column => column.title.replace(/<[^>]*>/g, '').trim());
+            const body = rows.map((row, index) => columns.map(column => {
+                const value = row[column.data];
+                if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+                return column.render ? column.render(value, 'export', row, { row: index }) : value ?? '-';
+            }));
+            if (printWindow) {
+                if (printWindow.closed) return;
+                const cells = (values, tag) => '<tr>' + values.map(value => `<${tag}>${escapeExportText(value)}</${tag}>`).join('') + '</tr>';
+                printWindow.document.open();
+                printWindow.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Employee Shift Assignments</title>' +
+                    '<style>@page{size:A3 landscape;margin:10mm}body{font-family:Arial,sans-serif;font-size:9px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #aaa;padding:4px;overflow-wrap:anywhere}thead{display:table-header-group}tr{break-inside:avoid}</style>' +
+                    '</head><body><h1>Employee Shift Assignments</h1><table><thead>' + cells(header, 'th') + '</thead><tbody>' +
+                    body.map(values => cells(values, 'td')).join('') + '</tbody></table></body></html>');
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+            } else {
+                await new Promise((resolve, reject) => {
+                    // Buttons 2.2 returns before asynchronous XLSX generation ends.
+                    // Its processing(false) notification marks native completion.
+                    const nativeContext = Object.create(buttonContext);
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Export generation timed out'));
+                        buttonContext.processing?.(false);
+                    }, 120000);
+                    nativeContext.processing = processing => {
+                        buttonContext.processing?.(processing);
+                        if (!processing) {
+                            clearTimeout(timeout);
+                            resolve();
+                        }
+                        return nativeContext;
+                    };
+                    try {
+                        $.fn.dataTable.ext.buttons[type].action.call(nativeContext, event, table, node, {
+                            ...config, footer: false,
+                            exportOptions: { ...config.exportOptions, customizeData(data) {
+                                data.header = header;
+                                data.body = body;
+                                data.footer = null;
+                            } }
+                        });
+                    } catch (error) {
+                        clearTimeout(timeout);
+                        reject(error);
+                        buttonContext.processing?.(false);
+                    }
+                });
+            }
+        } catch (_) {
+            printWindow?.close();
+            toastr.error('Could not export employee shifts. Try again.');
+        } finally {
+            _isExporting = false;
+            if (version === _requestVersion) $('#employee-shift-page-status').text('');
+            updateHeaderCheckboxes();
+        }
+    };
+
+    const filteredExportButton = (type, label) => ({
+        ...(type === 'print' ? {} : { extend: type }),
+        text: `${label} (filtered)`, className: 'btn btn-primary ml-3', title: 'Employee Shift Assignments', filename: 'Employee Shift Assignments - filtered',
+        exportOptions: { columns: ':visible:not(:first-child)', modifier: { selected: null } },
+        ...(type === 'pdfHtml5' ? { orientation: 'landscape', pageSize: 'A3', customize(document) {
+            document.defaultStyle.fontSize = 7;
+            document.styles.tableHeader.fontSize = 7;
+        } } : {}),
+        action: function (event, table, node, config) {
+            return exportFiltered(type, event, table, node, config, this);
+        }
+    });
 
     let getEmployeeShiftColumns = () => {
         return [
             {
-                title: '<input name="select_all" value="1" id="select-all" type="checkbox"> Assign/Unassign',
-                data: "isAssigned",
+                title: '<input name="select_all" value="1" id="select-all" type="checkbox" aria-label="Select all employees matching the selected filters"> Select all filtered',
+                data: "isSelected",
                 width: "50px",
                 className: 'dt-center',
                 render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-name="isAssigned" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
+                    return `<input type="checkbox" class="row-check" data-name="isSelected" data-row="${meta.row}" aria-label="Select employee ${row.employeeId}" ${data ? 'checked' : ''}>`;
                 },
                 orderable: false
             },
@@ -321,7 +513,7 @@
                 title: "Employee",
                 data: "employeeName",
                 className: 'dt-center',
-                render: (data) => data ? _stringHelper.capitalize(data) : '-'
+                render: (data, type) => type === 'display' ? $.fn.dataTable.render.text().display(data ? _stringHelper.capitalize(data) : '-') : data ? _stringHelper.capitalize(data) : '-'
             },
             {
                 title: "Mon Shift Start",
@@ -450,32 +642,32 @@
                 }
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="isFlexibleShift" type="checkbox"> Is Flexible Shift?',
+                title: '<input class="flag-select-all" data-column="isFlexibleShift" type="checkbox" aria-label="Set Flexible Shift for all filtered employees"> Is Flexible Shift?',
                 data: "isFlexibleShift",
                 width: "50px",
                 className: 'dt-center',
                 render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
+                    return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" aria-label="Flexible shift for employee ${row.employeeId}" ${data ? 'checked' : ''}>`;
                 },
                 orderable: false
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="isNoShift" type="checkbox"> Is No Shift',
+                title: '<input class="flag-select-all" data-column="isNoShift" type="checkbox" aria-label="Set No Shift for all filtered employees"> Is No Shift',
                 data: "isNoShift",
                 width: "50px",
                 className: 'dt-center',
                 render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isNoShift" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
+                    return `<input type="checkbox" class="row-check" data-column="isNoShift" data-row="${meta.row}" aria-label="No shift for employee ${row.employeeId}" ${data ? 'checked' : ''}>`;
                 },
                 orderable: false
             },
             {
-                title: '<input name="select_all" value="1" class="select-all" data-column="isNoBreak" type="checkbox"> Is No Break',
+                title: '<input class="flag-select-all" data-column="isNoBreak" type="checkbox" aria-label="Set No Break for all filtered employees"> Is No Break',
                 data: "isNoBreak",
                 width: "50px",
                 className: 'dt-center',
                 render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isNoBreak" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
+                    return `<input type="checkbox" class="row-check" data-column="isNoBreak" data-row="${meta.row}" aria-label="No break for employee ${row.employeeId}" ${data ? 'checked' : ''}>`;
                 },
                 orderable: false
             },
@@ -483,19 +675,19 @@
                 title: "Shift",
                 data: "shiftName",
                 className: 'dt-center',
-                render: (data) => data ? _stringHelper.capitalize(data) : '-'
+                render: (data, type) => type === 'display' ? $.fn.dataTable.render.text().display(data ? _stringHelper.capitalize(data) : '-') : data ? _stringHelper.capitalize(data) : '-'
             },
             // {
             //     title: "Department",
             //     data: "departmentName",
             //     className: 'dt-center',
-            //     render: (data) => data ? _stringHelper.capitalize(data) : '-'
+            //     render: (data) => $.fn.dataTable.render.text().display(data ? _stringHelper.capitalize(data) : '-')
             // },
             {
                 title: "Project",
                 data: "projectName",
                 className: 'dt-center',
-                render: (data) => data ? _stringHelper.capitalize(data) : '-'
+                render: (data, type) => type === 'display' ? $.fn.dataTable.render.text().display(data ? _stringHelper.capitalize(data) : '-') : data ? _stringHelper.capitalize(data) : '-'
             },
             {
                 title: "Date Assigned",
@@ -535,555 +727,87 @@
         ];
     };
 
-    let onEmployeeShiftSubmit = async event => {
-        event.preventDefault();
-
-        if (!dataTable) {
-            alert('Data table not initialized.');
-            return;
-        }
-
-        const shiftId = $('#shift').val() || 0;
-        const data = dataTable.rows().data().toArray();
-        console.log(data);
-        let shiftDate = data.ShiftDate ? data.DateShiftDate : null;
-        const mondayShiftStart = data.MondayShiftStart ? data.MondayShiftStart : null;
-        const mondayShiftEnd = data.MondayShiftEnd ? data.MondayShiftEnd : null;
-        const tuesdayShiftStart = data.TuesdayShiftStart ? data.TuesdayShiftStart : null;
-        const tuesdayShiftEnd = data.TuesdayShiftEnd ? data.TuesdayShiftEnd : null;
-        const wednesdayShiftStart = data.WednesdayShiftStart ? data.WednesdayShiftStart : null;
-        const wednesdayShiftEnd = data.WednesdayShiftEnd ? data.WednesdayShiftEnd : null;
-        const thursdayShiftStart = data.ThursdayShiftStart ? data.ThursdayShiftStart : null;
-        const thursdayShiftEnd = data.ThursdayShiftEnd ? data.ThursdayShiftEnd : null;
-        const fridayShiftStart = data.FridayShiftStart ? data.FridayShiftStart : null;
-        const fridayShiftEnd = data.FridayShiftEnd ? data.FridayShiftEnd : null;
-        const saturdayShiftStart = data.SaturdayShiftStart ? data.SaturdayShiftStart : null;
-        const saturdayShiftEnd = data.SaturdayShiftEnd ? data.SaturdayShiftEnd : null;
-        const sundayShiftStart = data.SundayShiftStart ? data.SundayShiftStart : null;
-        const sundayShiftEnd = data.SundayShiftEnd ? data.SundayShiftEnd : null;
-
-        data.ShiftDate = shiftDate;
-        data.MondayShiftStart = mondayShiftStart;
-        data.MondayShiftEnd = mondayShiftEnd;
-        data.TuesdayShiftStart = tuesdayShiftStart;
-        data.TuesdayShiftEnd = tuesdayShiftEnd;
-        data.WednesdayShiftStart = wednesdayShiftStart;
-        data.WednesdayShiftEnd = wednesdayShiftEnd;
-        data.ThursdayShiftStart = thursdayShiftStart;
-        data.ThursdayShiftEnd = thursdayShiftEnd;
-        data.FridayShiftStart = fridayShiftStart;
-        data.FridayShiftEnd = fridayShiftEnd;
-        data.SaturdayShiftStart = saturdayShiftStart;
-        data.SaturdayShiftEnd = saturdayShiftEnd;
-        data.SundayShiftStart = sundayShiftStart;
-        data.SundayShiftEnd = sundayShiftEnd;
-
-        console.log('Submitting data:', data);
-
-        if (data.length === 0) {
-            alert('No data to save.');
-            return;
-        }
-
-        try {
-            const response = await _apiHelper.post({
-                url: `Authenticated/EmployeeShift?shiftId=${shiftId}`,
-                data: data
-            });
-
-            if (response.ok) {
-                // Reload the grid with current filters
-                await loadEmployeeShiftData();
-
-                alert('Employee shift assignments have been updated successfully!');
-            } else if (response.status === 403) {
-                alert('Access denied.');
-            } else if (response.status === 409) {
-                const errorText = await response.text();
-                alert('Conflict: ' + errorText);
-            } else {
-                alert('Failed to save employee shifts.');
-            }
-        } catch (error) {
-            console.error('Error saving employee shifts:', error);
-            alert('An error occurred while saving.');
-        }
-    };
-
-    let renderEmployeeShiftGrid = (data) => {
-        const tableId = '#employee-shift-grid';
-        const $table = $(tableId);
-
-        console.log('Rendering grid with', data.length, 'records');
-
-        // Destroy existing DataTable if it exists
-        if ($.fn.DataTable.isDataTable(tableId)) {
-            dataTable.destroy();
-            $table.empty();
-        }
-
-        // Create table structure - always show the table header
-        $table.html(`
-        <thead>
-            <tr>
-                <th><input name="select_all" value="1" id="select-all" type="checkbox"></th>
-                <th>Employee</th>
-                <th>Monday Shift Start</th>
-                <th>Monday Shift End</th>
-                <th>Tuesday Shift Start</th>
-                <th>Tuesday Shift End</th>
-                <th>Wednesday Shift Start</th>
-                <th>Wednesday Shift End</th>
-                <th>Thursday Shift Start</th>
-                <th>Thursday Shift End</th>
-                <th>Friday Shift Start</th>
-                <th>Friday Shift End</th>
-                <th>Saturday Shift Start</th>
-                <th>Saturday Shift End</th>
-                <th>Sunday Shift Start</th>
-                <th>Sunday Shift End</th>
-                <th>Is Flexible Shift</th>
-                <th>Is No Shift</th>
-                <th>Is No Break</th>
-                <th>Shift</th>
-                <th>Project</th>
-                <th>Date Assigned</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    `);
-
-        // Initialize DataTable
-        dataTable = $table.DataTable({
-            //dom: '<"top">rt<"bottom"ip><"clear">',
+    const initializeGrid = () => {
+        $('#employee-shift-grid').empty();
+        dataTable = $('#employee-shift-grid').DataTable({
             dom: 'Bfrtip',
             buttons: [
-                {
-                    extend: 'excel',
-                    text: 'Excel <i class="fas fa-download"></i>',
-                    className: 'btn btn-primary ml-3',
-                    title: 'Biometrics Logs',
-                    footer: true
-
-                },
-                {
-                    extend: 'pdf',
-                    text: 'PDF <i class="fas fa-download"></i>',
-                    className: 'btn btn-primary  ml-3',
-                    title: 'Biometrics Logs',
-                    footer: true
-
-                },
-                {
-                    extend: 'print',
-                    text: 'Print <i class="fas fa-download"></i>',
-                    className: 'btn btn-primary ml-3',
-                    title: 'Biometrics Logs',
-                    footer: true
-                },
+                filteredExportButton('excelHtml5', 'Excel'),
+                filteredExportButton('pdfHtml5', 'PDF'),
+                filteredExportButton('print', 'Print')
             ],
-            bFilter: true,
-            bInfo: true,
+            serverSide: true,
+            processing: true,
             paging: true,
             pageLength: 10,
-            searching: true,
-            info: true,
-            autoWidth: false,
             lengthChange: false,
-            ordering: true,
-            data: data || [], // Ensure data is always an array
+            ordering: false,
+            searching: true,
+            autoWidth: true,
+            scrollX: true,
+            ajax: requestGridPage,
             columns: getEmployeeShiftColumns(),
             language: {
-                emptyTable: `
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-4x text-muted mb-3" style="opacity: 0.5;"></i>
-                    <h5 class="text-muted">No Data Available</h5>
-                    <p class="text-muted small">Please select a project and shift, then click a filter button to load data</p>
-                    <div class="mt-3">
-                        <span class="badge badge-secondary">Assigned</span>
-                        <span class="badge badge-secondary">Unassigned</span>
-                        <span class="badge badge-secondary">All</span>
-                    </div>
-                </div>
-            `,
-                infoEmpty: "Showing 0 entries",
-                infoFiltered: "",
-                search: "Search:",
+                emptyTable: 'No employees available.',
+                zeroRecords: 'No employees match these filters.',
+                search: 'Search:',
+                searchPlaceholder: 'Employee, project or shift'
             },
             drawCallback: function () {
-                if (data && data.length > 0) {
-                    attachSelectAllEvents();
-                }
+                // Recalculate both scrolling tables for the current page's content.
+                this.api().columns.adjust();
+                $('#employee-shift-grid_wrapper input[type="checkbox"]').prop('disabled', _isSaving || _refreshAfterSave);
+                // Initial draws occur before DataTable() returns its API instance.
+                if (dataTable) updateHeaderCheckboxes();
             },
             initComplete: function () {
-                console.log('DataTable initialized successfully');
-                if (data && data.length > 0) {
-                    attachSelectAllEvents();
-                }
+                // DataTables 1.10 throttles searchDelay; bind a real debounce instead.
+                $('#employee-shift-grid_filter input').off('.DT').on('input.employeeShift', function () {
+                    clearTimeout(_searchTimer);
+                    _requestVersion++;
+                    _pageLoading = true;
+                    updateHeaderCheckboxes();
+                    const search = this.value.trim();
+                    _searchTimer = setTimeout(() => dataTable.search(search).draw(), 300);
+                });
             }
         });
     };
 
-
-    let renderDropDowns = () => {
-        console.log('Rendering dropdowns...');
-
-        // Simple dropdown rendering without relying on _formHelper
-        const renderSimpleDropdown = (elementId, data, valueField, textField, placeholder) => {
-            const $select = $(elementId);
-            $select.empty();
-
-            if (placeholder) {
-                $select.append(`<option value="">${placeholder}</option>`);
-            }
-
-            if (data && data.length > 0) {
-                data.forEach(item => {
-                    $select.append(`<option value="${item[valueField]}">${item[textField]}</option>`);
-                });
-                console.log(`Rendered ${data.length} options for ${elementId}`);
-            } else {
-                $select.append('<option value="">No data available</option>');
-                console.warn(`No data available for ${elementId}`);
-            }
+    const renderDropDowns = () => {
+        const render = (selector, items, id, name, firstLabel, allowUnassigned = false) => {
+            const $select = $(selector).empty();
+            $select.append($('<option>').val('0').text(firstLabel));
+            if (allowUnassigned) $select.append($('<option>').val('-1').text('Unassigned'));
+            for (const item of items) $select.append($('<option>').val(item[id]).text(item[name] || '-'));
         };
-
-        // Render department dropdown
-        //renderSimpleDropdown('#department', _department, 'departmentId', 'departmentName', 'Select Department');
-        console.log(_projects);
-        renderSimpleDropdown('#project', _projects, 'id', 'name', 'Select Project');
-
-        // Render shift dropdown  
-        renderSimpleDropdown('#shift', _shift, 'shiftId', 'shiftName', 'Select Shift');
+        render('#project', _projects, 'id', 'name', 'All');
+        render('#shift', _shift, 'shiftId', 'shiftName', 'All');
+        render('#assignment-shift', _shift, 'shiftId', 'shiftName', 'Select schedule', true);
+        $('#status').val('All');
     };
 
-    // let getDropdownData = async () => {
-    //     console.log('Loading dropdown data...');
-
-    //     try {
-    //         const departmentResponse = await _apiHelper.get({ url: 'Authenticated/Department' });
-    //         const shiftResponse = await _apiHelper.get({ url: 'Authenticated/Shift' });
-
-    //         if (departmentResponse.ok) {
-    //             _department = await departmentResponse.json();
-    //             console.log('Loaded departments:', _department.length);
-    //         } else {
-    //             console.error('Failed to load departments:', departmentResponse.status);
-    //             _department = [];
-    //         }
-
-    //         if (shiftResponse.ok) {
-    //             _shift = await shiftResponse.json();
-    //             console.log('Loaded shifts:', _shift.length);
-    //         } else {
-    //             console.error('Failed to load shifts:', shiftResponse.status);
-    //             _shift = [];
-    //         }
-    //     } catch (error) {
-    //         console.error('Error loading dropdown data:', error);
-    //         _department = [];
-    //         _shift = [];
-    //     }
-    // };
-    let getDropdownData = async () => {
-        console.log('Loading dropdown data...');
-
-        try {
-            const projectResponse = await _apiHelper.get({ url: 'Authenticated/Project' });
-            const shiftResponse = await _apiHelper.get({ url: 'Authenticated/Shift' });
-
-            if (projectResponse.ok) {
-                _projects = await projectResponse.json();
-                console.log('Loaded projects:', _projects.length);
-            } else {
-                console.error('Failed to load projects:', projectResponse.status);
-                _projects = [];
-            }
-
-            if (shiftResponse.ok) {
-                _shift = await shiftResponse.json();
-                console.log('Loaded shifts:', _shift.length);
-            } else {
-                console.error('Failed to load shifts:', shiftResponse.status);
-                _shift = [];
-            }
-        } catch (error) {
-            console.error('Error loading dropdown data:', error);
-            _projects = [];
-            _shift = [];
-        }
-    };
-    let attachSelectAllEvents = () => {
-        console.log('Attaching select all events...');
-
-        // Use event delegation for dynamic elements
-        $(document).off('change', '#select-all');
-        $(document).off('change', '.select-all');
-        $(document).off('change', '.row-check');
-        $(document).off('change', 'input[type="time"]');
-
-        $(document).on('change', 'input[type="time"]', function () {
-            const $this = $(this);
-            const rowIndex = $this.closest('tr').index();
-            const fieldName = $this.attr('name') || $this.data('field');
-            const newValue = $this.val();
-
-            console.log(`Time input changed: row=${rowIndex}, field=${fieldName}, value=${newValue}`);
-
-            if (dataTable && rowIndex !== undefined) {
-                let rowData = dataTable.row(rowIndex).data();
-                if (rowData) {
-                    rowData[fieldName] = newValue;
-
-                    // Handle dependencies for time changes
-                    const { updatedRowData, updatedColumns } = handleCellDependencies(rowData, fieldName, rowIndex);
-
-                    // Update the row data
-                    dataTable.row(rowIndex).data(updatedRowData);
-
-                    // Update UI for dependent columns
-                    updatedColumns.forEach(col => {
-                        const $dependentCheckbox = $(`.row-check[data-row="${rowIndex}"][data-column="${col}"]`);
-                        if ($dependentCheckbox.length) {
-                            $dependentCheckbox.prop('checked', updatedRowData[col]);
-                        }
-
-                        const $dependentCheckboxByName = $(`.row-check[data-row="${rowIndex}"][data-name="${col}"]`);
-                        if ($dependentCheckboxByName.length) {
-                            $dependentCheckboxByName.prop('checked', updatedRowData[col]);
-                        }
-                    });
-                }
-            }
-        });
-
-        // Main select all functionality
-        $(document).on('change', '#select-all', function () {
-            const isChecked = $(this).prop('checked');
-            console.log('Main select-all changed:', isChecked);
-
-            $('.row-check[data-name="isAssigned"]').prop('checked', isChecked);
-
-            // Update data in DataTable
-            if (dataTable) {
-                dataTable.rows().every(function (rowIdx) {
-                    const rowData = this.data();
-                    rowData.isAssigned = isChecked;
-
-                    // Handle dependencies when bulk updating
-                    if (isChecked) {
-                        // If assigning shifts, uncheck "No Shift"
-                        if (rowData.isNoShift) {
-                            rowData.isNoShift = false;
-                        }
-                    }
-                    this.data(rowData);
-                });
-                // Don't redraw here to avoid recreating elements
-                updateSelectAllCheckbox();
-            }
-        });
-
-        // Column-specific select all functionality
-        $(document).on('change', '.select-all', function () {
-            const $this = $(this);
-            const columnName = $this.data('column');
-            const isChecked = $this.prop('checked');
-
-            console.log(`Column select-all changed: ${columnName} = ${isChecked}`);
-
-            // Update all checkboxes in this column
-            $(`.row-check[data-column="${columnName}"]`).prop('checked', isChecked);
-
-            // Update data in DataTable and handle dependencies
-            if (dataTable) {
-                dataTable.rows().every(function (rowIdx) {
-                    const rowData = this.data();
-                    rowData[columnName] = isChecked;
-
-                    // Handle dependencies for bulk column updates
-                    const { updatedRowData, updatedColumns } = handleCellDependencies(rowData, columnName, rowIdx);
-                    this.data(updatedRowData);
-                });
-                // Don't redraw here to avoid recreating elements
-                updateSelectAllCheckboxForColumn(columnName);
-            }
-        });
-
-        // UPDATED: Individual row checkboxes with dependency handling
-        $(document).on('change', '.row-check', function () {
-            const $this = $(this);
-            const rowIndex = $this.data('row');
-            const columnName = $this.data('column') || $this.data('name');
-            const isChecked = $this.prop('checked');
-
-            console.log(`Row checkbox changed: row=${rowIndex}, column=${columnName}, checked=${isChecked}`);
-
-            if (dataTable && rowIndex !== undefined) {
-                let rowData = dataTable.row(rowIndex).data();
-                if (rowData) {
-                    // Update the changed column
-                    rowData[columnName] = isChecked;
-
-                    // NEW: Handle cell dependencies
-                    const { updatedRowData, updatedColumns } = handleCellDependencies(rowData, columnName, rowIndex);
-
-                    // Update the row data in DataTable
-                    dataTable.row(rowIndex).data(updatedRowData);
-
-                    // NEW: Update UI for dependent columns
-                    updatedColumns.forEach(col => {
-                        console.log(`Updating dependent column: ${col} for row ${rowIndex}`);
-
-                        // Update checkboxes with data-column attribute
-                        const $dependentCheckbox = $(`.row-check[data-row="${rowIndex}"][data-column="${col}"]`);
-                        if ($dependentCheckbox.length) {
-                            $dependentCheckbox.prop('checked', updatedRowData[col]);
-                            console.log(`Updated checkbox for ${col} to ${updatedRowData[col]}`);
-                        }
-
-                        // Also update if it's using data-name attribute (for isAssigned)
-                        const $dependentCheckboxByName = $(`.row-check[data-row="${rowIndex}"][data-name="${col}"]`);
-                        if ($dependentCheckboxByName.length) {
-                            $dependentCheckboxByName.prop('checked', updatedRowData[col]);
-                            console.log(`Updated checkbox (by name) for ${col} to ${updatedRowData[col]}`);
-                        }
-                    });
-                }
-            }
-
-            // Update the appropriate select-all checkbox
-            if (columnName === 'isAssigned') {
-                updateSelectAllCheckbox();
-            } else {
-                updateSelectAllCheckboxForColumn(columnName);
-            }
-        });
-
-        // Initialize all select-all checkboxes
-        setTimeout(() => {
-            updateSelectAllCheckbox();
-            updateSelectAllCheckboxForColumn('isFlexibleShift');
-            updateSelectAllCheckboxForColumn('isNoShift');
-            updateSelectAllCheckboxForColumn('isNoBreak');
-        }, 100);
+    const initializeApplication = async () => {
+        toastr.options.escapeHtml = true;
+        const results = await Promise.allSettled(['Project', 'Shift'].map(async name => {
+            const response = await _apiHelper.get({ url: `Authenticated/${name}` });
+            if (!response?.ok) throw new Error('Dropdown unavailable');
+            const items = await response.json();
+            if (!Array.isArray(items)) throw new Error('Invalid dropdown response');
+            return items;
+        }));
+        if (results[0].status === 'fulfilled') _projects = results[0].value;
+        else toastr.error('Could not load project options. Refresh to try again.');
+        if (results[1].status === 'fulfilled') _shift = results[1].value;
+        else toastr.error('Could not load shift options. Refresh to try again.');
+        renderDropDowns();
+        initializeGrid();
+        attachEvents();
+        updatePendingStatus();
     };
 
-    let updateSelectAllCheckbox = () => {
-        const $selectAll = $('#select-all');
-        const $rowChecks = $('.row-check[data-name="isAssigned"]');
-
-        console.log('Updating main select-all:', $rowChecks.length, 'checkboxes found');
-
-        if ($rowChecks.length === 0) {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', false);
-            return;
-        }
-
-        const checkedCount = $rowChecks.filter(':checked').length;
-        console.log('Main select-all - checked:', checkedCount, 'total:', $rowChecks.length);
-
-        if (checkedCount === 0) {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', false);
-        } else if (checkedCount === $rowChecks.length) {
-            $selectAll.prop('checked', true);
-            $selectAll.prop('indeterminate', false);
-        } else {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', true);
-        }
-    };
-
-    let updateSelectAllCheckboxForColumn = (columnName) => {
-        const $selectAll = $(`.select-all[data-column="${columnName}"]`);
-        const $rowChecks = $(`.row-check[data-column="${columnName}"]`);
-
-        console.log(`Updating ${columnName} select-all:`, $rowChecks.length, 'checkboxes found');
-
-        if ($rowChecks.length === 0) {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', false);
-            return;
-        }
-
-        const checkedCount = $rowChecks.filter(':checked').length;
-        console.log(`${columnName} select-all - checked:`, checkedCount, 'total:', $rowChecks.length);
-
-        if (checkedCount === 0) {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', false);
-        } else if (checkedCount === $rowChecks.length) {
-            $selectAll.prop('checked', true);
-            $selectAll.prop('indeterminate', false);
-        } else {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', true);
-        }
-    };
-
-    let initializeApplication = async () => {
-        console.log('Initializing application...');
-
-        try {
-            // Step 1: Load dropdown data
-            await getDropdownData();
-
-            // Step 2: Render dropdowns
-            renderDropDowns();
-
-            // Step 3: Set initial active button
-            setActiveFilterButton($('#all')[0]);
-
-            // Step 4: Show empty grid first (instead of loading data)
-            renderEmployeeShiftGrid([]); // Pass empty array to show empty table
-
-            // Step 5: Attach events (only after empty grid is shown)
-            attachEvents();
-
-            console.log('Application initialized successfully - showing empty grid');
-        } catch (error) {
-            console.error('Failed to initialize application:', error);
-            $('#employee-shift-grid').html('<div class="alert alert-danger">Failed to initialize application. Please refresh the page.</div>');
-        }
-    };
-    let showProjectRequiredMessage = () => {
-        if (dataTable) {
-            // Show a temporary message in the table
-            const emptyMessage = `
-            <div class="text-center py-5">
-                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                <h5 class="text-warning">Project Required</h5>
-                <p class="text-muted">Please select a project before loading data</p>
-            </div>
-        `;
-
-            // If DataTable has the language emptyTable setting, it will show automatically
-            // Otherwise, we can update the table content
-            const $tbody = $('#employee-shift-grid tbody');
-            if ($tbody.length) {
-                $tbody.html(`
-                <tr>
-                    <td colspan="22" style="text-align: center; padding: 50px 20px;">
-                        ${emptyMessage}
-                    </td>
-                </tr>
-            `);
-            }
-        }
-    };
-
-    // Optional: Add a reset function
-    let resetToEmptyGrid = () => {
-        if (dataTable) {
-            renderEmployeeShiftGrid([]);
-        }
-    };
-    // Initialize when document is ready
+    // The layout's jQuery 1.11 does not recognize async functions as ready callbacks.
     $(document).ready(function () {
-        console.log('Document ready - starting initialization...');
         initializeApplication();
     });
-
 })(jQuery);

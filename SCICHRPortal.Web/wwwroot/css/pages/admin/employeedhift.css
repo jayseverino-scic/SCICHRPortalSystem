@@ -82,7 +82,7 @@
     color: #555 !important;
 }
 
-#employee-shift-grid thead th {
+#employee-shift-grid_wrapper table.dataTable thead th {
     background: #2e7d32 !important;
     color: #ffffff !important;
     font-size: 13px;
@@ -95,7 +95,7 @@
     background: #f1f8f1 !important;
 }
 
-#employee-shift-grid tbody td {
+#employee-shift-grid_wrapper table.dataTable tbody td {
     font-size: 13px;
     color: #333;
     border-bottom: 1px solid #e8f5e9 !important;
