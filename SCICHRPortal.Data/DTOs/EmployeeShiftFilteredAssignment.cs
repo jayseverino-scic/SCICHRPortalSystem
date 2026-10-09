@@ -2,6 +2,10 @@ namespace SCICHRPortal.Data.DTOs
 {
     public sealed class EmployeeShiftFilteredAssignmentRequest
     {
+        public DateTime? EffectiveStartDate { get; set; }
+        public DateTime? EffectiveEndDate { get; set; }
+        public bool IsTemporary { get; set; }
+        public DateTime? AsOf { get; set; }
         public int ProjectId { get; set; }
         public int ShiftId { get; set; }
         public string FilterType { get; set; } = "All";
@@ -15,6 +19,7 @@ namespace SCICHRPortal.Data.DTOs
 
     public sealed class EmployeeShiftFilteredFlags
     {
+        public DateTime? AsOf { get; set; }
         public int ProjectId { get; set; }
         public int ShiftId { get; set; }
         public string FilterType { get; set; } = "All";

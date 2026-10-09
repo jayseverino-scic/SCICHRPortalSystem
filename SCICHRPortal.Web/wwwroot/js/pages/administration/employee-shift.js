@@ -3,6 +3,15 @@
     const _apiHelper = new ApiHelper();
     const _dateHelper = new DateHelper();
     const _stringHelper = new StringHelper();
+    // The layout loads Bootstrap 5 alongside Bootstrap 3 styles. Use the native
+    // modal API and omit fade markup, whose visibility classes differ by version.
+    const _effectiveModalElement = document.getElementById('effective-period-modal');
+    const _historyModalElement = document.getElementById('shift-history-modal');
+    // Also handle an already-rendered view when the updated script is loaded.
+    _effectiveModalElement.classList.remove('fade');
+    _historyModalElement.classList.remove('fade');
+    const _effectiveModal = new bootstrap.Modal(_effectiveModalElement, { backdrop: 'static', keyboard: false });
+    const _historyModal = new bootstrap.Modal(_historyModalElement);
     const _pendingChanges = new Map();
     const _pendingFields = new Map();
     const _originalRows = new Map();
@@ -22,6 +31,10 @@
     let _filteredCount = 0;
     let _savedFlagSummary = {};
     let _pageLoading = false;
+    let _viewTimestamp = null;
+    let _historyVersion = 0;
+    let _historyEmployee = 0;
+    let _historySkip = 0;
     let dataTable = null;
 
     const updatePendingStatus = () => {
@@ -68,6 +81,11 @@
 
     const overlayEditedFields = (row, pending, fields, original) => {
         for (const field of fields) row[field] = pending[field];
+        // A selected schedule supplies daily times. Keep the inherited No Shift
+        // reset separate from explicit edits so unselecting restores saved flags.
+        const noShiftSelection = _bulkFlags.get('isNoShift');
+        if (row.isSelected && Number($('#assignment-shift').val()) > 0 && !fields.has('isNoShift') &&
+            !(noShiftSelection && matchesFilter(original, noShiftSelection.filter))) row.isNoShift = false;
         // An explicit flag edit includes its mutually exclusive counterpart,
         // even when that counterpart was already false at the time of editing.
         if (fields.has('isNoShift') && pending.isNoShift) {
@@ -126,7 +144,8 @@
         const fields = new Set(_pendingFields.get(row.employeeId) || []);
         for (const field of _editableFields) {
             if (field !== column && (row[field] ?? null) === (previous[field] ?? null)) continue;
-            if (original && (row[field] ?? null) === (original[field] ?? null)) fields.delete(field);
+            if (field === column && column === 'isNoShift' && row.isSelected && Number($('#assignment-shift').val()) > 0) fields.add(field);
+            else if (original && (row[field] ?? null) === (original[field] ?? null)) fields.delete(field);
             else fields.add(field);
         }
         if (original) Object.assign(row, overlayEditedFields({ ...original }, row, fields, originalRow));
@@ -151,6 +170,7 @@
             take: request.length,
             searchKeyword: (request.search.value || '').trim()
         });
+        if (_viewTimestamp) parameters.set('asOf', _viewTimestamp);
         _pageLoading = true;
         if (dataTable) updateHeaderCheckboxes();
         $('#employee-shift-page-status').text('Loading employees...');
@@ -169,9 +189,10 @@
             }
             _refreshAfterSave = false;
             _pageLoading = false;
+            _viewTimestamp = result.asOf || _viewTimestamp;
             _activePageFilter = {
                 projectId: Number(parameters.get('projectId')), shiftId: Number(parameters.get('shiftId')),
-                filterType: parameters.get('filterType'), searchKeyword: parameters.get('searchKeyword')
+                filterType: parameters.get('filterType'), searchKeyword: parameters.get('searchKeyword'), asOf: _viewTimestamp
             };
             _filteredCount = result.filteredTotal;
             _savedFlagSummary = result.filteredTotal > 0 ? {
@@ -245,6 +266,7 @@
             const fields = _pendingFields.get(id) || new Set();
             overlayEditedFields(edited, pending, fields, original);
             for (const field of fields) {
+                if (field === 'isNoShift' && edited.isSelected && Number($('#assignment-shift').val()) > 0) continue;
                 if (!_bulkAssignment && !_bulkFlags.size && (edited[field] ?? null) === (baseline[field] ?? null)) fields.delete(field);
             }
             if (fields.size) _pendingChanges.set(id, edited);
@@ -280,6 +302,16 @@
         refreshSelectionRows();
     };
 
+    const onAssignmentScheduleChange = () => {
+        if (Number($('#assignment-shift').val()) > 0) {
+            for (const row of _pendingChanges.values()) {
+                if (row.isSelected) applyRowChange(row, 'isSelected', true);
+            }
+            refreshSelectionRows();
+        }
+        updatePendingStatus();
+    };
+
     const attachEvents = () => {
         $('#project, #shift, #status').on('change.employeeShift', () => {
             clearTimeout(_searchTimer);
@@ -287,8 +319,24 @@
             dataTable.search(($('#employee-shift-grid_filter input').val() || '').trim());
             dataTable.ajax.reload(null, true);
         });
-        $('#save').on('click.employeeShift', onEmployeeShiftSubmit);
-        $('#assignment-shift').on('change.employeeShift', updatePendingStatus);
+        $('#save').on('click.employeeShift', openEffectiveModal);
+        $('#effective-period-form').on('submit.employeeShift', function (event) { onEmployeeShiftSubmit(event); });
+        $('#temporary-schedule').on('change.employeeShift', function () {
+            const temporary = $(this).prop('checked');
+            $('#effective-end-group').prop('hidden', !temporary);
+            $('#effective-end').prop('disabled', !temporary).prop('required', temporary);
+            if (!temporary) $('#effective-end').val('');
+        });
+        $('#effective-save-cancel').on('click.employeeShift', () => { if (!_isSaving) _effectiveModal.hide(); });
+        $('#shift-history-close').on('click.employeeShift', () => { _historyVersion++; _historyModal.hide(); });
+        $('#shift-history-previous').on('click.employeeShift', () => loadHistory(Math.max(0, _historySkip - 10)));
+        $('#shift-history-next').on('click.employeeShift', () => loadHistory(_historySkip + 10));
+        $('#content-container').on('click.employeeShift', '.shift-history', function () {
+            _historyEmployee = Number($(this).attr('data-employee-id'));
+            _historyModal.show();
+            loadHistory(0);
+        });
+        $('#assignment-shift').on('change.employeeShift', onAssignmentScheduleChange);
         const $table = $('#content-container');
         $table.on('click.employeeShift', '#cancel-pending', event => {
             event.preventDefault();
@@ -297,6 +345,8 @@
             _pendingFields.clear();
             _bulkAssignment = null;
             _bulkFlags.clear();
+            $('#effective-start, #effective-end').val('');
+            $('#temporary-schedule').prop('checked', false).trigger('change');
             refreshSelectionRows();
         });
         $table.on('change.employeeShift', '.row-check', function () {
@@ -321,9 +371,61 @@
         });
     };
 
+    const philippineTimestamp = () => {
+        const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Manila',
+            year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+        }).formatToParts(new Date()).map(part => [part.type, part.value]));
+        return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
+    };
+
+    const openEffectiveModal = event => {
+        event.preventDefault();
+        if (_isSaving || _pageLoading || _refreshAfterSave || (!_bulkAssignment && !_bulkFlags.size && !_pendingChanges.size)) return;
+        if (!$('#effective-start').val()) $('#effective-start').val(philippineTimestamp());
+        const schedule = Number($('#assignment-shift').val()) === 0 ? 'Keep existing schedules' : $('#assignment-shift option:selected').text();
+        $('#effective-save-summary').text(`${schedule}. ${_bulkAssignment || _bulkFlags.size ? 'Apply to the selected filtered employees, including individual overrides.' : `Apply to ${_pendingChanges.size} edited employee(s).`}`);
+        $('#effective-error').text('');
+        _effectiveModal.show();
+    };
+
+    const loadHistory = async skip => {
+        const version = ++_historyVersion;
+        $('#shift-history-body').empty();
+        $('#shift-history-status').text('Loading history...');
+        $('#shift-history-previous, #shift-history-next').prop('disabled', true);
+        try {
+            const response = await _apiHelper.get({ url: `Authenticated/EmployeeShift/History/${_historyEmployee}?skip=${skip}&take=10` });
+            if (!response.ok) throw new Error('History unavailable');
+            const result = await response.json();
+            if (version !== _historyVersion) return;
+            if (!Array.isArray(result.data) || !Number.isInteger(result.total)) throw new Error('Invalid history');
+            _historySkip = skip;
+            for (const row of result.data) {
+                const values = [row.effectiveStartDate ? row.effectiveStartDate.replace('T', ' ') : 'Original assignment (start unknown)',
+                    row.effectiveEndDate ? row.effectiveEndDate.replace('T', ' ') : 'Ongoing', row.shiftName || '-',
+                    ...['isTemporary', 'isFlexibleShift', 'isNoShift', 'isNoBreak'].map(field => row[field] ? 'Yes' : 'No'), row.createdBy || '-'];
+                const $row = $('<tr>');
+                values.forEach(value => $('<td>').text(value).appendTo($row));
+                $('#shift-history-body').append($row);
+            }
+            $('#shift-history-status').text(result.total ? `Showing ${skip + 1}–${Math.min(skip + 10, result.total)} of ${result.total} periods` : 'No assignment history.');
+            $('#shift-history-previous').prop('disabled', skip === 0);
+            $('#shift-history-next').prop('disabled', skip + 10 >= result.total);
+        } catch (_) {
+            if (version === _historyVersion) $('#shift-history-status').text('Could not load history. Close and reopen to try again.');
+        }
+    };
+
     const onEmployeeShiftSubmit = async event => {
         event.preventDefault();
         if (_isSaving || (!_bulkAssignment && !_bulkFlags.size && !_pendingChanges.size)) return;
+        const start = $('#effective-start').val();
+        const temporary = $('#temporary-schedule').prop('checked');
+        const end = temporary ? $('#effective-end').val() : null;
+        if (!start || (temporary && (!end || end <= start))) {
+            $('#effective-error').text('Enter an effective start and an end later than the start for a temporary schedule.');
+            return;
+        }
         const selectedSchedule = Number($('#assignment-shift').val()) || 0;
         const unassign = selectedSchedule === -1;
         const shiftId = unassign ? 0 : selectedSchedule;
@@ -345,24 +447,32 @@
             return;
         }
         _isSaving = true;
+        $('#effective-period-form input, #effective-period-form button').prop('disabled', true);
+        $('#effective-error').text('');
         updatePendingStatus();
         $('#project, #shift, #status, #assignment-shift').prop('disabled', true);
         $('#employee-shift-grid_wrapper input[type="checkbox"]').prop('disabled', true);
         try {
             const response = await _apiHelper.post({
-                url: filteredSave ? 'Authenticated/EmployeeShift/AssignFiltered' : `Authenticated/EmployeeShift?shiftId=${shiftId}`,
-                data: filteredSave ? { ...(_bulkAssignment?.filter || {}), applyAssignmentToFilter: !!_bulkAssignment,
+                url: 'Authenticated/EmployeeShift/AssignFiltered',
+                data: { ...(_bulkAssignment?.filter || {}), applyAssignmentToFilter: !!_bulkAssignment,
+                    effectiveStartDate: start, effectiveEndDate: end, isTemporary: temporary, asOf: _viewTimestamp,
                     flagFilters, scheduleId: !_bulkAssignment && !selectedSchedule ? null : shiftId, changes: data.map(row => ({
                     employeeId: row.employeeId, preserveSchedule: row.preserveSchedule, isAssigned: row.isAssigned, isFlexibleShift: row.isFlexibleShift,
                     isNoShift: row.isNoShift, isNoBreak: row.isNoBreak
-                })) } : data,
+                })) },
                 requestOrigin: 'Employee Shift Assignment', requesterName: $('#current-user').text(), requestSystem: SYSTEM
             });
             if (!response.ok) {
-                toastr.error(response.status === 409 ? 'An assignment changed. Refresh the affected employee and try again.' :
-                    response.status === 403 ? 'Access denied.' : 'Could not save assignments. Your pending changes have been kept.');
+                const message = await response.text();
+                $('#effective-error').text(response.status === 400 || response.status === 409 ? message : 'Could not save assignments. Your pending changes have been kept.');
+                toastr.error(response.status === 403 ? 'Access denied.' : 'Could not save assignments. Your pending changes have been kept.');
                 return;
             }
+            _effectiveModal.hide();
+            $('#effective-start, #effective-end').val('');
+            $('#temporary-schedule').prop('checked', false).trigger('change');
+            _viewTimestamp = null;
             _pendingChanges.clear();
             _pendingFields.clear();
             _originalRows.clear();
@@ -375,6 +485,8 @@
             toastr.error('Could not save assignments. Your pending changes have been kept.');
         } finally {
             _isSaving = false;
+            $('#effective-period-form input, #effective-period-form button').prop('disabled', false);
+            $('#effective-end').prop('disabled', !$('#temporary-schedule').prop('checked'));
             $('#project, #shift, #status, #assignment-shift').prop('disabled', false);
             $('#employee-shift-grid_wrapper input[type="checkbox"]').prop('disabled', _refreshAfterSave);
             updatePendingStatus();
@@ -423,7 +535,7 @@
                 toastr.info('No employees match these filters.');
                 return;
             }
-            const columns = getEmployeeShiftColumns().filter(column => column.visible !== false && column.data !== 'isSelected');
+            const columns = getEmployeeShiftColumns().filter(column => column.visible !== false && column.exportable !== false && column.data !== 'isSelected');
             const header = columns.map(column => column.title.replace(/<[^>]*>/g, '').trim());
             const body = rows.map((row, index) => columns.map(column => {
                 const value = row[column.data];
@@ -689,6 +801,13 @@
                 className: 'dt-center',
                 render: (data, type) => type === 'display' ? $.fn.dataTable.render.text().display(data ? _stringHelper.capitalize(data) : '-') : data ? _stringHelper.capitalize(data) : '-'
             },
+            ...['effectiveStartDate', 'effectiveEndDate'].map((field, index) => ({
+                title: index === 0 ? 'Effective Start' : 'Effective End', data: field, className: 'dt-center',
+                render: data => data ? data.replace('T', ' ') : index === 0 ? 'Unknown' : 'Ongoing'
+            })),
+            { title: 'Temporary', data: 'isTemporary', className: 'dt-center', render: data => data ? 'Yes' : 'No' },
+            { title: 'History', data: 'employeeId', exportable: false, orderable: false, className: 'dt-center',
+                render: (data, type) => type === 'display' ? `<button type="button" class="btn btn-default btn-sm shift-history" data-employee-id="${Number(data)}">History</button>` : '' },
             {
                 title: "Date Assigned",
                 data: "shiftDate",

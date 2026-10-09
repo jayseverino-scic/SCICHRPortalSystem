@@ -1,13 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
-using SCICHRPortal.Data.Entities.Metadatas;
-using SCICHRPortal.Data.TimekeepingTables;
-using SCICHRPortal.Data.XscribeTables;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SCICHRPortal.Data.Entities.Metadatas;
 
 namespace SCICHRPortal.Data.Entities
 {
@@ -19,6 +10,9 @@ namespace SCICHRPortal.Data.Entities
         public int? DepartmentId { get; set; }
         public int? ProjectId { get; set; }
         public DateTime? ShiftDate { get; set; }
+        public DateTime? EffectiveStartDate { get; set; }
+        public DateTime? EffectiveEndDate { get; set; }
+        public bool IsTemporary { get; set; }
         public DateTime? MondayShiftStart {  get; set; }
         public DateTime? MondayShiftEnd { get; set; }
         public DateTime? TuesdayShiftStart { get; set; }

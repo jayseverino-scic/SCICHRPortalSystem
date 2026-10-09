@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using SCICHRPortal.Utility.Helpers;
 using System.Data;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
@@ -13,21 +14,21 @@ namespace SCICHRPortal.Repository.Implementations
         public EmployeeShiftRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext) : base(context, xscribeContext, timekeepingContext)
         {
         }
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, string? actor = null)
         {
-            var employeeShift = await Context.EmployeeShift!
-                        .SingleOrDefaultAsync(s => s.AssignedShiftId == id && !s.Deleted);
-            if (employeeShift == null)
-                return false;
-
-            employeeShift.Deleted = true;
-            await Context.SaveChangesAsync();
-            return true;
+            var current = await AssignmentsAt(PhilippineTime.Now).AsNoTracking().SingleOrDefaultAsync(row => row.AssignedShiftId == id);
+            if (current == null) return false;
+            var result = await AssignFilteredAsync(new EmployeeShiftFilteredAssignmentRequest
+            {
+                EffectiveStartDate = PhilippineTime.Now, ApplyAssignmentToFilter = false, ScheduleId = 0,
+                Changes = [new() { EmployeeId = current.EmployeeId, IsAssigned = false }]
+            }, actor ?? "Authenticated user");
+            return result.Status == EmployeeShiftAssignmentStatus.Success;
         }
 
         public async Task<Tuple<IEnumerable<EmployeeShift>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
         {
-            var employeeShifts = Context.EmployeeShift!
+            var employeeShifts = AssignmentsAt(PhilippineTime.Now)
                 .Include(t => t.Employee)
                 .Include(t => t.Department)
                 .Include(t => t.Project)
@@ -58,7 +59,7 @@ namespace SCICHRPortal.Repository.Implementations
             IEnumerable<EmployeeShift> employeeShifts;
             if (departmentId != 0 && shiftId != 0)
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
                   .Include(t => t.Project)
@@ -67,7 +68,7 @@ namespace SCICHRPortal.Repository.Implementations
             }
             else if (departmentId != 0 && shiftId == 0)
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
                   .Include(t => t.Project)
@@ -76,7 +77,7 @@ namespace SCICHRPortal.Repository.Implementations
             }
             else if (departmentId == 0 && shiftId != 0)
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
                   .Include (t => t.Project)
@@ -85,7 +86,7 @@ namespace SCICHRPortal.Repository.Implementations
             }
             else
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
                   .Include(t => t.Project)
@@ -99,7 +100,7 @@ namespace SCICHRPortal.Repository.Implementations
             IEnumerable<EmployeeShift> employeeShifts;
             if (projectId != 0 && shiftId != 0)
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   //.Include(t => t.Employee)
                   //.Include(t => t.Department)
                   //.Include(t => t.Company)
@@ -108,7 +109,7 @@ namespace SCICHRPortal.Repository.Implementations
             }
             else if (projectId != 0 && shiftId == 0)
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
                   .Include(t => t.Project)
@@ -117,7 +118,7 @@ namespace SCICHRPortal.Repository.Implementations
             }
             else if (projectId == 0 && shiftId != 0)
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
                   .Include(t => t.Project)
@@ -126,7 +127,7 @@ namespace SCICHRPortal.Repository.Implementations
             }
             else
             {
-                employeeShifts = await Context.EmployeeShift!
+                employeeShifts = await AssignmentsAt(PhilippineTime.Now)
                   .Include(t => t.Employee)
                   .Include(t => t.Department)
                   .Include(t => t.Project)
@@ -144,13 +145,13 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<IEnumerable<EmployeeShift>> GetAllAsync()
         {
-            var employeeShifts = await Context.EmployeeShift!.Where(e => !e.Deleted).ToListAsync();
+            var employeeShifts = await AssignmentsAt(PhilippineTime.Now).AsNoTracking().ToListAsync();
             return employeeShifts;
         }
         public async Task<DuplicateMessage> HasDuplicateShift(EmployeeShift employeeShift)
         {
             DuplicateMessage message = new();
-            var teachers = await Context.EmployeeShift!
+            var teachers = await AssignmentsAt(employeeShift.EffectiveStartDate ?? PhilippineTime.Now)
                .Where(r => r.Deleted == false).ToListAsync();
 
             var duplicated = teachers.Any(t => t.EmployeeId == employeeShift.EmployeeId);
@@ -166,63 +167,93 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task InsertAsync(EmployeeShift entity)
         {
-            if (entity.IsNoShift)
-            {
-                entity.IsFlexibleShift = false;
-                ClearSchedule(entity);
-            }
-            await using var transaction = await Context.Database.BeginTransactionAsync();
-            await Context.Database.ExecuteSqlRawAsync("""LOCK TABLE "EmployeeShift" IN SHARE ROW EXCLUSIVE MODE""");
-            if (await Context.EmployeeShift.AnyAsync(assignment => assignment.EmployeeId == entity.EmployeeId && !assignment.Deleted))
-                throw new EmployeeShiftAssignmentConflictException();
-            await Context.EmployeeShift!.AddAsync(entity);
-            await Context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            var result = await WriteEntityAsync(entity);
+            if (result.Status != EmployeeShiftAssignmentStatus.Success) throw new EmployeeShiftAssignmentConflictException();
         }
 
-        public async Task<bool> UpdateAsync(EmployeeShift teacher)
+        private Task<EmployeeShiftAssignmentResult> WriteEntityAsync(EmployeeShift entity, DateTime? defaultStart = null) => AssignFilteredAsync(new EmployeeShiftFilteredAssignmentRequest
         {
-            if (teacher.IsNoShift)
-            {
-                teacher.IsFlexibleShift = false;
-                ClearSchedule(teacher);
-            }
-            var record = Context.Update(teacher);
-            if (record is null)
-                return false;
+            EffectiveStartDate = entity.EffectiveStartDate ?? defaultStart ?? PhilippineTime.Now,
+            EffectiveEndDate = entity.EffectiveEndDate, IsTemporary = entity.IsTemporary,
+            ScheduleId = entity.ShiftId, ApplyAssignmentToFilter = false,
+            Changes = [new() { EmployeeId = entity.EmployeeId, IsAssigned = true, IsFlexibleShift = entity.IsFlexibleShift,
+                IsNoShift = entity.IsNoShift, IsNoBreak = entity.IsNoBreak }]
+        }, entity.UpdatedBy ?? entity.CreatedBy ?? "Authenticated user");
 
-            await Context.SaveChangesAsync();
-            return true;
+        public async Task<bool> UpdateAsync(EmployeeShift entity)
+        {
+            if (!await Context.EmployeeShift.AnyAsync(row => row.AssignedShiftId == entity.AssignedShiftId && row.EmployeeId == entity.EmployeeId && !row.Deleted)) return false;
+            var result = await WriteEntityAsync(entity);
+            if (result.Status == EmployeeShiftAssignmentStatus.Conflict) throw new EmployeeShiftAssignmentConflictException();
+            return result.Status == EmployeeShiftAssignmentStatus.Success;
         }
 
         public async Task UpdateRangeAsync(List<EmployeeShift> employeeShifts)
         {
-            Context.EmployeeShift!.UpdateRange(employeeShifts);
-            await Context.SaveChangesAsync();
+            await WriteRangeAsync(employeeShifts, true);
         }
 
         public async Task RemoveRangeAsync(List<EmployeeShift> employeeShifts)
         {
-            Context.EmployeeShift!.RemoveRange(employeeShifts);
-            await Context.SaveChangesAsync();
+            var result = await AssignFilteredAsync(new EmployeeShiftFilteredAssignmentRequest
+            {
+                EffectiveStartDate = PhilippineTime.Now, ApplyAssignmentToFilter = false, ScheduleId = 0,
+                Changes = employeeShifts.Select(row => new EmployeeShiftAssignmentChange { EmployeeId = row.EmployeeId }).ToList()
+            }, employeeShifts.FirstOrDefault()?.UpdatedBy ?? "Authenticated user");
+            if (result.Status != EmployeeShiftAssignmentStatus.Success) throw new EmployeeShiftAssignmentConflictException();
         }
 
         public async Task InsertRangeAsync(List<EmployeeShift> employeeShifts)
         {
-            Context.EmployeeShift!.AddRange(employeeShifts);
-            await Context.SaveChangesAsync();
-        }
-        public async Task<EmployeeShift> GetByEmployee(int id)
-        {
-            var employeeShift = await Context.EmployeeShift!
-            .SingleOrDefaultAsync(s => s.EmployeeId == id && !s.Deleted);
-            return employeeShift!;
+            await WriteRangeAsync(employeeShifts, false);
         }
 
-        public async Task<EmployeeShiftFilterPage> GetShiftFilterAsync(int projectId, int shiftId, string filterType, int? skip, int? take, string? searchKeyword, CancellationToken cancellationToken = default)
+        private async Task WriteRangeAsync(List<EmployeeShift> employeeShifts, bool updating)
         {
+            if (employeeShifts.Count == 0) return;
+            await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+            await Context.Database.ExecuteSqlRawAsync("""LOCK TABLE "EmployeeShift" IN SHARE ROW EXCLUSIVE MODE""");
+            var start = PhilippineTime.Now;
+            foreach (var row in employeeShifts)
+            {
+                if (updating && !await Context.EmployeeShift.AnyAsync(existing => existing.AssignedShiftId == row.AssignedShiftId &&
+                    existing.EmployeeId == row.EmployeeId && !existing.Deleted)) throw new EmployeeShiftAssignmentConflictException();
+                var result = await WriteEntityAsync(row, start);
+                if (result.Status != EmployeeShiftAssignmentStatus.Success) throw new EmployeeShiftAssignmentConflictException();
+            }
+            await transaction.CommitAsync();
+        }
+
+        public Task<EmployeeShift?> GetByEmployee(int id) => GetAtAsync(id, PhilippineTime.Now);
+
+        public Task<EmployeeShift?> GetAtAsync(int employeeId, DateTime timestamp, CancellationToken cancellationToken = default) =>
+            AssignmentsAt(timestamp).AsNoTracking().SingleOrDefaultAsync(row => row.EmployeeId == employeeId, cancellationToken);
+
+        public Task<List<EmployeeShift>> GetPeriodsAsync(int[] employeeIds, DateTime from, DateTime until, CancellationToken cancellationToken = default) =>
+            Context.EmployeeShift.AsNoTracking().Where(row => !row.Deleted && employeeIds.Contains(row.EmployeeId) &&
+                (row.EffectiveStartDate == null || row.EffectiveStartDate < until) &&
+                (row.EffectiveEndDate == null || from < row.EffectiveEndDate)).ToListAsync(cancellationToken);
+
+        public async Task<EmployeeShiftHistoryPage> GetHistoryAsync(int employeeId, int skip, int take, CancellationToken cancellationToken = default)
+        {
+            var query = Context.EmployeeShift.AsNoTracking().Where(row => row.EmployeeId == employeeId && !row.Deleted);
+            var total = await query.CountAsync(cancellationToken);
+            var rows = await query.OrderBy(row => row.EffectiveStartDate == null).ThenByDescending(row => row.EffectiveStartDate).ThenByDescending(row => row.AssignedShiftId)
+                .Skip(skip).Take(take).Select(row => new EmployeeShiftHistoryRow
+                {
+                    AssignedShiftId = row.AssignedShiftId, ShiftName = row.Shift == null ? null : row.Shift.ShiftName,
+                    EffectiveStartDate = row.EffectiveStartDate, EffectiveEndDate = row.EffectiveEndDate, IsTemporary = row.IsTemporary,
+                    IsFlexibleShift = row.IsFlexibleShift, IsNoShift = row.IsNoShift, IsNoBreak = row.IsNoBreak,
+                    CreatedAt = row.CreatedAt, CreatedBy = row.CreatedBy
+                }).ToListAsync(cancellationToken);
+            return new EmployeeShiftHistoryPage { Data = rows, Total = total };
+        }
+
+        public async Task<EmployeeShiftFilterPage> GetShiftFilterAsync(int projectId, int shiftId, string filterType, int? skip, int? take, string? searchKeyword, CancellationToken cancellationToken = default, DateTime? asOf = null)
+        {
+            var timestamp = asOf ?? PhilippineTime.Now;
             var total = await Context.Employee.AsNoTracking().CountAsync(employee => !employee.Deleted, cancellationToken);
-            var query = BuildShiftFilterQuery(projectId, shiftId, filterType, searchKeyword);
+            var query = BuildShiftFilterQuery(projectId, shiftId, filterType, searchKeyword, timestamp);
             var result = await BuildShiftFilterSummaryQuery(query).SingleOrDefaultAsync(cancellationToken) ?? new EmployeeShiftFilterPage();
             query = query.OrderBy(row => row.EmployeeId);
 
@@ -233,6 +264,7 @@ namespace SCICHRPortal.Repository.Implementations
 
             result.Data = await query.ToListAsync(cancellationToken);
             result.Total = total;
+            result.AsOf = timestamp;
             return result;
         }
 
@@ -249,11 +281,11 @@ namespace SCICHRPortal.Repository.Implementations
             });
         }
 
-        private IQueryable<EmployeeShiftFilterRow> BuildShiftFilterQuery(int projectId, int shiftId, string filterType, string? searchKeyword)
+        private IQueryable<EmployeeShiftFilterRow> BuildShiftFilterQuery(int projectId, int shiftId, string filterType, string? searchKeyword, DateTime? asOf = null)
         {
             // Start from employees so employees without an assignment are also pageable.
             var query = from employee in Context.Employee.AsNoTracking().Where(employee => !employee.Deleted)
-                        join assignment in Context.EmployeeShift.AsNoTracking().Where(assignment => !assignment.Deleted)
+                        join assignment in AssignmentsAt(asOf ?? PhilippineTime.Now).AsNoTracking()
                             on employee.EmployeeId equals assignment.EmployeeId into assignments
                         from assignment in assignments.DefaultIfEmpty()
                         select new EmployeeShiftFilterRow
@@ -269,6 +301,9 @@ namespace SCICHRPortal.Repository.Implementations
                             ShiftId = assignment == null ? 0 : assignment.ShiftId,
                             ShiftName = assignment == null || assignment.Shift == null ? null : assignment.Shift.ShiftName,
                             ShiftDate = assignment == null ? null : assignment.ShiftDate,
+                            EffectiveStartDate = assignment == null ? null : assignment.EffectiveStartDate,
+                            EffectiveEndDate = assignment == null ? null : assignment.EffectiveEndDate,
+                            IsTemporary = assignment != null && assignment.IsTemporary,
                             MondayShiftStart = assignment == null ? null : assignment.MondayShiftStart,
                             MondayShiftEnd = assignment == null ? null : assignment.MondayShiftEnd,
                             TuesdayShiftStart = assignment == null ? null : assignment.TuesdayShiftStart,
@@ -310,34 +345,29 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<bool> UpdateFlagsAsync(int assignedShiftId, EmployeeShiftAssignmentChange change, string actor)
         {
-            // Read the assignment after acquiring the same lock as schedule saves,
-            // so restoring fixed times cannot use a concurrently replaced schedule.
-            await using var transaction = await Context.Database.BeginTransactionAsync();
-            await Context.Database.ExecuteSqlRawAsync("""LOCK TABLE "EmployeeShift" IN SHARE ROW EXCLUSIVE MODE""");
-            var assignment = await Context.EmployeeShift.SingleOrDefaultAsync(row => row.AssignedShiftId == assignedShiftId &&
-                row.EmployeeId == change.EmployeeId && !row.Deleted && row.Employee != null && !row.Employee.Deleted);
-            if (assignment == null) return false;
-            if (assignment.IsNoShift && !change.IsNoShift)
+            if (!await Context.EmployeeShift.AnyAsync(row => row.AssignedShiftId == assignedShiftId && row.EmployeeId == change.EmployeeId && !row.Deleted)) return false;
+            change.PreserveSchedule = true;
+            var result = await AssignFilteredAsync(new EmployeeShiftFilteredAssignmentRequest
             {
-                var schedule = await Context.Shift.AsNoTracking().SingleOrDefaultAsync(row => row.ShiftId == assignment.ShiftId);
-                if (schedule == null) return false;
-                CopySchedule(assignment, schedule);
-            }
-            ApplyFlags(assignment, change);
-            assignment.UpdatedBy = actor;
-            assignment.UpdatedAt = DateTime.UtcNow;
-            await Context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return true;
+                EffectiveStartDate = PhilippineTime.Now, ApplyAssignmentToFilter = false, Changes = [change]
+            }, actor);
+            if (result.Status == EmployeeShiftAssignmentStatus.Conflict) throw new EmployeeShiftAssignmentConflictException();
+            return result.Status == EmployeeShiftAssignmentStatus.Success;
         }
 
         public async Task<EmployeeShiftAssignmentResult> AssignFilteredAsync(EmployeeShiftFilteredAssignmentRequest request, string actor, CancellationToken cancellationToken = default)
         {
-            if (request.ScheduleId < 0 || (request.ApplyAssignmentToFilter && request.ScheduleId == null))
+            if (!request.EffectiveStartDate.HasValue || !PhilippineTime.IsLocal(request.EffectiveStartDate) ||
+                !PhilippineTime.IsLocal(request.EffectiveEndDate) || !PhilippineTime.IsLocal(request.AsOf) ||
+                (request.IsTemporary && (!request.EffectiveEndDate.HasValue || request.EffectiveEndDate <= request.EffectiveStartDate)) ||
+                (!request.IsTemporary && request.EffectiveEndDate.HasValue) || request.ScheduleId < 0 || (request.ApplyAssignmentToFilter && request.ScheduleId == null))
                 return new(EmployeeShiftAssignmentStatus.Invalid, Message: "Select a schedule or Unassigned.");
             // Keyset batches keep memory bounded. Serializable isolation keeps one save
             // atomic, including individual overrides, and detects concurrent assignments.
-            await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+            // Legacy range writes own the outer transaction; all entry points share
+            // the same lock and audited period writer without partial range saves.
+            await using var transaction = Context.Database.CurrentTransaction == null
+                ? await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken) : null;
             try
             {
                 // Take the lock before any snapshot reads. Individual inserts use the
@@ -354,10 +384,10 @@ namespace SCICHRPortal.Repository.Implementations
                 if (await Context.Employee.CountAsync(employee => !employee.Deleted && overrideIds.Contains(employee.EmployeeId), cancellationToken) != overrideIds.Length)
                     return new(EmployeeShiftAssignmentStatus.Invalid, Message: "One or more edited employees are unavailable.");
 
-                var assignmentTargets = BuildShiftFilterQuery(request.ProjectId, request.ShiftId, request.FilterType, request.SearchKeyword)
+                var assignmentTargets = BuildShiftFilterQuery(request.ProjectId, request.ShiftId, request.FilterType, request.SearchKeyword, request.AsOf)
                     .Where(row => request.ApplyAssignmentToFilter);
                 var flagTargets = request.FlagFilters.Select(filter => BuildShiftFilterQuery(filter.ProjectId, filter.ShiftId,
-                    filter.FilterType, filter.SearchKeyword)).ToList();
+                    filter.FilterType, filter.SearchKeyword, filter.AsOf ?? request.AsOf)).ToList();
                 var targetIds = assignmentTargets.Select(row => row.EmployeeId);
                 foreach (var query in flagTargets) targetIds = targetIds.Union(query.Select(row => row.EmployeeId));
                 var targets = Context.Employee.AsNoTracking().Where(employee => targetIds.Contains(employee.EmployeeId) && !overrideIds.Contains(employee.EmployeeId))
@@ -386,7 +416,7 @@ namespace SCICHRPortal.Repository.Implementations
                             if (filter.IsNoBreak.HasValue) values.IsNoBreak = filter.IsNoBreak;
                         }
                     }
-                    var result = await SaveAssignmentBatchAsync(batch, schedule, actor, null, cancellationToken, assignedIds, flags);
+                    var result = await SaveAssignmentBatchAsync(batch, schedule, actor, null, request, cancellationToken, assignedIds, flags);
                     if (result.Status != EmployeeShiftAssignmentStatus.Success) return result;
                     affected += result.Affected;
                     lastId = batch[^1].EmployeeId;
@@ -395,18 +425,18 @@ namespace SCICHRPortal.Repository.Implementations
                 {
                     var batch = await Context.Employee.AsNoTracking().Where(employee => ids.Contains(employee.EmployeeId) && !employee.Deleted)
                         .Select(employee => new AssignmentEmployee { EmployeeId = employee.EmployeeId, DepartmentId = employee.DepartmentId, ProjectId = employee.ProjectId }).ToListAsync(cancellationToken);
-                    var result = await SaveAssignmentBatchAsync(batch, schedule, actor, changes, cancellationToken);
+                    var result = await SaveAssignmentBatchAsync(batch, schedule, actor, changes, request, cancellationToken);
                     if (result.Status != EmployeeShiftAssignmentStatus.Success) return result;
                     affected += result.Affected;
                 }
-                await transaction.CommitAsync(cancellationToken);
+                if (transaction != null) await transaction.CommitAsync(cancellationToken);
                 return new(EmployeeShiftAssignmentStatus.Success, affected);
             }
-            catch (PostgresException exception) when (exception.SqlState is "40001" or "40P01")
+            catch (PostgresException exception) when (exception.SqlState is "40001" or "40P01" or "23505")
             {
                 return AssignmentConflict();
             }
-            catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "40001" or "40P01" })
+            catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "40001" or "40P01" or "23505" })
             {
                 return AssignmentConflict();
             }
@@ -416,100 +446,137 @@ namespace SCICHRPortal.Repository.Implementations
             Message: "Assignments changed while saving. Your selection has been kept. Try again.");
 
         private async Task<EmployeeShiftAssignmentResult> SaveAssignmentBatchAsync(List<AssignmentEmployee> employees, Shift? schedule, string actor,
-            Dictionary<int, EmployeeShiftAssignmentChange>? changes, CancellationToken cancellationToken,
+            Dictionary<int, EmployeeShiftAssignmentChange>? changes, EmployeeShiftFilteredAssignmentRequest request, CancellationToken cancellationToken,
             HashSet<int>? assignmentTargets = null, Dictionary<int, EmployeeShiftFilteredFlags>? filteredFlags = null)
         {
             var ids = employees.Select(employee => employee.EmployeeId).ToArray();
-            var assignments = await Context.EmployeeShift.Where(assignment => !assignment.Deleted && ids.Contains(assignment.EmployeeId)).ToListAsync(cancellationToken);
-            if (assignments.GroupBy(assignment => assignment.EmployeeId).Any(group => group.Count() > 1))
-                return new(EmployeeShiftAssignmentStatus.Conflict, Message: "An employee has multiple active assignments. Resolve that employee before saving.");
-            var existing = assignments.ToDictionary(assignment => assignment.EmployeeId);
-            var effectiveChanges = changes == null ? new Dictionary<int, EmployeeShiftAssignmentChange>() : new(changes);
-            if (assignmentTargets != null)
-            {
-                foreach (var employee in employees)
-                {
-                    existing.TryGetValue(employee.EmployeeId, out var assignment);
-                    var applyAssignment = assignmentTargets.Contains(employee.EmployeeId);
-                    var flags = filteredFlags?.GetValueOrDefault(employee.EmployeeId);
-                    if (!applyAssignment && assignment == null && schedule == null)
-                        return new(EmployeeShiftAssignmentStatus.Invalid, Message: "Some matching employees have no schedule. Select a schedule or filter Assigned before saving flags.");
-                    effectiveChanges[employee.EmployeeId] = new()
-                    {
-                        EmployeeId = employee.EmployeeId, PreserveSchedule = !applyAssignment && assignment != null,
-                        IsAssigned = !applyAssignment || schedule != null,
-                        IsFlexibleShift = flags?.IsFlexibleShift ?? assignment?.IsFlexibleShift ?? false,
-                        IsNoShift = flags?.IsNoShift ?? (applyAssignment ? false : assignment?.IsNoShift ?? false),
-                        IsNoBreak = flags?.IsNoBreak ?? assignment?.IsNoBreak ?? false
-                    };
-                    if (flags?.IsFlexibleShift == true && flags.IsNoShift != true)
-                        effectiveChanges[employee.EmployeeId].IsNoShift = false;
-                }
-            }
-            var restoreIds = assignments.Where(assignment => assignment.IsNoShift &&
-                effectiveChanges.GetValueOrDefault(assignment.EmployeeId) is { PreserveSchedule: true, IsNoShift: false })
-                .Select(assignment => assignment.ShiftId).Distinct().ToArray();
-            var restoreSchedules = restoreIds.Length == 0 ? new Dictionary<int, Shift>() :
-                await Context.Shift.AsNoTracking().Where(shift => restoreIds.Contains(shift.ShiftId)).ToDictionaryAsync(shift => shift.ShiftId, cancellationToken);
-            var now = DateTime.UtcNow;
+            var periods = await Context.EmployeeShift.Where(assignment => !assignment.Deleted && ids.Contains(assignment.EmployeeId)).ToListAsync(cancellationToken);
+            var clearedScheduleIds = periods.Where(row => row.IsNoShift).Select(row => row.ShiftId).Distinct().ToArray();
+            var fixedSchedules = await Context.Shift.AsNoTracking().Where(row => !row.Deleted && clearedScheduleIds.Contains(row.ShiftId))
+                .ToDictionaryAsync(row => row.ShiftId, cancellationToken);
+            var start = request.EffectiveStartDate!.Value;
             var affected = 0;
             foreach (var employee in employees)
             {
-                existing.TryGetValue(employee.EmployeeId, out var assignment);
-                var change = effectiveChanges.GetValueOrDefault(employee.EmployeeId);
+                var timeline = periods.Where(row => row.EmployeeId == employee.EmployeeId).ToList();
+                var applicable = timeline.Where(row => (!row.EffectiveStartDate.HasValue || row.EffectiveStartDate <= start) &&
+                    (!row.EffectiveEndDate.HasValue || start < row.EffectiveEndDate)).ToList();
+                if (applicable.Count > 1) return AssignmentConflict();
+                var previous = applicable.SingleOrDefault();
+                var change = changes?.GetValueOrDefault(employee.EmployeeId);
+                if (assignmentTargets != null)
+                {
+                    var applyAssignment = assignmentTargets.Contains(employee.EmployeeId);
+                    var flags = filteredFlags?.GetValueOrDefault(employee.EmployeeId);
+                    if (!applyAssignment && previous == null && schedule == null)
+                        return new(EmployeeShiftAssignmentStatus.Invalid, Message: "Some matching employees have no schedule at the effective start. Select a schedule before saving flags.");
+                    change = new()
+                    {
+                        EmployeeId = employee.EmployeeId, PreserveSchedule = !applyAssignment && previous != null,
+                        IsAssigned = !applyAssignment || schedule != null,
+                        IsFlexibleShift = flags?.IsFlexibleShift ?? previous?.IsFlexibleShift ?? false,
+                        IsNoShift = flags?.IsNoShift ?? (applyAssignment ? false : previous?.IsNoShift ?? false),
+                        IsNoBreak = flags?.IsNoBreak ?? previous?.IsNoBreak ?? false
+                    };
+                    if (flags?.IsFlexibleShift == true && flags.IsNoShift != true) change.IsNoShift = false;
+                }
+                EmployeeShift? replacement = null;
                 if (change?.PreserveSchedule == true)
                 {
-                    if (assignment == null) return new(EmployeeShiftAssignmentStatus.Invalid, Message: "An edited employee has no active schedule. Select a schedule first.");
-                    if (assignment.IsNoShift && !change.IsNoShift)
+                    if (previous == null) return new(EmployeeShiftAssignmentStatus.Invalid, Message: "An edited employee has no schedule at the effective start.");
+                    replacement = CopyAssignment(previous);
+                    if (previous.IsNoShift && !change.IsNoShift)
                     {
-                        if (!restoreSchedules.TryGetValue(assignment.ShiftId, out var restored))
+                        if (!fixedSchedules.TryGetValue(previous.ShiftId, out var fixedSchedule))
                             return new(EmployeeShiftAssignmentStatus.Invalid, Message: "The employee schedule is unavailable.");
-                        CopySchedule(assignment, restored);
+                        CopySchedule(replacement, fixedSchedule);
                     }
-                    ApplyFlags(assignment, change);
-                    assignment.UpdatedBy = actor;
-                    assignment.UpdatedAt = now;
+                    ApplyFlags(replacement, change);
                 }
-                else if (schedule == null || change?.IsAssigned == false)
+                else if (schedule != null && change?.IsAssigned != false)
                 {
-                    if (assignment == null) continue;
-                    assignment.Deleted = true;
-                    assignment.UpdatedAt = now;
-                    assignment.UpdatedBy = actor;
+                    replacement = new EmployeeShift { EmployeeId = employee.EmployeeId, DepartmentId = employee.DepartmentId,
+                        ProjectId = employee.ProjectId, ShiftId = schedule.ShiftId, ShiftDate = PhilippineTime.Now };
+                    CopySchedule(replacement, schedule);
+                    if (change != null) ApplyFlags(replacement, change);
                 }
-                else
-                {
-                    if (assignment == null)
-                    {
-                        assignment = new EmployeeShift { EmployeeId = employee.EmployeeId, CreatedAt = now, CreatedBy = actor };
-                        Context.EmployeeShift.Add(assignment);
-                    }
-                    else
-                    {
-                        assignment.UpdatedAt = now;
-                        assignment.UpdatedBy = actor;
-                    }
-                    assignment.DepartmentId = employee.DepartmentId;
-                    assignment.ProjectId = employee.ProjectId;
-                    assignment.ShiftId = schedule.ShiftId;
-                    assignment.ShiftDate = DateTime.Now;
-                    assignment.IsNoShift = false;
-                    if (change != null)
-                    {
-                        ApplyFlags(assignment, change);
-                    }
-                    CopySchedule(assignment, schedule);
-                    if (assignment.IsNoShift) ClearSchedule(assignment);
-                }
-                affected++;
+                var originalCount = timeline.Count;
+                var result = ApplyEffectivePeriod(timeline, replacement, start, request.EffectiveEndDate, request.IsTemporary, actor);
+                if (result.Status != EmployeeShiftAssignmentStatus.Success) return result;
+                Context.EmployeeShift.AddRange(timeline.Skip(originalCount));
+                affected += result.Affected;
             }
             cancellationToken.ThrowIfCancellationRequested();
-            // The parameterless context overload runs SCIC's existing audit pipeline.
             await Context.SaveChangesAsync();
             cancellationToken.ThrowIfCancellationRequested();
             Context.ChangeTracker.Clear();
             return new(EmployeeShiftAssignmentStatus.Success, affected);
         }
+
+        private IQueryable<EmployeeShift> AssignmentsAt(DateTime timestamp) => Context.EmployeeShift.Where(row => !row.Deleted &&
+            (row.EffectiveStartDate == null || row.EffectiveStartDate <= timestamp) &&
+            (row.EffectiveEndDate == null || timestamp < row.EffectiveEndDate));
+
+        private static EmployeeShiftAssignmentResult ApplyEffectivePeriod(List<EmployeeShift> timeline, EmployeeShift? replacement,
+            DateTime start, DateTime? end, bool temporary, string actor)
+        {
+            if (!PhilippineTime.IsLocal(start) || !PhilippineTime.IsLocal(end) || (temporary && (!end.HasValue || end <= start)) || (!temporary && end.HasValue))
+                return new(EmployeeShiftAssignmentStatus.Invalid, Message: "Enter a local effective start and a temporary end later than the start.");
+            var ordered = timeline.OrderBy(row => row.EffectiveStartDate ?? DateTime.MinValue).ToList();
+            for (var index = 1; index < ordered.Count; index++)
+            {
+                if (ordered[index].EffectiveStartDate == null || ordered[index - 1].EffectiveEndDate == null ||
+                    ordered[index - 1].EffectiveEndDate > ordered[index].EffectiveStartDate)
+                    return new(EmployeeShiftAssignmentStatus.Conflict, Message: "Overlapping assignment history must be resolved before saving.");
+            }
+            if (ordered.Any(row => row.EffectiveStartDate == start || row.EffectiveEndDate == start))
+                return new(EmployeeShiftAssignmentStatus.Conflict, Message: "An assignment transition already exists at this start time. Choose a distinct time.");
+            var previous = ordered.SingleOrDefault(row => (row.EffectiveStartDate == null || row.EffectiveStartDate < start) &&
+                (row.EffectiveEndDate == null || start < row.EffectiveEndDate));
+            var boundaries = ordered.SelectMany(row => new[] { row.EffectiveStartDate, row.EffectiveEndDate })
+                .Where(value => value.HasValue && value > start).Select(value => value!.Value).ToList();
+            DateTime? next = boundaries.Count == 0 ? null : boundaries.Min();
+            if (temporary && next.HasValue && end > next)
+                return new(EmployeeShiftAssignmentStatus.Conflict, Message: "The temporary period crosses a scheduled transition. Choose an earlier end.");
+            if (previous == null && replacement == null) return new(EmployeeShiftAssignmentStatus.Success, 0);
+            var resume = temporary && previous != null && (!next.HasValue || end < next) ? CopyAssignment(previous) : null;
+            var now = DateTime.UtcNow;
+            if (previous != null)
+            {
+                previous.EffectiveEndDate = start;
+                previous.UpdatedAt = now;
+                previous.UpdatedBy = actor;
+            }
+            void Add(EmployeeShift row, DateTime from, DateTime? until, bool isTemporary)
+            {
+                row.AssignedShiftId = 0;
+                row.EffectiveStartDate = from;
+                row.EffectiveEndDate = until;
+                row.IsTemporary = isTemporary;
+                row.CreatedAt = now;
+                row.CreatedBy = actor;
+                row.UpdatedAt = null;
+                row.UpdatedBy = null;
+                row.Deleted = false;
+                timeline.Add(row);
+            }
+            if (replacement != null) Add(replacement, start, temporary ? end : next, temporary);
+            if (resume != null) Add(resume, end!.Value, next, false);
+            return new(EmployeeShiftAssignmentStatus.Success, 1);
+        }
+
+        private static EmployeeShift CopyAssignment(EmployeeShift row) => new()
+        {
+            EmployeeId = row.EmployeeId, DepartmentId = row.DepartmentId, ProjectId = row.ProjectId, ShiftId = row.ShiftId,
+            ShiftDate = row.ShiftDate, IsFlexibleShift = row.IsFlexibleShift, IsNoShift = row.IsNoShift, IsNoBreak = row.IsNoBreak,
+            MondayShiftStart = row.MondayShiftStart, MondayShiftEnd = row.MondayShiftEnd,
+            TuesdayShiftStart = row.TuesdayShiftStart, TuesdayShiftEnd = row.TuesdayShiftEnd,
+            WednesdayShiftStart = row.WednesdayShiftStart, WednesdayShiftEnd = row.WednesdayShiftEnd,
+            ThursdayShiftStart = row.ThursdayShiftStart, ThursdayShiftEnd = row.ThursdayShiftEnd,
+            FridayShiftStart = row.FridayShiftStart, FridayShiftEnd = row.FridayShiftEnd,
+            SaturdayShiftStart = row.SaturdayShiftStart, SaturdayShiftEnd = row.SaturdayShiftEnd,
+            SundayShiftStart = row.SundayShiftStart, SundayShiftEnd = row.SundayShiftEnd
+        };
 
         private static void ApplyFlags(EmployeeShift assignment, EmployeeShiftAssignmentChange change)
         {

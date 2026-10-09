@@ -88,7 +88,10 @@
                 $(".progress-bar").width('0%');
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert('Import failed!');
+                const result = XMLHttpRequest.responseJSON;
+                const detail = result?.errors?.slice(0, 5).join('\n') || result?.message || 'Import failed. Review the dates and employee schedules.';
+                $('#time-log-page-status').text(detail);
+                alert(detail);
             },
             success: async function () {
                 const refreshed = await refreshCurrentFilter();

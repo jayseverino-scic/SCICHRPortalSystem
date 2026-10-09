@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Administration System";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -61,6 +61,51 @@
     </div>
 </div>
 
+
+<div class="modal" id="effective-period-modal" tabindex="-1" role="dialog" aria-labelledby="effective-period-title" aria-hidden="true">
+    <div class="modal-dialog" role="document"><div class="modal-content">
+        <form id="effective-period-form">
+            <div class="modal-header"><h4 class="modal-title" id="effective-period-title">Schedule effective period</h4></div>
+            <div class="modal-body">
+                <p id="effective-save-summary"></p>
+                <p>Dates and times are in Philippine time (Asia/Manila).</p>
+                <div class="form-group">
+                    <label for="effective-start">Effective Start Date and Time</label>
+                    <input id="effective-start" type="datetime-local" step="1" class="form-control" required />
+                </div>
+                <div class="checkbox"><label><input id="temporary-schedule" type="checkbox" /> Temporary schedule</label></div>
+                <div id="effective-end-group" class="form-group" hidden>
+                    <label for="effective-end">Effective End Date and Time</label>
+                    <input id="effective-end" type="datetime-local" step="1" class="form-control" disabled />
+                    <small>The previous schedule and flags return at this time.</small>
+                </div>
+                <p id="effective-error" class="text-danger" role="alert"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="effective-save-cancel" type="button" class="btn btn-default">Cancel</button>
+                <button id="effective-save-confirm" type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+<div class="modal" id="shift-history-modal" tabindex="-1" role="dialog" aria-labelledby="shift-history-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document"><div class="modal-content">
+        <div class="modal-header"><h4 id="shift-history-title" class="modal-title">Schedule history</h4></div>
+        <div class="modal-body">
+            <p>Philippine time. Each period ends immediately before its End time. Blank periods between assignments are unassigned.</p>
+            <p id="shift-history-status" role="status"></p>
+            <div class="table-responsive"><table class="table table-bordered">
+                <thead><tr><th>Start</th><th>End</th><th>Schedule</th><th>Temporary</th><th>Flexible Shift</th><th>No Shift</th><th>No Break</th><th>Recorded by</th></tr></thead>
+                <tbody id="shift-history-body"></tbody>
+            </table></div>
+        </div>
+        <div class="modal-footer">
+            <button id="shift-history-previous" type="button" class="btn btn-default">Previous</button>
+            <button id="shift-history-next" type="button" class="btn btn-default">Next</button>
+            <button id="shift-history-close" type="button" class="btn btn-default">Close</button>
+        </div>
+    </div></div>
+</div>
 
 @section Scripts {
 @{

@@ -117,3 +117,163 @@
         color: #fff !important;
         border-color: #2e7d32 !important;
     }
+
+/* Keep the shift dialogs clear of shared grading colors and the fixed header. */
+:is(#effective-period-modal, #shift-history-modal) {
+    z-index: 1200;
+    padding: 16px !important;
+}
+
+body:has(#effective-period-modal.show, #shift-history-modal.show) .modal-backdrop {
+    z-index: 1190;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-dialog {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 32px);
+    margin: 16px auto;
+    width: 100%;
+    max-width: 560px;
+}
+
+#shift-history-modal .modal-dialog {
+    max-width: 960px;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-content {
+    width: 100%;
+    border: 1px solid #dce6dd;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    color: #25332b;
+    box-shadow: 0 16px 48px rgba(15, 35, 22, 0.2);
+    font-family: 'Inter', sans-serif;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-header {
+    padding: 20px 24px;
+    background: #edf5ee;
+    color: #1b5e20;
+    border-bottom: 1px solid #dce6dd;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-title {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 600;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-body {
+    padding: 24px;
+    background: #fff;
+    color: #25332b;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-body p {
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+#effective-save-summary {
+    font-weight: 600;
+}
+
+#effective-period-modal .form-group {
+    margin-bottom: 20px;
+}
+
+#effective-period-modal label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #25332b;
+}
+
+#effective-period-modal .form-control {
+    height: 42px;
+    border: 1px solid #cddbd0;
+    border-radius: 7px;
+    background: #fff;
+    color: #25332b;
+    font-weight: 400 !important;
+}
+
+#effective-period-modal .form-control:focus {
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
+}
+
+#effective-period-modal .checkbox {
+    margin: 0 0 20px;
+}
+
+#effective-period-modal .checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 0;
+    margin: 0;
+    font-weight: 400;
+}
+
+#temporary-schedule {
+    position: static;
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: #2e7d32;
+}
+
+#effective-period-modal small {
+    display: block;
+    margin-top: 8px;
+    color: #647269;
+}
+
+#effective-error {
+    float: none;
+    margin: 0;
+}
+
+#effective-error:empty {
+    display: none;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    background: #f8faf8;
+    border-top: 1px solid #e3ebe4;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-footer::before,
+:is(#effective-period-modal, #shift-history-modal) .modal-footer::after {
+    display: none;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .modal-footer .btn {
+    margin: 0;
+    min-height: 38px;
+    height: auto !important;
+    padding: 8px 18px !important;
+    border-radius: 7px !important;
+    font-size: 14px !important;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .btn-default {
+    background: #fff;
+    border: 1px solid #cddbd0;
+    color: #44534a;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .btn-primary {
+    background: #2e7d32 !important;
+    box-shadow: none !important;
+}
+
+:is(#effective-period-modal, #shift-history-modal) .btn-primary:hover {
+    background: #256429 !important;
+}

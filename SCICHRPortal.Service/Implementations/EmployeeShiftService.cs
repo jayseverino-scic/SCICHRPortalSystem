@@ -1,7 +1,8 @@
-﻿using SCICHRPortal.Data.DTOs;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
+using SCICHRPortal.Utility.Helpers;
 
 namespace SCICHRPortal.Service.Implementations
 {
@@ -14,9 +15,9 @@ namespace SCICHRPortal.Service.Implementations
             EmployeeShiftRepository = employeeShiftRepository;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, string? actor = null)
         {
-            return await EmployeeShiftRepository.DeleteAsync(id);
+            return await EmployeeShiftRepository.DeleteAsync(id, actor);
         }
 
         public async Task<bool> UpdateAsync(EmployeeShift entity)
@@ -44,9 +45,9 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await EmployeeShiftRepository.EmployeeShiftFilterPerProject(projectId, shiftId);
         }
-        public async Task<EmployeeShiftFilterPage> GetShiftFilterAsync(int projectId, int shiftId, string filterType, int? skip, int? take, string? searchKeyword, CancellationToken cancellationToken = default)
+        public async Task<EmployeeShiftFilterPage> GetShiftFilterAsync(int projectId, int shiftId, string filterType, int? skip, int? take, string? searchKeyword, CancellationToken cancellationToken = default, DateTime? asOf = null)
         {
-            return await EmployeeShiftRepository.GetShiftFilterAsync(projectId, shiftId, filterType, skip, take, searchKeyword, cancellationToken);
+            return await EmployeeShiftRepository.GetShiftFilterAsync(projectId, shiftId, filterType, skip, take, searchKeyword, cancellationToken, asOf);
         }
         public async Task<EmployeeShift> GetAsync(int id)
         {
@@ -55,13 +56,16 @@ namespace SCICHRPortal.Service.Implementations
 
         public async Task<EmployeeShiftAssignmentResult> AssignFilteredAsync(EmployeeShiftFilteredAssignmentRequest request, string actor, CancellationToken cancellationToken = default)
         {
-            if (request.ProjectId < 0 || request.ShiftId < 0 || request.ScheduleId < 0 ||
+            if (!request.EffectiveStartDate.HasValue || !PhilippineTime.IsLocal(request.EffectiveStartDate) ||
+                !PhilippineTime.IsLocal(request.EffectiveEndDate) || !PhilippineTime.IsLocal(request.AsOf) ||
+                (request.IsTemporary && (!request.EffectiveEndDate.HasValue || request.EffectiveEndDate <= request.EffectiveStartDate)) ||
+                (!request.IsTemporary && request.EffectiveEndDate.HasValue) || request.ProjectId < 0 || request.ShiftId < 0 || request.ScheduleId < 0 ||
                 (request.ApplyAssignmentToFilter && request.ScheduleId == null) ||
                 request.FlagFilters == null || request.FlagFilters.Count > 3 ||
-                request.FlagFilters.Any(filter => filter == null || filter.ProjectId < 0 || filter.ShiftId < 0 ||
+                request.FlagFilters.Any(filter => filter == null || !PhilippineTime.IsLocal(filter.AsOf) || filter.ProjectId < 0 || filter.ShiftId < 0 ||
                     filter.FilterType is not ("All" or "Assigned" or "Unassigned") || (filter.SearchKeyword?.Length ?? 0) > 200 ||
                     (filter.IsFlexibleShift == null && filter.IsNoShift == null && filter.IsNoBreak == null)) ||
-                (!request.ApplyAssignmentToFilter && request.FlagFilters.Count == 0) ||
+                (!request.ApplyAssignmentToFilter && request.FlagFilters.Count == 0 && (request.Changes == null || request.Changes.Count == 0)) ||
                 request.FilterType is not ("All" or "Assigned" or "Unassigned") ||
                 (request.SearchKeyword?.Length ?? 0) > 200 || request.Changes == null ||
                 request.Changes.Any(change => change == null || change.EmployeeId <= 0) ||
@@ -107,9 +111,17 @@ namespace SCICHRPortal.Service.Implementations
         {
             await EmployeeShiftRepository.InsertRangeAsync(employeeShifts);
         }
-        public async Task<EmployeeShift> GetByEmployee(int id)
+        public async Task<EmployeeShift?> GetByEmployee(int id)
         {
             return await EmployeeShiftRepository.GetByEmployee(id);
         }
+        public Task<EmployeeShift?> GetAtAsync(int employeeId, DateTime timestamp, CancellationToken cancellationToken = default) =>
+            EmployeeShiftRepository.GetAtAsync(employeeId, timestamp, cancellationToken);
+
+        public Task<List<EmployeeShift>> GetPeriodsAsync(int[] employeeIds, DateTime from, DateTime until, CancellationToken cancellationToken = default) =>
+            EmployeeShiftRepository.GetPeriodsAsync(employeeIds, from, until, cancellationToken);
+
+        public Task<EmployeeShiftHistoryPage> GetHistoryAsync(int employeeId, int skip, int take, CancellationToken cancellationToken = default) =>
+            EmployeeShiftRepository.GetHistoryAsync(employeeId, skip, take, cancellationToken);
     }
 }

@@ -1,18 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Microsoft.CodeAnalysis.Operations;
-using SCICHRPortal.Data.Entities;
+using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
 using SCICHRPortal.Data.DTOs;
-using SCICHRPortal.Data.Entities.Metadatas;
-using SCICHRPortal.Data.Enums;
-using SCICHRPortal.Data.TimekeepingTables;
-using SCICHRPortal.Data.XscribeTables;
+using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
-using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
+using SCICHRPortal.Utility.Helpers;
+using System.Security.Claims;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -181,191 +177,55 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             if (startImportDate > endImportDate)
                 return BadRequest("Start date must be on or before end date.");
 
-            IEnumerable<BiometricsLog> biometricsLogs = await BiometricsLogService.FilterByProjectAndDateRange(startImportDate, endImportDate, projectName);
-            List<string> bioEmployees = new List<string>();
-            List<string?> bioDates = new List<string?>();
+            if (startImportDate.Value.Date <= DateTime.MinValue.Date || endImportDate.Value.Year >= 9999)
+                return BadRequest("The import range is outside supported session dates.");
+            var from = startImportDate.Value.Date;
+            var until = endImportDate.Value.Date;
+            // Include surrounding punches so an overnight session can finish
+            // outside the requested start-date range without losing checkout.
+            var biometricsLogs = (await BiometricsLogService.FilterByProjectAndDateRange(from.AddDays(-1), until.AddDays(2).AddTicks(-1), projectName)).ToList();
             var projects = await ProjectService.GetAllAsync();
-            int projectId = projects.Where(p => p.Name?.ToUpper() == projectName?.ToUpper()).Select(p => p.Id).FirstOrDefault();
-            bioDates = biometricsLogs.Select(d => d.Date.ToString()).Distinct().ToList(); //tuple.Item1.Select(d => d.Date.ToString()).Distinct().ToList();
-            bioEmployees = biometricsLogs.Select(static d => d.PersonnelId).Distinct().ToList()!;// tuple.Item1.Select(static d => d.PersonnelId).Distinct().ToList();
-            IEnumerable<Employee> employees = await EmployeeService.GetEmployeeByProject(projectId);
-            IEnumerable<EmployeeShift> shifts = await EmployeeShiftService.GetAllAsync();
-            var filteredEmployees = from e in employees join b in bioEmployees on e.EmployeeNo equals b select e;
-            List<EmployeeTimeLog> timeLogs = new List<EmployeeTimeLog>();
-            foreach (var employee in filteredEmployees)
+            var projectId = projects.Where(row => string.Equals(row.Name, projectName, StringComparison.OrdinalIgnoreCase)).Select(row => row.Id).FirstOrDefault();
+            if (projectId <= 0) return BadRequest("The selected project is unavailable.");
+            var employees = (await EmployeeService.GetEmployeeByProject(projectId)).ToList();
+            var employeeIds = employees.Select(row => row.EmployeeId).ToArray();
+            var periods = await EmployeeShiftService.GetPeriodsAsync(employeeIds, from.AddDays(-1), until.AddDays(2));
+            var timeLogs = new List<EmployeeTimeLog>();
+            var errors = new List<string>();
+            foreach (var employee in employees)
             {
-                EmployeeShift? shift = shifts.Where(s => s.EmployeeId == employee.EmployeeId).FirstOrDefault();
-                if (shift != null)
+                var employeePunches = biometricsLogs.Where(row => row.PersonnelId == employee.EmployeeNo).ToList();
+                if (employeePunches.Count == 0) continue;
+                try
                 {
-                    foreach (var date in bioDates)
-                    {
-                        BiometricsLog biometricsLog = new BiometricsLog();
-                        EmployeeTimeLog employeeTimeLog = new EmployeeTimeLog();
-                        employeeTimeLog.EmployeeId = employee.EmployeeId;
-                        employeeTimeLog.DateIn = Convert.ToDateTime(date);
-                        employeeTimeLog.DateOut = Convert.ToDateTime(date);
-                        biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date?.ToShortDateString() == Convert.ToDateTime(date).ToShortDateString()).OrderBy(e => e.Date).FirstOrDefault();
-                        if (biometricsLog is null) continue;
-                        var timeInSource = biometricsLog.ImportSource;
-                        employeeTimeLog.TimeIn = biometricsLog!.Time;
-                        employeeTimeLog.ProjectTimeIn = biometricsLog.ProjectName;
-                        employeeTimeLog.DeviceTimeIn = biometricsLog.DeviceName;
-                        if (employeeTimeLog.DateIn.Value.DayOfWeek.ToString() == "Monday")
-                        {
-                            if (shift!.MondayShiftEnd < shift.MondayShiftStart)
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.MondayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog!.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            else
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog!.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.MondayShiftStart!.Value.ToShortTimeString());
-                            employeeTimeLog.ShiftEnd = shift.MondayShiftEnd > shift.MondayShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.MondayShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.MondayShiftEnd!.Value.ToShortTimeString());
-                        }
-                        if (employeeTimeLog.DateIn.Value.DayOfWeek.ToString() == "Tuesday")
-                        {
-                            if (shift!.TuesdayShiftEnd < shift.TuesdayShiftStart)
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.TuesdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            else
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.TuesdayShiftStart!.Value.ToShortTimeString());
-                            employeeTimeLog.ShiftEnd = shift.TuesdayShiftEnd > shift.TuesdayShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.TuesdayShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.TuesdayShiftEnd!.Value.ToShortTimeString());
-                        }
-                        if (employeeTimeLog.DateIn.Value.DayOfWeek.ToString() == "Wednesday")
-                        {
-                            if (shift!.WednesdayShiftEnd < shift.WednesdayShiftStart)
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.WednesdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            else
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.WednesdayShiftStart!.Value.ToShortTimeString());
-                            employeeTimeLog.ShiftEnd = shift.WednesdayShiftEnd > shift.WednesdayShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.WednesdayShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.WednesdayShiftEnd!.Value.ToShortTimeString());
-                        }
-                        if (employeeTimeLog.DateIn.Value.DayOfWeek.ToString() == "Thursday")
-                        {
-                            if (shift!.ThursdayShiftEnd < shift.ThursdayShiftStart)
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.ThursdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            else
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.ThursdayShiftStart!.Value.ToShortTimeString());
-                            employeeTimeLog.ShiftEnd = shift.ThursdayShiftEnd > shift.ThursdayShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.ThursdayShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.ThursdayShiftEnd!.Value.ToShortTimeString());
-                        }
-                        if (employeeTimeLog.DateIn.Value.DayOfWeek.ToString() == "Friday")
-                        {
-                            if (shift!.FridayShiftEnd < shift.FridayShiftStart)
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.FridayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            else
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.FridayShiftStart!.Value.ToShortTimeString());
-                            employeeTimeLog.ShiftEnd = shift.FridayShiftEnd > shift.FridayShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.FridayShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.FridayShiftEnd!.Value.ToShortTimeString());
-                        }
-                        if (employeeTimeLog.DateIn.Value.DayOfWeek.ToString() == "Saturday")
-                        {
-                            if (shift!.SaturdayShiftEnd < shift.SaturdayShiftStart)
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.SaturdayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            else
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.SaturdayShiftStart!.Value.ToShortTimeString());
-                            employeeTimeLog.ShiftEnd = shift.SaturdayShiftEnd > shift.SaturdayShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.SaturdayShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.SaturdayShiftEnd!.Value.ToShortTimeString());
-                        }
-                        if (employeeTimeLog.DateIn.Value.DayOfWeek.ToString() == "Sunday")
-                        {
-                            if (shift!.SundayShiftEnd < shift.SundayShiftStart)
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date < Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.SundayShiftStart!.Value.ToShortTimeString())).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            else
-                            {
-                                biometricsLog = biometricsLogs.Where(i => i.PersonnelId == employee.EmployeeNo!.ToString() && i.Date.ToString() == date).OrderBy(e => e.Date).LastOrDefault();
-                                employeeTimeLog.TimeOut = biometricsLog!.Time;
-                                employeeTimeLog.ProjectTimeOut = biometricsLog.ProjectName;
-                                employeeTimeLog.DeviceTimeOut = biometricsLog!.DeviceName;
-                            }
-                            employeeTimeLog.ShiftStart = Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.SundayShiftStart!.Value.ToShortTimeString());
-                            employeeTimeLog.ShiftEnd = shift.SundayShiftEnd > shift.SundayShiftStart ? Convert.ToDateTime(Convert.ToDateTime(date).ToShortDateString() + " " + shift.SundayShiftEnd!.Value.ToShortTimeString()) : Convert.ToDateTime(Convert.ToDateTime(date).AddDays(1).ToShortDateString() + " " + shift.SundayShiftEnd!.Value.ToShortTimeString());
-                        }
-                        employeeTimeLog.IsNoShift = shift!.IsNoShift;
-                        employeeTimeLog.IsNoBreak = shift.IsNoBreak;
-                        employeeTimeLog.IsFlexibleShift = shift.IsFlexibleShift;
-                        employeeTimeLog.SystemRemarks = timeInSource == "File" || biometricsLog?.ImportSource == "File" ? "File" : "Biometrics";
-                        employeeTimeLog.ProjectTimeIn = TimeLogChanges.Optional(employeeTimeLog.ProjectTimeIn);
-                        employeeTimeLog.ProjectTimeOut = TimeLogChanges.Optional(employeeTimeLog.ProjectTimeOut);
-                        employeeTimeLog.DeviceTimeIn = TimeLogChanges.Optional(employeeTimeLog.DeviceTimeIn);
-                        employeeTimeLog.DeviceTimeOut = TimeLogChanges.Optional(employeeTimeLog.DeviceTimeOut);
-                        employeeTimeLog.Comment = TimeLogChanges.Append(null, Actor,
-                            [$"Imported time record ({employeeTimeLog.SystemRemarks})"], DateTime.UtcNow);
-                        employeeTimeLog.CreatedAt = DateTime.UtcNow;
-                        employeeTimeLog.CreatedBy = Actor;
-                        timeLogs.Add(employeeTimeLog);
-                        await EmployeeTimeLogService.InsertAsync(employeeTimeLog);
-                    }
+                    var result = EmployeeShiftSessions.Build(employee.EmployeeId, employeePunches,
+                        periods.Where(row => row.EmployeeId == employee.EmployeeId).ToList(), from, until);
+                    timeLogs.AddRange(result.Sessions);
+                    errors.AddRange(result.Errors);
+                }
+                catch (InvalidOperationException)
+                {
+                    errors.Add($"Employee {employee.EmployeeId}: overlapping assignment history; review before importing.");
                 }
             }
+            if (errors.Count > 0) return BadRequest(new { Message = "Review missing or ambiguous sessions before importing. No records were imported.", Errors = errors });
+            var inserted = new List<EmployeeTimeLog>();
+            foreach (var row in timeLogs)
+            {
+                if ((await EmployeeTimeLogService.HasDuplicateName(row)).IsDuplicated) continue;
+                row.CreatedAt = DateTime.UtcNow;
+                row.CreatedBy = Actor;
+                row.Comment = TimeLogChanges.Append(null, Actor, [$"Imported time record ({row.SystemRemarks})"], DateTime.UtcNow);
+                await EmployeeTimeLogService.InsertAsync(row);
+                inserted.Add(row);
+            }
+            timeLogs = inserted;
             var displayData = timeLogs.Select(d => new
             {
                 d.TimeLogId,
                 d.EmployeeId,
                 employeeNo = d.EmployeeId.ToString(),
-                EmployeeName = d.Employee?.LastName + "," + d.Employee?.FirstName,
+                EmployeeName = employees.Where(row => row.EmployeeId == d.EmployeeId).Select(row => row.LastName + ", " + row.FirstName).FirstOrDefault(),
                 d.DateIn,
                 d.DateOut,
                 d.TimeIn,
@@ -458,7 +318,16 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             EmployeeShift? shift;
             try
             {
-                shift = await EmployeeShiftService.GetByEmployee(employeeTimeLog.EmployeeId);
+                if (employeeTimeLog.TimeIn.HasValue)
+                    shift = await EmployeeShiftService.GetAtAsync(employeeTimeLog.EmployeeId,
+                        PhilippineTime.SessionStart(employeeTimeLog.DateIn.Value, employeeTimeLog.TimeIn));
+                else
+                {
+                    var periods = await EmployeeShiftService.GetPeriodsAsync([employeeTimeLog.EmployeeId],
+                        employeeTimeLog.DateIn.Value.Date, employeeTimeLog.DateIn.Value.Date.AddDays(1));
+                    if (periods.Count != 1) return BadRequest("Enter Time In to identify the effective schedule for this work session.");
+                    shift = periods[0];
+                }
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("more than one element", StringComparison.OrdinalIgnoreCase))
             {
@@ -469,6 +338,15 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 return BadRequest("No assigned shift was found for this employee.");
             var dateIn = employeeTimeLog.DateIn.Value.Date;
             var (weekdayStart, weekdayEnd) = GetWeekdayShiftTimes(shift, dateIn.DayOfWeek);
+            if (shift.IsNoShift && (employeeTimeLog.TimeIn.HasValue || employeeTimeLog.TimeOut.HasValue))
+            {
+                employeeTimeLog.ShiftStart = employeeTimeLog.TimeIn ?? employeeTimeLog.TimeOut;
+                employeeTimeLog.ShiftEnd = employeeTimeLog.TimeOut ?? employeeTimeLog.TimeIn;
+                employeeTimeLog.IsFlexibleShift = false;
+                employeeTimeLog.IsNoShift = true;
+                employeeTimeLog.IsNoBreak = shift.IsNoBreak;
+                return null;
+            }
             if (!weekdayStart.HasValue || !weekdayEnd.HasValue)
                 return BadRequest($"The assigned shift has incomplete {dateIn.DayOfWeek} times.");
 

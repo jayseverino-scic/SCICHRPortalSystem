@@ -2,6 +2,7 @@ namespace SCICHRPortal.Data.DTOs
 {
     public class EmployeeShiftFilterPage
     {
+        public DateTime AsOf { get; set; }
         public List<EmployeeShiftFilterRow> Data { get; set; } = [];
         public int Total { get; set; }
         public int FilteredTotal { get; set; }
@@ -23,6 +24,9 @@ namespace SCICHRPortal.Data.DTOs
         public int ShiftId { get; set; }
         public string? ShiftName { get; set; }
         public DateTime? ShiftDate { get; set; }
+        public DateTime? EffectiveStartDate { get; set; }
+        public DateTime? EffectiveEndDate { get; set; }
+        public bool IsTemporary { get; set; }
         public DateTime? MondayShiftStart { get; set; }
         public DateTime? MondayShiftEnd { get; set; }
         public DateTime? TuesdayShiftStart { get; set; }

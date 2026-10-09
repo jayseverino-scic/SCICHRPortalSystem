@@ -1,10 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Mappings;
 using SCICHRPortal.Data.Mappings.Metadatas;
-using SCICHRPortal.Data.TimekeepingTables;
-using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Repository.AuditTrail.Contexts;
 using SCICHRPortal.Utility.HttpContext.Interfaces;
 
@@ -61,6 +59,16 @@ namespace SCICHRPortal.Repository
             new ShiftMap(modelBuilder.Entity<Shift>());
             new EmployeeMap(modelBuilder.Entity<Employee>());
             new EmployeeShiftMap(modelBuilder.Entity<EmployeeShift>());
+            // Provider-specific period constraints live with ApplicationContext;
+            // the Data project intentionally depends only on EF Core.
+            var shiftAssignment = modelBuilder.Entity<EmployeeShift>();
+            shiftAssignment.HasIndex(row => row.EmployeeId);
+            shiftAssignment.Property(row => row.EffectiveStartDate).HasColumnType("timestamp without time zone");
+            shiftAssignment.Property(row => row.EffectiveEndDate).HasColumnType("timestamp without time zone");
+            shiftAssignment.HasIndex(row => new { row.EmployeeId, row.EffectiveStartDate }).IsUnique()
+                .HasFilter("\"Deleted\" = false AND \"EffectiveStartDate\" IS NOT NULL");
+            shiftAssignment.ToTable("EmployeeShift", table => table.HasCheckConstraint("CK_EmployeeShift_EffectivePeriod",
+                "\"EffectiveEndDate\" IS NULL OR \"EffectiveStartDate\" IS NULL OR \"EffectiveEndDate\" > \"EffectiveStartDate\""));
             new EmployeeTimeLogMap(modelBuilder.Entity<EmployeeTimeLog>());
             modelBuilder.Entity<EmployeeTimeLog>().Property(e => e.Version).HasDefaultValue(0L);
             modelBuilder.Entity<EmployeeTimeLog>().Property(e => e.IsOB).HasDefaultValue(false);

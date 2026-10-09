@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
-using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.DTOs;
-using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
+using SCICHRPortal.Utility.Helpers;
+using System.Security.Claims;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -16,11 +16,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class EmployeeShiftController : ControllerBase
     {
         private IEmployeeShiftService EmployeeShiftService { get; }
-        private IShiftService ShiftService { get; }
-        public EmployeeShiftController(IEmployeeShiftService employeeShiftService, IShiftService shiftService)
+        public EmployeeShiftController(IEmployeeShiftService employeeShiftService)
         {
             EmployeeShiftService = employeeShiftService;
-            ShiftService = shiftService;
         }
 
         [Authorize] 
@@ -88,15 +86,15 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
         [Authorize]
         [HttpGet("ShiftFilter")]
-        public async Task<IActionResult> EmployeeShiftFilterAsync(int projectId = 0, int shiftId = 0, string filterType = "All", int? skip = null, int? take = null, string? searchKeyword = null, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> EmployeeShiftFilterAsync(int projectId = 0, int shiftId = 0, string filterType = "All", int? skip = null, int? take = null, string? searchKeyword = null, CancellationToken cancellationToken = default, DateTime? asOf = null)
         {
-            if (projectId < 0 || shiftId < 0 || skip < 0 || take is < 1 or > 80 ||
+            if (!PhilippineTime.IsLocal(asOf) || projectId < 0 || shiftId < 0 || skip < 0 || take is < 1 or > 80 ||
                 (searchKeyword?.Length ?? 0) > 200 || filterType is not ("All" or "Assigned" or "Unassigned"))
             {
                 return BadRequest("Enter valid project, shift, status, paging and search filters.");
             }
 
-            var result = await EmployeeShiftService.GetShiftFilterAsync(projectId, shiftId, filterType, skip, take, searchKeyword, cancellationToken);
+            var result = await EmployeeShiftService.GetShiftFilterAsync(projectId, shiftId, filterType, skip, take, searchKeyword, cancellationToken, asOf);
 
             if (!skip.HasValue && !take.HasValue)
             {
@@ -119,122 +117,30 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         [Authorize]
-        [HttpPost()]
-        public async Task<IActionResult> UpdateShiftAssignmentAsync(List<EmployeeShiftUpdateRequestModel> employeeShift, int shiftId)
+        [HttpGet("History/{employeeId:int}")]
+        public async Task<IActionResult> HistoryAsync(int employeeId, int skip = 0, int take = 10, CancellationToken cancellationToken = default)
         {
-            if (shiftId < 0 || (shiftId == 0 && employeeShift.Any(item => item.IsAssigned == true && !item.PreserveSchedule)))
-                return BadRequest("Select a schedule to assign.");
-            Shift? shift = null;
-            if (employeeShift.Any(item => item.IsAssigned == true && !item.PreserveSchedule))
-            {
-                shift = await ShiftService.GetAsync(shiftId);
-                if (shift == null) return BadRequest("The selected schedule is unavailable.");
-            }
-            DateTime? mondayShiftStart = shift?.MondayShiftStart;
-            DateTime? mondayShiftEnd = shift?.MondayShiftEnd;
-            DateTime? tuesdayShiftStart = shift?.TuesdayShiftStart;
-            DateTime? tuesdayShiftEnd = shift?.TuesdayShiftEnd;
-            DateTime? wednesdayShiftStart = shift?.WednesdayShiftStart;
-            DateTime? wednesdayShiftEnd = shift?.WednesdayShiftEnd;
-            DateTime? thursdayShiftStart = shift?.ThursdayShiftStart;
-            DateTime? thursdayShiftEnd = shift?.ThursdayShiftEnd;
-            DateTime? fridayShiftStart = shift?.FridayShiftStart;
-            DateTime? fridayShiftEnd = shift?.FridayShiftEnd;
-            DateTime? saturdayShiftStart = shift?.SaturdayShiftStart;
-            DateTime? saturdayShiftEnd = shift?.SaturdayShiftEnd;
-            DateTime? sundayShiftStart = shift?.SundayShiftStart;
-            DateTime? sundayShiftEnd = shift?.SundayShiftEnd;
+            if (employeeId <= 0 || skip < 0 || take is < 1 or > 80) return BadRequest("Enter valid employee and paging values.");
+            return Ok(await EmployeeShiftService.GetHistoryAsync(employeeId, skip, take, cancellationToken));
+        }
 
-            foreach (var item in employeeShift)
+        [Authorize]
+        [HttpPost()]
+        public Task<IActionResult> UpdateShiftAssignmentAsync(List<EmployeeShiftUpdateRequestModel> employeeShift, int shiftId,
+            DateTime? effectiveStartDate = null, DateTime? effectiveEndDate = null, bool isTemporary = false, DateTime? asOf = null,
+            CancellationToken cancellationToken = default)
+        {
+            var request = new EmployeeShiftFilteredAssignmentRequest
             {
-                if (item.PreserveSchedule)
+                EffectiveStartDate = effectiveStartDate ?? PhilippineTime.Now, EffectiveEndDate = effectiveEndDate,
+                IsTemporary = isTemporary, AsOf = asOf, ApplyAssignmentToFilter = false, ScheduleId = shiftId,
+                Changes = employeeShift.Select(row => new EmployeeShiftAssignmentChange
                 {
-                    var updated = await EmployeeShiftService.UpdateFlagsAsync(item.AssignedShiftId, new EmployeeShiftAssignmentChange
-                    {
-                        EmployeeId = item.EmployeeId, IsFlexibleShift = item.IsFlexibleShift,
-                        IsNoShift = item.IsNoShift, IsNoBreak = item.IsNoBreak
-                    }, Actor);
-                    if (!updated) return NotFound("The employee assignment is unavailable. Your pending changes have been kept.");
-                    continue;
-                }
-                if (item.IsNoShift) item.IsFlexibleShift = false;
-                if (item.IsAssigned == true && item.AssignedShiftId != 0)
-                {
-                    EmployeeShift shiftAssignment = new EmployeeShift
-                    {
-                        AssignedShiftId = item.AssignedShiftId,
-                        ShiftId = shiftId,
-                        EmployeeId = item.EmployeeId,
-                        DepartmentId = item.DepartmentId == 0 ? null : item.DepartmentId,
-                        ProjectId = item.ProjectId == 0 ? null : item.ProjectId,
-                        ShiftDate = DateTime.Now,
-                        MondayShiftStart = mondayShiftStart,
-                        MondayShiftEnd = mondayShiftEnd,
-                        TuesdayShiftStart = tuesdayShiftStart,
-                        TuesdayShiftEnd = tuesdayShiftEnd,
-                        WednesdayShiftStart = wednesdayShiftStart,
-                        WednesdayShiftEnd = wednesdayShiftEnd,
-                        ThursdayShiftStart = thursdayShiftStart,
-                        ThursdayShiftEnd = thursdayShiftEnd,
-                        FridayShiftStart = fridayShiftStart,
-                        FridayShiftEnd = fridayShiftEnd,
-                        SaturdayShiftStart = saturdayShiftStart,
-                        SaturdayShiftEnd = saturdayShiftEnd,
-                        SundayShiftStart = sundayShiftStart,
-                        SundayShiftEnd = sundayShiftEnd,
-                        IsFlexibleShift = item.IsFlexibleShift,
-                        IsNoBreak = item.IsNoBreak,
-                        IsNoShift = item.IsNoShift,
-                        UpdatedBy = Actor
-                    };
-                    await EmployeeShiftService.UpdateAsync(shiftAssignment);
-                }
-                if (item.IsAssigned == true && item.AssignedShiftId == 0)
-                {
-                    EmployeeShift shiftAssignment = new EmployeeShift
-                    {
-                        AssignedShiftId = item.AssignedShiftId,
-                        ShiftId = shiftId,
-                        EmployeeId = item.EmployeeId,
-                        DepartmentId = item.DepartmentId == 0 ? null : item.DepartmentId,
-                        ProjectId = item.ProjectId == 0 ? null : item.ProjectId,
-                        ShiftDate = DateTime.Now,
-                        MondayShiftStart = mondayShiftStart,
-                        MondayShiftEnd = mondayShiftEnd,
-                        TuesdayShiftStart = tuesdayShiftStart,
-                        TuesdayShiftEnd = tuesdayShiftEnd,
-                        WednesdayShiftStart = wednesdayShiftStart,
-                        WednesdayShiftEnd = wednesdayShiftEnd,
-                        ThursdayShiftStart = thursdayShiftStart,
-                        ThursdayShiftEnd = thursdayShiftEnd,
-                        FridayShiftStart = fridayShiftStart,
-                        FridayShiftEnd = fridayShiftEnd,
-                        SaturdayShiftStart = saturdayShiftStart,
-                        SaturdayShiftEnd = saturdayShiftEnd,
-                        SundayShiftStart = sundayShiftStart,
-                        SundayShiftEnd = sundayShiftEnd,
-                        IsFlexibleShift = item.IsFlexibleShift,
-                        IsNoBreak = item.IsNoBreak,
-                        IsNoShift = item.IsNoShift,
-                        CreatedBy = Actor,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    try
-                    {
-                        await EmployeeShiftService.InsertAsync(shiftAssignment);
-                    }
-                    catch (EmployeeShiftAssignmentConflictException)
-                    {
-                        return Conflict("An employee was assigned while saving. Refresh the affected employee and try again.");
-                    }
-                }
-                if (item.IsAssigned == false && item.AssignedShiftId != 0)
-                {
-                    await EmployeeShiftService.DeleteAsync(item.AssignedShiftId);
-                }
-            }
-
-            return StatusCode(201, employeeShift);
+                    EmployeeId = row.EmployeeId, PreserveSchedule = row.PreserveSchedule, IsAssigned = row.IsAssigned == true,
+                    IsFlexibleShift = row.IsFlexibleShift, IsNoShift = row.IsNoShift, IsNoBreak = row.IsNoBreak
+                }).ToList()
+            };
+            return AssignFilteredAsync(request, cancellationToken);
         }
 
         [Authorize]
@@ -243,11 +149,22 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
+            if (employeeShift.AssignedShiftId <= 0 || employeeShift.EmployeeId <= 0 || employeeShift.ShiftId <= 0 ||
+                !PhilippineTime.IsLocal(employeeShift.EffectiveStartDate) || !PhilippineTime.IsLocal(employeeShift.EffectiveEndDate) ||
+                (employeeShift.IsTemporary && (!employeeShift.EffectiveStartDate.HasValue || !employeeShift.EffectiveEndDate.HasValue ||
+                    employeeShift.EffectiveEndDate <= employeeShift.EffectiveStartDate)) || (!employeeShift.IsTemporary && employeeShift.EffectiveEndDate.HasValue))
+                return BadRequest("Enter a valid assignment and local effective period.");
             employeeShift.UpdatedAt = DateTime.UtcNow;
-            employeeShift.UpdatedBy = "manuel";
-            await EmployeeShiftService.UpdateAsync(employeeShift);
-
-            return Ok();
+            employeeShift.UpdatedBy = Actor;
+            try
+            {
+                if (!await EmployeeShiftService.UpdateAsync(employeeShift)) return NotFound(ResponseMessage.NotFound);
+                return Ok();
+            }
+            catch (EmployeeShiftAssignmentConflictException)
+            {
+                return Conflict("The assignment timeline changed. Refresh and choose a distinct effective start.");
+            }
         }
 
         [Authorize]
@@ -257,7 +174,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             if (!ModelState.IsValid)
                 return BadRequest("Bad Request.");
 
-            var deleted = await EmployeeShiftService.DeleteAsync(employeeShiftId);
+            var deleted = await EmployeeShiftService.DeleteAsync(employeeShiftId, Actor);
 
             if (!deleted)
                 return NotFound(ResponseMessage.NotFound);
