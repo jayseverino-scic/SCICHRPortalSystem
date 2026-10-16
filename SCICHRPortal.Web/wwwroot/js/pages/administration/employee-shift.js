@@ -39,15 +39,6 @@
 
     const updatePendingStatus = () => {
         const count = _pendingChanges.size;
-        const operation = Number($('#assignment-shift').val()) === -1 ? 'Unassign' : 'Assign';
-        const assignment = _bulkAssignment
-            ? `${operation} all employees matching ${_bulkAssignment.description} (${_bulkAssignment.count} at selection), with ${count} individual edit(s). Uncheck Select all to cancel.`
-            : '';
-        const flags = Array.from(_bulkFlags, ([field, selection]) =>
-            `${selection.value === false ? 'Turn off ' : ''}${field === 'isFlexibleShift' ? 'Flexible Shift' : field === 'isNoShift' ? 'No Shift' : 'No Break'} for all matching ${selection.description} (${selection.count} at selection)`);
-        const pendingMessage = [assignment, ...flags].filter(Boolean).join(' · ') ||
-            (count ? `${count} employee(s) with pending changes` : '');
-        $('#employee-shift-pending').text(pendingMessage).prop('hidden', !pendingMessage);
         $('#save').prop('disabled', _isSaving || (!_bulkAssignment && !_bulkFlags.size && count === 0));
         $('#cancel-pending').prop('disabled', _isSaving || _refreshAfterSave || (!_bulkAssignment && !_bulkFlags.size && count === 0));
     };
@@ -173,7 +164,6 @@
         if (_viewTimestamp) parameters.set('asOf', _viewTimestamp);
         _pageLoading = true;
         if (dataTable) updateHeaderCheckboxes();
-        $('#employee-shift-page-status').text('Loading employees...');
         try {
             const response = await _apiHelper.get({ url: `Authenticated/EmployeeShift/ShiftFilter?${parameters}` });
             if (version !== _requestVersion) return;
@@ -202,7 +192,6 @@
             } : {};
             callback({ draw: request.draw, recordsTotal: result.total, recordsFiltered: result.filteredTotal,
                 data: overlayPageRows(result.data) });
-            $('#employee-shift-page-status').text('');
         } catch (_) {
             if (version !== _requestVersion) return;
             _refreshAfterSave = false;
@@ -211,7 +200,7 @@
             _filteredCount = 0;
             _savedFlagSummary = {};
             callback(empty);
-            $('#employee-shift-page-status').text('Could not load employees. Change a filter or refresh to try again.');
+            toastr.error('Could not load employees. Change a filter or refresh to try again.');
         }
     };
 
@@ -313,6 +302,9 @@
     };
 
     const attachEvents = () => {
+        $('#employee-shift-grid').on('length.dt.employeeShift', () => {
+            dataTable.page('first');
+        });
         $('#project, #shift, #status').on('change.employeeShift', () => {
             clearTimeout(_searchTimer);
             _requestVersion++;
@@ -514,7 +506,6 @@
         const version = _requestVersion;
         _isExporting = true;
         updateHeaderCheckboxes();
-        $('#employee-shift-page-status').text('Loading all filtered employees for export...');
         try {
             if (printWindow) {
                 printWindow.opener = null;
@@ -591,7 +582,6 @@
             toastr.error('Could not export employee shifts. Try again.');
         } finally {
             _isExporting = false;
-            if (version === _requestVersion) $('#employee-shift-page-status').text('');
             updateHeaderCheckboxes();
         }
     };
@@ -849,7 +839,7 @@
     const initializeGrid = () => {
         $('#employee-shift-grid').empty();
         dataTable = $('#employee-shift-grid').DataTable({
-            dom: 'Bfrtip',
+            dom: '<"employee-shift-table-toolbar"lBf>rtip',
             buttons: [
                 filteredExportButton('excelHtml5', 'Excel'),
                 filteredExportButton('pdfHtml5', 'PDF'),
@@ -859,7 +849,8 @@
             processing: true,
             paging: true,
             pageLength: 10,
-            lengthChange: false,
+            lengthChange: true,
+            lengthMenu: [5, 10, 20, 40, 80],
             ordering: false,
             searching: true,
             autoWidth: true,
