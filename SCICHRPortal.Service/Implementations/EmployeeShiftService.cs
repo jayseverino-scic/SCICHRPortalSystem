@@ -20,6 +20,27 @@ namespace SCICHRPortal.Service.Implementations
             return await EmployeeShiftRepository.DeleteAsync(id, actor);
         }
 
+        public Task<bool> DeleteHistoryAsync(int employeeId, int assignedShiftId, string actor, CancellationToken cancellationToken = default)
+        {
+            if (employeeId <= 0 || assignedShiftId <= 0) return Task.FromResult(false);
+            return EmployeeShiftRepository.DeleteHistoryAsync(employeeId, assignedShiftId, actor, cancellationToken);
+        }
+
+        public async Task<EmployeeShiftAssignmentResult> DeleteLatestFilteredAsync(EmployeeShiftHistoryDeletionRequest request, string actor, CancellationToken cancellationToken = default)
+        {
+            if (request.ProjectId < 0 || request.ShiftId < 0 || !PhilippineTime.IsLocal(request.AsOf) ||
+                request.FilterType is not ("All" or "Assigned" or "Unassigned") || (request.SearchKeyword?.Length ?? 0) > 200 ||
+                request.SelectedEmployeeIds == null || request.ExcludedEmployeeIds == null ||
+                (!request.ApplyToFilter && request.SelectedEmployeeIds.Count == 0) ||
+                request.SelectedEmployeeIds.Any(id => id <= 0) || request.ExcludedEmployeeIds.Any(id => id <= 0) ||
+                request.SelectedEmployeeIds.Distinct().Count() != request.SelectedEmployeeIds.Count ||
+                request.ExcludedEmployeeIds.Distinct().Count() != request.ExcludedEmployeeIds.Count ||
+                request.SelectedEmployeeIds.Intersect(request.ExcludedEmployeeIds).Any())
+                return new(EmployeeShiftAssignmentStatus.Invalid, Message: "Select employees and valid filters for history removal.");
+            request.SearchKeyword = request.SearchKeyword?.Trim();
+            return await EmployeeShiftRepository.DeleteLatestFilteredAsync(request, actor, cancellationToken);
+        }
+
         public async Task<bool> UpdateAsync(EmployeeShift entity)
         {
             return await EmployeeShiftRepository.UpdateAsync(entity);

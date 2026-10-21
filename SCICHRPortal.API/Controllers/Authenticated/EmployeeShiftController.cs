@@ -125,6 +125,36 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         [Authorize]
+        [HttpPost("DeleteLatestFiltered")]
+        public async Task<IActionResult> DeleteLatestFilteredAsync(EmployeeShiftHistoryDeletionRequest request, CancellationToken cancellationToken = default)
+        {
+            var result = await EmployeeShiftService.DeleteLatestFilteredAsync(request, Actor, cancellationToken);
+            return result.Status switch
+            {
+                EmployeeShiftAssignmentStatus.Success => Ok(new { result.Affected }),
+                EmployeeShiftAssignmentStatus.Conflict => Conflict("The schedule history changed while deleting. Refresh and try again."),
+                _ => BadRequest(result.Message)
+            };
+        }
+
+        [Authorize]
+        [HttpDelete("History/{employeeId:int}/{assignedShiftId:int}")]
+        public async Task<IActionResult> DeleteHistoryAsync(int employeeId, int assignedShiftId, CancellationToken cancellationToken = default)
+        {
+            if (employeeId <= 0 || assignedShiftId <= 0) return BadRequest("Select a valid employee history row.");
+            try
+            {
+                if (!await EmployeeShiftService.DeleteHistoryAsync(employeeId, assignedShiftId, Actor, cancellationToken))
+                    return NotFound(ResponseMessage.NotFound);
+                return Ok(new { affected = 1 });
+            }
+            catch (EmployeeShiftAssignmentConflictException)
+            {
+                return Conflict("The schedule history changed while deleting. Refresh and try again.");
+            }
+        }
+
+        [Authorize]
         [HttpPost()]
         public Task<IActionResult> UpdateShiftAssignmentAsync(List<EmployeeShiftUpdateRequestModel> employeeShift, int shiftId,
             DateTime? effectiveStartDate = null, DateTime? effectiveEndDate = null, bool isTemporary = false, DateTime? asOf = null,

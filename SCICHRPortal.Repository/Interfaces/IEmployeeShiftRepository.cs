@@ -27,5 +27,7 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<EmployeeShift?> GetAtAsync(int employeeId, DateTime timestamp, CancellationToken cancellationToken = default);
         Task<List<EmployeeShift>> GetPeriodsAsync(int[] employeeIds, DateTime from, DateTime until, CancellationToken cancellationToken = default);
         Task<EmployeeShiftHistoryPage> GetHistoryAsync(int employeeId, int skip, int take, CancellationToken cancellationToken = default);
+        Task<EmployeeShiftAssignmentResult> DeleteLatestFilteredAsync(EmployeeShiftHistoryDeletionRequest request, string actor, CancellationToken cancellationToken = default);
+        Task<bool> DeleteHistoryAsync(int employeeId, int assignedShiftId, string actor, CancellationToken cancellationToken = default);
     }
 }

@@ -39,8 +39,12 @@
 
     const updatePendingStatus = () => {
         const count = _pendingChanges.size;
-        $('#save').prop('disabled', _isSaving || (!_bulkAssignment && !_bulkFlags.size && count === 0));
+        const hasChanges = Number($('#assignment-shift').val()) === -1
+            ? !!_bulkAssignment || Array.from(_pendingChanges.values()).some(row => row.isSelected)
+            : !!_bulkAssignment || _bulkFlags.size > 0 || count > 0;
+        $('#save').prop('disabled', _isSaving || _refreshAfterSave || _pageLoading || !hasChanges);
         $('#cancel-pending').prop('disabled', _isSaving || _refreshAfterSave || (!_bulkAssignment && !_bulkFlags.size && count === 0));
+        $('.shift-history-delete').prop('disabled', _isSaving || _refreshAfterSave);
     };
 
     const matchesFilter = (row, filter) => {
@@ -222,6 +226,7 @@
                 .prop('disabled', _isSaving || _refreshAfterSave || _pageLoading || !_activePageFilter || !_filteredCount);
         }
         dataTable.buttons().enable(!_isExporting && !_isSaving && !_refreshAfterSave && !_pageLoading && !!_activePageFilter && _filteredCount > 0);
+        updatePendingStatus();
     };
 
     const currentFilterSelection = () => {
@@ -324,9 +329,14 @@
         $('#shift-history-previous').on('click.employeeShift', () => loadHistory(Math.max(0, _historySkip - 10)));
         $('#shift-history-next').on('click.employeeShift', () => loadHistory(_historySkip + 10));
         $('#content-container').on('click.employeeShift', '.shift-history', function () {
+            if (_isSaving || _refreshAfterSave) return;
             _historyEmployee = Number($(this).attr('data-employee-id'));
             _historyModal.show();
             loadHistory(0);
+        });
+        $('#shift-history-body').on('click.employeeShift', '.shift-history-delete', function () {
+            deleteHistoryRow(Number($(this).attr('data-employee-id')), Number($(this).attr('data-assigned-shift-id')),
+                $(this).attr('data-history-description'));
         });
         $('#assignment-shift').on('change.employeeShift', onAssignmentScheduleChange);
         const $table = $('#content-container');
@@ -370,9 +380,106 @@
         return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
     };
 
-    const openEffectiveModal = event => {
+    const historyDeletionSelection = () => {
+        const selectedEmployeeIds = [];
+        const excludedEmployeeIds = [];
+        for (const [id, row] of _pendingChanges) {
+            if (row.isSelected) selectedEmployeeIds.push(id);
+            else if (_pendingFields.get(id)?.has('isSelected')) excludedEmployeeIds.push(id);
+        }
+        return { ...(_bulkAssignment?.filter || {}), applyToFilter: !!_bulkAssignment, selectedEmployeeIds, excludedEmployeeIds };
+    };
+
+    const performHistoryDeletion = async (options, targetedIds, clearBulkSelection, description) => {
+        if (_isSaving || _pageLoading || _refreshAfterSave) return;
+        _isSaving = true;
+        updatePendingStatus();
+        $('#project, #shift, #status, #assignment-shift, #employee-shift-grid_wrapper input, #employee-shift-grid_length select').prop('disabled', true);
+        try {
+            const confirmation = await Swal.fire({
+                title: 'Remove schedule history?', text: description,
+                icon: 'warning', showCancelButton: true, confirmButtonColor: '#2e7d32',
+                confirmButtonText: 'Delete', cancelButtonText: 'Cancel',
+                ...(_historyModalElement.classList.contains('show') ? { target: _historyModalElement } : {})
+            });
+            if (!confirmation.isConfirmed && confirmation.value !== true) return;
+            const response = await _apiHelper[options.method]({ url: options.url, data: options.data,
+                requestOrigin: 'Employee Shift History', requesterName: $('#current-user').text(), requestSystem: SYSTEM });
+            if (!response.ok) {
+                toastr.error(response.status === 404 ? 'This history row is no longer available. Refresh history and try again.' :
+                    response.status === 409 ? 'Schedule history changed while deleting. Refresh and try again.' :
+                    'Could not remove schedule history. Your pending edits have been kept.');
+                return;
+            }
+            const result = await response.json();
+            for (const id of targetedIds) {
+                const original = _originalRows.get(id);
+                _pendingChanges.delete(id);
+                _pendingFields.delete(id);
+                if (!clearBulkSelection && _bulkAssignment && original && matchesBulkFilter(original)) {
+                    // Keep the remaining bulk selection, without reselecting this
+                    // employee or losing a prior explicit exclusion on reload.
+                    _pendingChanges.set(id, { ...original, isSelected: false, isAssigned: false });
+                    _pendingFields.set(id, new Set(['isSelected', 'isAssigned']));
+                }
+                _originalRows.delete(id);
+            }
+            if (clearBulkSelection) {
+                _bulkAssignment = null;
+                // Exclusions belong to the completed selection; preserve their
+                // independent flag edits after removing the selection fields.
+                for (const [id, fields] of _pendingFields) {
+                    if (!_pendingChanges.get(id)?.isSelected && fields.has('isSelected')) {
+                        ['isSelected', 'isAssigned', 'shiftId'].forEach(field => fields.delete(field));
+                        if (!fields.size) { _pendingFields.delete(id); _pendingChanges.delete(id); }
+                    }
+                }
+            }
+            _viewTimestamp = null;
+            _refreshAfterSave = true;
+            if (result.affected === 0) toastr.info('No schedule history was available to remove.');
+            else toastr.success('Schedule history removed.');
+            dataTable.ajax.reload(null, false);
+            if (_historyModalElement.classList.contains('show')) await loadHistory(_historySkip);
+        } catch (_) {
+            toastr.error('Could not remove schedule history. Your pending edits have been kept.');
+        } finally {
+            _isSaving = false;
+            $('#project, #shift, #status, #assignment-shift, #employee-shift-grid_filter input, #employee-shift-grid_length select').prop('disabled', false);
+            $('#employee-shift-grid_wrapper input[type="checkbox"]').prop('disabled', _refreshAfterSave);
+            updatePendingStatus();
+            updateHeaderCheckboxes();
+        }
+    };
+
+    const deleteLatestSelected = async () => {
+        const selection = historyDeletionSelection();
+        if (!selection.applyToFilter && !selection.selectedEmployeeIds.length) {
+            toastr.warning('Select employees before removing their latest schedule history.');
+            return;
+        }
+        const selectedIds = new Set(selection.selectedEmployeeIds);
+        const excludedIds = new Set(selection.excludedEmployeeIds);
+        const targetedIds = new Set(selectedIds);
+        if (selection.applyToFilter) {
+            for (const [id, row] of _originalRows) {
+                if (!excludedIds.has(id) && matchesFilter(row, selection)) targetedIds.add(id);
+            }
+        }
+        await performHistoryDeletion({ method: 'post', url: 'Authenticated/EmployeeShift/DeleteLatestFiltered', data: selection },
+            targetedIds, true, 'Delete the latest saved history row for each selected employee, including future schedules. Other periods and dates will remain unchanged.');
+    };
+
+    const deleteHistoryRow = async (employeeId, assignedShiftId, description) => {
+        if (!Number.isInteger(employeeId) || employeeId <= 0 || !Number.isInteger(assignedShiftId) || assignedShiftId <= 0) return;
+        await performHistoryDeletion({ method: 'delete', url: `Authenticated/EmployeeShift/History/${employeeId}/${assignedShiftId}` },
+            new Set([employeeId]), false, `Delete ${description || 'this schedule period'}? Its period will be unassigned; other dates will remain unchanged.`);
+    };
+
+    const openEffectiveModal = async event => {
         event.preventDefault();
         if (_isSaving || _pageLoading || _refreshAfterSave || (!_bulkAssignment && !_bulkFlags.size && !_pendingChanges.size)) return;
+        if (Number($('#assignment-shift').val()) === -1) { await deleteLatestSelected(); return; }
         if (!$('#effective-start').val()) $('#effective-start').val(philippineTimestamp());
         const schedule = Number($('#assignment-shift').val()) === 0 ? 'Keep existing schedules' : $('#assignment-shift option:selected').text();
         $('#effective-save-summary').text(`${schedule}. ${_bulkAssignment || _bulkFlags.size ? 'Apply to the selected filtered employees, including individual overrides.' : `Apply to ${_pendingChanges.size} edited employee(s).`}`);
@@ -391,6 +498,10 @@
             const result = await response.json();
             if (version !== _historyVersion) return;
             if (!Array.isArray(result.data) || !Number.isInteger(result.total)) throw new Error('Invalid history');
+            if (skip > 0 && skip >= result.total) {
+                await loadHistory(Math.max(0, Math.ceil(result.total / 10) - 1) * 10);
+                return;
+            }
             _historySkip = skip;
             for (const row of result.data) {
                 const values = [row.effectiveStartDate ? row.effectiveStartDate.replace('T', ' ') : 'Original assignment (start unknown)',
@@ -398,6 +509,11 @@
                     ...['isTemporary', 'isFlexibleShift', 'isNoShift', 'isNoBreak'].map(field => row[field] ? 'Yes' : 'No'), row.createdBy || '-'];
                 const $row = $('<tr>');
                 values.forEach(value => $('<td>').text(value).appendTo($row));
+                const description = `${row.shiftName || 'schedule'} (${values[0]} to ${values[1]})`;
+                $('<td>').append($('<button>').attr({ type: 'button', 'data-employee-id': _historyEmployee,
+                    'data-assigned-shift-id': row.assignedShiftId, 'data-history-description': description,
+                    'aria-label': `Delete ${description}` }).addClass('btn btn-danger btn-sm shift-history-delete')
+                    .prop('disabled', _isSaving).text('Delete')).appendTo($row);
                 $('#shift-history-body').append($row);
             }
             $('#shift-history-status').text(result.total ? `Showing ${skip + 1}–${Math.min(skip + 10, result.total)} of ${result.total} periods` : 'No assignment history.');
@@ -411,6 +527,7 @@
     const onEmployeeShiftSubmit = async event => {
         event.preventDefault();
         if (_isSaving || (!_bulkAssignment && !_bulkFlags.size && !_pendingChanges.size)) return;
+        if (Number($('#assignment-shift').val()) === -1) { _effectiveModal.hide(); await deleteLatestSelected(); return; }
         const start = $('#effective-start').val();
         const temporary = $('#temporary-schedule').prop('checked');
         const end = temporary ? $('#effective-end').val() : null;
@@ -461,6 +578,7 @@
                 toastr.error(response.status === 403 ? 'Access denied.' : 'Could not save assignments. Your pending changes have been kept.');
                 return;
             }
+            const result = await response.json();
             _effectiveModal.hide();
             $('#effective-start, #effective-end').val('');
             $('#temporary-schedule').prop('checked', false).trigger('change');
@@ -471,7 +589,8 @@
             _bulkAssignment = null;
             _bulkFlags.clear();
             _refreshAfterSave = true;
-            toastr.success('Employee shift assignments updated.');
+            if (result.affected === 0) toastr.info('No schedule changes were needed.');
+            else toastr.success('Employee shift assignments updated.');
             dataTable.ajax.reload(null, false);
         } catch (_) {
             toastr.error('Could not save assignments. Your pending changes have been kept.');

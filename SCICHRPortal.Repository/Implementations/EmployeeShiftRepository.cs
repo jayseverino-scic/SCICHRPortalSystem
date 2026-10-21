@@ -249,6 +249,90 @@ namespace SCICHRPortal.Repository.Implementations
             return new EmployeeShiftHistoryPage { Data = rows, Total = total };
         }
 
+        public async Task<bool> DeleteHistoryAsync(int employeeId, int assignedShiftId, string actor, CancellationToken cancellationToken = default)
+        {
+            await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+            try
+            {
+                await Context.Database.ExecuteSqlRawAsync("""LOCK TABLE "EmployeeShift" IN SHARE ROW EXCLUSIVE MODE""", cancellationToken);
+                var row = await Context.EmployeeShift.SingleOrDefaultAsync(row => row.AssignedShiftId == assignedShiftId &&
+                    row.EmployeeId == employeeId && !row.Deleted && Context.Employee.Any(employee =>
+                        employee.EmployeeId == employeeId && !employee.Deleted), cancellationToken);
+                if (row == null) return false;
+                await SoftDeleteHistoryAsync([row], actor, cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return true;
+            }
+            catch (Exception exception) when (IsHistoryDeletionConflict(exception))
+            {
+                throw new EmployeeShiftAssignmentConflictException();
+            }
+        }
+
+        public async Task<EmployeeShiftAssignmentResult> DeleteLatestFilteredAsync(EmployeeShiftHistoryDeletionRequest request, string actor, CancellationToken cancellationToken = default)
+        {
+            await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+            try
+            {
+                await Context.Database.ExecuteSqlRawAsync("""LOCK TABLE "EmployeeShift" IN SHARE ROW EXCLUSIVE MODE""", cancellationToken);
+                var selectedIds = request.SelectedEmployeeIds.ToArray();
+                var excludedIds = request.ExcludedEmployeeIds.ToArray();
+                if (await Context.Employee.CountAsync(employee => !employee.Deleted && selectedIds.Contains(employee.EmployeeId), cancellationToken) != selectedIds.Length)
+                    return new(EmployeeShiftAssignmentStatus.Invalid, Message: "One or more selected employees are unavailable.");
+                var filteredIds = BuildShiftFilterQuery(request.ProjectId, request.ShiftId, request.FilterType, request.SearchKeyword,
+                    request.AsOf ?? PhilippineTime.Now).Select(row => row.EmployeeId);
+                var targets = Context.Employee.AsNoTracking().Where(employee => !employee.Deleted &&
+                    ((request.ApplyToFilter && filteredIds.Contains(employee.EmployeeId)) || selectedIds.Contains(employee.EmployeeId)) &&
+                    !excludedIds.Contains(employee.EmployeeId)).Select(employee => employee.EmployeeId);
+                var lastId = 0;
+                var affected = 0;
+                while (true)
+                {
+                    var ids = await targets.Where(id => id > lastId).OrderBy(id => id).Take(250).ToListAsync(cancellationToken);
+                    if (ids.Count == 0) break;
+                    // Match history page one's ordering, including future restoration
+                    // periods. Only this row is removed; neighboring boundaries stay put.
+                    var latest = await Context.EmployeeShift.Where(row => !row.Deleted && ids.Contains(row.EmployeeId))
+                        .GroupBy(row => row.EmployeeId).Select(group => group.OrderBy(row => row.EffectiveStartDate == null)
+                            .ThenByDescending(row => row.EffectiveStartDate).ThenByDescending(row => row.AssignedShiftId).First())
+                        .ToListAsync(cancellationToken);
+                    await SoftDeleteHistoryAsync(latest, actor, cancellationToken);
+                    affected += latest.Count;
+                    lastId = ids[^1];
+                }
+                await transaction.CommitAsync(cancellationToken);
+                return new(EmployeeShiftAssignmentStatus.Success, affected);
+            }
+            catch (Exception exception) when (IsHistoryDeletionConflict(exception))
+            {
+                return AssignmentConflict();
+            }
+        }
+
+        private static bool IsHistoryDeletionConflict(Exception exception)
+        {
+            // Npgsql's execution strategy can wrap a DbUpdateException in an
+            // InvalidOperationException, even when automatic retries are disabled.
+            for (Exception? current = exception; current != null; current = current.InnerException)
+                if (current is PostgresException { SqlState: "40001" or "40P01" }) return true;
+            return false;
+        }
+
+        private async Task SoftDeleteHistoryAsync(List<EmployeeShift> rows, string actor, CancellationToken cancellationToken)
+        {
+            var now = DateTime.UtcNow;
+            foreach (var row in rows)
+            {
+                row.Deleted = true;
+                row.UpdatedAt = now;
+                row.UpdatedBy = actor;
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            await Context.SaveChangesAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+            Context.ChangeTracker.Clear();
+        }
+
         public async Task<EmployeeShiftFilterPage> GetShiftFilterAsync(int projectId, int shiftId, string filterType, int? skip, int? take, string? searchKeyword, CancellationToken cancellationToken = default, DateTime? asOf = null)
         {
             var timestamp = asOf ?? PhilippineTime.Now;
@@ -495,6 +579,9 @@ namespace SCICHRPortal.Repository.Implementations
                 }
                 else if (schedule != null && change?.IsAssigned != false)
                 {
+                    // Reassigning the schedule effective at this start is a no-op,
+                    // including requested flag changes and temporary boundaries.
+                    if (previous?.ShiftId == schedule.ShiftId) continue;
                     replacement = new EmployeeShift { EmployeeId = employee.EmployeeId, DepartmentId = employee.DepartmentId,
                         ProjectId = employee.ProjectId, ShiftId = schedule.ShiftId, ShiftDate = PhilippineTime.Now };
                     CopySchedule(replacement, schedule);
