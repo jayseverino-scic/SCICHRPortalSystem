@@ -179,7 +179,7 @@
         parameters.push(`draw=${request.draw}`, `start=${request.start}`, `length=${request.length}`);
         if (request.search.value) parameters.push(`search=${encodeURIComponent(request.search.value)}`);
         const order = request.order.filter(sort => request.columns[sort.column].orderable);
-        for (const sort of order.length ? order : [{ column: 1, dir: 'asc' }]) {
+        for (const sort of order.length ? order : [{ column: 3, dir: 'desc' }, { column: 5, dir: 'desc' }]) {
             parameters.push(`sortColumns=${encodeURIComponent(request.columns[sort.column].data)}`, `sortDirections=${encodeURIComponent(sort.dir)}`);
         }
         $('#time-log-page-status').text('Loading time logs...');
@@ -755,7 +755,7 @@
                 bSort: true,
                 scrollY: "350px",
                 scrollX: true,
-                order: [[1, 'asc']],
+                order: [[3, 'desc'], [5, 'desc']],
                 ajax: requestGridPage,
                 columns: columns,
                 pageLength: 5,

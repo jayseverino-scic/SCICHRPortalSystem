@@ -1,17 +1,11 @@
-﻿using EFCore.BulkExtensions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.TimekeepingTables;
-using SCICHRPortal.Data.XscribeTables;
-using SCICHRPortal.Repository.Implementations;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SCICHRPortal.Service.Implementations
 {
@@ -31,6 +25,16 @@ namespace SCICHRPortal.Service.Implementations
         public async Task<BiometricsLog> GetAsync(int id)
         {
             return await _repository.GetAsync(id);
+        }
+
+        public Task<BiometricsLogPage> GetPageAsync(BiometricsLogPageQuery query, CancellationToken cancellationToken = default)
+        {
+            return _repository.GetPageAsync(query, cancellationToken);
+        }
+
+        public Task<List<BiometricsLogPageRow>> GetExportAsync(BiometricsLogFilterQuery query, CancellationToken cancellationToken = default)
+        {
+            return _repository.GetExportAsync(query, cancellationToken);
         }
         // ============ EXISTING METHODS ============
 

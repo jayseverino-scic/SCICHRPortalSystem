@@ -1,5 +1,6 @@
 ﻿using SCICHRPortal.Core.Interfaces;
 using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Data.XscribeTables;
@@ -18,6 +19,8 @@ namespace SCICHRPortal.Repository.Interfaces
          IListRetriever<BiometricsLog>
     {
         // Existing CRUD methods
+        Task<BiometricsLogPage> GetPageAsync(BiometricsLogPageQuery query, CancellationToken cancellationToken = default);
+        Task<List<BiometricsLogPageRow>> GetExportAsync(BiometricsLogFilterQuery query, CancellationToken cancellationToken = default);
         Task<IEnumerable<BiometricsLog>> GetAllAsync();
         Task<(IEnumerable<BiometricsLog>, int)> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, DateTime? startDate, DateTime? endDate, string? deviceName);
         Task<IEnumerable<BiometricsLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName);

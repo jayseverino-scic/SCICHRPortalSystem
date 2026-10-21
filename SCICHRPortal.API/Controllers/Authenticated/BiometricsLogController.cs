@@ -1,16 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
-using SCICHRPortal.Data.TimekeepingTables;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Constants;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -27,6 +22,22 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         // ============ EXISTING GET METHODS ============
+
+        [HttpGet("Page")]
+        public async Task<IActionResult> PageAsync([FromQuery] BiometricsLogPageQuery query, CancellationToken cancellationToken = default)
+        {
+            if (!ModelState.IsValid || !query.IsValid())
+                return BadRequest("Enter valid paging, search, sort and date filters.");
+            return Ok(await _biometricsLogService.GetPageAsync(query, cancellationToken));
+        }
+
+        [HttpGet("Export")]
+        public async Task<IActionResult> ExportAsync([FromQuery] BiometricsLogFilterQuery query, CancellationToken cancellationToken = default)
+        {
+            if (!ModelState.IsValid || !query.IsValid())
+                return BadRequest("Enter valid search, sort and date filters.");
+            return Ok(await _biometricsLogService.GetExportAsync(query, cancellationToken));
+        }
 
         [HttpGet()]
         public async Task<IActionResult> GetAsync()

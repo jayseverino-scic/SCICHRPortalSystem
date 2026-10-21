@@ -47,6 +47,13 @@ public partial class EmployeeTimeLogRepository
         {
             var key = SortKey(request.SortColumns[i]);
             var descending = request.SortDirections[i] == "desc";
+            // PostgreSQL puts nulls first for DESC; missing punches must follow dated ones.
+            if (descending && request.SortColumns[i] is "dateIn" or "timeIn")
+            {
+                Expression<Func<EmployeeTimeLog, bool>> missing = request.SortColumns[i] == "dateIn"
+                    ? row => !row.DateIn.HasValue : row => !row.TimeIn.HasValue;
+                ordered = ordered is null ? query.OrderBy(missing) : ordered.ThenBy(missing);
+            }
             ordered = ordered is null
                 ? descending ? query.OrderByDescending(key) : query.OrderBy(key)
                 : descending ? ordered.ThenByDescending(key) : ordered.ThenBy(key);

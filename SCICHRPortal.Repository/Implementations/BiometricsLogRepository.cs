@@ -1,24 +1,15 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using SCICHRPortal.Data;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.TimekeepingTables;
-using SCICHRPortal.Data.XscribeTables;
-using SCICHRPortal.Repository;
-using SCICHRPortal.Repository.Implementations;
 using SCICHRPortal.Repository.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SCICHRPortal.Repository.Implementations
 {
-    public class BiometricsLogRepository : Repository, IBiometricsLogRepository
+    public partial class BiometricsLogRepository : Repository, IBiometricsLogRepository
     {
         private readonly string _connectionString;
         private const int BULK_BATCH_SIZE = 5000;

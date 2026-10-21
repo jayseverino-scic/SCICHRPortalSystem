@@ -9,8 +9,8 @@ public class EmployeeTimeLogPageQuery
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public string? ProjectName { get; set; }
-    public string[] SortColumns { get; set; } = ["employeeNo"];
-    public string[] SortDirections { get; set; } = ["asc"];
+    public string[] SortColumns { get; set; } = ["dateIn", "timeIn"];
+    public string[] SortDirections { get; set; } = ["desc", "desc"];
 
     public bool IsValid() => Draw >= 0 && Start >= 0 && Length is 5 or 10 or 20 or 40 or 80 &&
         (Search?.Length ?? 0) <= 200 && (ProjectName?.Length ?? 0) <= 200 &&

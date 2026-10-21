@@ -27,16 +27,18 @@
         </div>
         <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
             <div>
-                <div class="form-label">From</div>
+                <label for="start-date-filter" class="form-label">Start</label>
                 <input id="start-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
             </div>
             <div>
-                <div class="form-label">To</div>
+                <label for="end-date-filter" class="form-label">End</label>
                 <input id="end-date-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
             </div>
             <div>
-                <div class="form-label">Project Name</div>
-                <select id="project" class="form-control select" style="width:400px"></select>
+                <label for="project" class="form-label">Project</label>
+                <select id="project" class="form-control select" style="width:400px">
+                    <option value="">All Projects</option>
+                </select>
             </div>
             <div>
                 <div class="form-label" style="color: transparent;">Button</div>
@@ -51,7 +53,7 @@
             <div></div>
             <div></div>
             <div>
-                <div class="form-label">Import Log File</div>
+                <label for="upload-file" class="form-label">Import Log File</label>
                 <div class="d-flex">
                     <input type="file" id="upload-file" class="form-control" style="width: 500px; height: 38px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;">
                     <button id="import" class="btn btn-primary" style="height: 38px; border-top-left-radius: 0; border-bottom-left-radius: 0;">Import
@@ -60,6 +62,9 @@
                 </div>
             </div>
         </div>
+        <div id="project-filter-status" role="status" aria-live="polite"></div>
+        <div id="biometrics-import-status" role="status" aria-live="polite"></div>
+        <div id="biometrics-page-status" role="status" aria-live="polite"></div>
         <table id="biometrics-log-grid" class="display" cellspacing="0" width="100%">
         </table>
     </div>
@@ -88,5 +93,5 @@
     <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
-    <script src="~/js/pages/administration/biometrics-log.js"></script>
+    <script src="~/js/pages/administration/biometrics-log.js" asp-append-version="true"></script>
 }
