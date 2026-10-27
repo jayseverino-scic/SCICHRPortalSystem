@@ -12,7 +12,7 @@ public class EmployeeTimeLogPageQuery
     public string[] SortColumns { get; set; } = ["dateIn", "timeIn"];
     public string[] SortDirections { get; set; } = ["desc", "desc"];
 
-    public bool IsValid() => Draw >= 0 && Start >= 0 && Length is 5 or 10 or 20 or 40 or 80 &&
+    public bool IsValid() => Draw >= 0 && Start >= 0 && Length is -1 or 5 or 10 or 20 or 40 or 80 &&
         (Search?.Length ?? 0) <= 200 && (ProjectName?.Length ?? 0) <= 200 &&
         (!StartDate.HasValue || !EndDate.HasValue || StartDate.Value.Date <= EndDate.Value.Date) &&
         SortColumns is { Length: > 0 and <= 14 } && SortDirections is not null &&

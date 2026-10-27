@@ -172,6 +172,7 @@
     let renderEmployeeAttendanceGrid = (data) => {
         const tableId = '#employee-attendance-grid';
         const $table = $(tableId);
+        const pageLength = dataTable ? dataTable.page.len() : 10;
 
         if ($.fn.DataTable.isDataTable(tableId)) {
             dataTable.destroy();
@@ -179,17 +180,18 @@
         }
 
         dataTable = $table.DataTable({
-            //dom: '<"top">rt<"bottom"ip><"clear">',
             paging: true,
-            pageLength: 10,
+            pageLength,
+            lengthMenu: [[5, 10, 20, 40, 80, -1], [5, 10, 20, 40, 80, 'All']],
             searching: true,
             info: true,
             autoWidth: false,
-            lengthChange: false,
+            lengthChange: true,
+            scrollX: true,
             //ordering: true,
             data: data,
             columns: getEmployeeAttendanceColumns(),
-            dom: '<"d-flex justify-content-end align-items-center mb-2"f>rtip',
+            dom: '<"attendance-table-toolbar"lf>rtip',
             language: {
                 search: 'Search:',        
                 searchPlaceholder: ''
@@ -217,7 +219,7 @@
         _cutOff.forEach(item => {
             item.combinedDate = `${moment(item.startDate).format('MM/DD/yyyy')} - ${moment(item.endDate).format('MM/DD/yyyy') }`;
         });
-        renderSimpleDropdown('#project', _project, 'projectId', 'name', 'Select Project');
+        renderSimpleDropdown('#project', _project, 'id', 'name', 'Select Project');
         renderSimpleDropdown('#cutOff', _cutOff, 'cutOffId', 'combinedDate', 'Select Cut-Off Period');
     };
 

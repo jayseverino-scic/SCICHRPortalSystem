@@ -23,7 +23,7 @@ public class BiometricsLogPageQuery : BiometricsLogFilterQuery
     public int Start { get; set; }
     public int Length { get; set; } = 5;
 
-    public override bool IsValid() => base.IsValid() && Draw >= 0 && Start >= 0 && Length is 5 or 10 or 20 or 40 or 80;
+    public override bool IsValid() => base.IsValid() && Draw >= 0 && Start >= 0 && Length is -1 or 5 or 10 or 20 or 40 or 80;
 }
 
 public class BiometricsLogPage

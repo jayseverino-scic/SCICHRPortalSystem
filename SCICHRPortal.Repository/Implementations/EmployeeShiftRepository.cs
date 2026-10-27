@@ -341,7 +341,8 @@ namespace SCICHRPortal.Repository.Implementations
             var result = await BuildShiftFilterSummaryQuery(query).SingleOrDefaultAsync(cancellationToken) ?? new EmployeeShiftFilterPage();
             query = query.OrderBy(row => row.EmployeeId);
 
-            if (skip.HasValue || take.HasValue)
+            // DataTables uses -1 for all matching entries; retain counts and the view timestamp.
+            if (take != -1 && (skip.HasValue || take.HasValue))
             {
                 query = query.Skip(skip ?? 0).Take(take ?? 10);
             }

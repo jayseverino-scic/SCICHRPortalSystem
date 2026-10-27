@@ -285,7 +285,11 @@
             {
                 title: "Rest Day(s)",
                 data: "restDays",
-                className: 'noVis dt-center'
+                className: 'noVis dt-center',
+                render: (data, type) => {
+                    const dayNames = getDayNames(data).join(', ');
+                    return type === 'display' ? $.fn.dataTable.render.text().display(dayNames) : dayNames;
+                }
             },
             {
                 title: "Mon Shift Start",

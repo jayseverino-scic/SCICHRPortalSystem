@@ -191,11 +191,11 @@
             if (!response.ok) throw new Error('Time log page unavailable');
             const json = await response.json();
             if (requestVersion !== filterRequestVersion) { finish(null); return; }
-            if (!json || json.draw !== request.draw || !Array.isArray(json.data) || json.data.length > request.length ||
+            if (!json || json.draw !== request.draw || !Array.isArray(json.data) || (request.length !== -1 && json.data.length > request.length) ||
                 !Number.isInteger(json.recordsTotal) || !Number.isInteger(json.recordsFiltered) ||
                 json.recordsFiltered < 0 || json.recordsTotal < json.recordsFiltered) throw new Error('Invalid time log page');
             // A delete (including another user's delete) can empty the last page.
-            if (request.start > 0 && request.start >= json.recordsFiltered) {
+            if (request.length !== -1 && request.start > 0 && request.start >= json.recordsFiltered) {
                 gridRefreshCompletion = completion;
                 dataTable.page(Math.max(0, Math.ceil(json.recordsFiltered / request.length) - 1)).draw('page');
                 return;
@@ -747,7 +747,7 @@
         try {
             dataTable = $('#employee-time-log-grid').DataTable({
                 bLengthChange: true,
-                lengthMenu: [[5, 10, 20, 40, 80], [5, 10, 20, 40, 80]],
+                lengthMenu: [[5, 10, 20, 40, 80, -1], [5, 10, 20, 40, 80, 'All']],
                 bFilter: true,
                 bInfo: true,
                 serverSide: true,
@@ -759,7 +759,7 @@
                 ajax: requestGridPage,
                 columns: columns,
                 pageLength: 5,
-                dom: '<"d-flex justify-content-between align-items-center mb-2"<"pull-left"lB><"pull-right"f>>tipr',
+                dom: '<"time-log-table-toolbar"lf>rtip',
                 language: {
                     emptyTable: "No employee time log data available",
                     zeroRecords: "No matching records found",

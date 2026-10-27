@@ -127,32 +127,31 @@
             <img class="icon" src="/images/administration/attendancebig.png">
             <h1 class="title">Employee Time Logs</h1>
         </div>
-        <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
-            <div>
-                <div class="form-label">Start</div>
-                <input id="start-import-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+        <fieldset class="time-log-section time-log-filters" aria-labelledby="time-log-filters-title">
+            <legend id="time-log-filters-title" class="time-log-section-title">Filters</legend>
+            <div class="form-group">
+                <label for="start-import-filter" class="form-label">Start</label>
+                <input id="start-import-filter" type="date" class="form-control">
             </div>
-            <div>
-                <div class="form-label">End</div>
-                <input id="end-import-filter" type="date" class="form-control" style="width: 150px; height: 38px;">
+            <div class="form-group">
+                <label for="end-import-filter" class="form-label">End</label>
+                <input id="end-import-filter" type="date" class="form-control">
             </div>
-            <div>
-                <div class="form-label">Project</div>
-                <select id="project" class="form-control select" style="width:400px"></select>
+            <div class="form-group">
+                <label for="project" class="form-label">Project</label>
+                <select id="project" class="form-control select"></select>
             </div>
-            <div>
-                <div class="form-label" style="color: transparent !important;">Button</div>
-                <button id="filter" class="btn btn-primary" style="height: 38px; width: 80px;">Filter</button>
+            <div class="time-log-filter-actions">
+                <button type="button" id="filter" class="btn btn-primary">Filter</button>
             </div>
-            <div>
-                <div class="form-label" style="color: transparent !important;">Button</div>
-                <button id="import" class="btn btn-primary" style="height: 38px; width: auto;">Get Imported Logs</button> &nbsp; &nbsp; &nbsp; &nbsp;
-                <button class="btn btn-primary add-new-btn" id="add-button">New Log</button>
-            </div>
-        </div>
-        <div id="project-filter-status" role="status" aria-live="polite"></div>
+            <div id="project-filter-status" class="time-log-filter-status" role="status" aria-live="polite"></div>
+        </fieldset>
+        <fieldset class="time-log-section time-log-actions" aria-labelledby="time-log-actions-title">
+            <legend id="time-log-actions-title" class="time-log-section-title">Time log actions</legend>
+            <button type="button" id="import" class="btn btn-primary">Get Imported Logs</button>
+            <button type="button" class="btn btn-primary add-new-btn" id="add-button">New Log</button>
+        </fieldset>
         <div id="time-log-page-status" role="status" aria-live="polite"></div>
-        <br />
         <table id="employee-time-log-grid" class="display" cellspacing="0" width="100%" style="background-color:cornflowerblue">
         </table>
     </div>

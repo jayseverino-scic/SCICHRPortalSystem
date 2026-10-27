@@ -15,7 +15,10 @@ public partial class BiometricsLogRepository
         var total = await query.CountAsync(cancellationToken);
         query = ApplyFilters(query, request);
         var filtered = await query.CountAsync(cancellationToken);
-        var rows = await ApplySort(query, request).Skip(request.Start).Take(request.Length)
+        IQueryable<BiometricsLog> pageQuery = ApplySort(query, request);
+        // DataTables uses -1 for all rows matching the current filters and sort.
+        if (request.Length != -1) pageQuery = pageQuery.Skip(request.Start).Take(request.Length);
+        var rows = await pageQuery
             .Select(PageRow).ToListAsync(cancellationToken);
         return new BiometricsLogPage { Draw = request.Draw, RecordsTotal = total, RecordsFiltered = filtered, Data = rows };
     }

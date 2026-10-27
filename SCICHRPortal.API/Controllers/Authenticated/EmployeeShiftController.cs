@@ -88,7 +88,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [HttpGet("ShiftFilter")]
         public async Task<IActionResult> EmployeeShiftFilterAsync(int projectId = 0, int shiftId = 0, string filterType = "All", int? skip = null, int? take = null, string? searchKeyword = null, CancellationToken cancellationToken = default, DateTime? asOf = null)
         {
-            if (!PhilippineTime.IsLocal(asOf) || projectId < 0 || shiftId < 0 || skip < 0 || take is < 1 or > 80 ||
+            if (!PhilippineTime.IsLocal(asOf) || projectId < 0 || shiftId < 0 || skip < 0 || (take != -1 && take is < 1 or > 80) ||
                 (searchKeyword?.Length ?? 0) > 200 || filterType is not ("All" or "Assigned" or "Unassigned"))
             {
                 return BadRequest("Enter valid project, shift, status, paging and search filters.");

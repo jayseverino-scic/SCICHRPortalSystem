@@ -114,12 +114,12 @@
             if (!response.ok) throw new Error('Page unavailable');
             const json = await response.json();
             if (version !== requestVersion) return;
-            if (!json || json.draw !== request.draw || !Array.isArray(json.data) || json.data.length > request.length ||
+            if (!json || json.draw !== request.draw || !Array.isArray(json.data) || (request.length !== -1 && json.data.length > request.length) ||
                 !json.data.every(row => row && Number.isInteger(row.biometricsLogId)) ||
                 !Number.isInteger(json.recordsTotal) || !Number.isInteger(json.recordsFiltered) ||
                 json.recordsFiltered < 0 || json.recordsTotal < json.recordsFiltered) throw new Error('Invalid page');
             pendingPageCancel = null;
-            if (request.start > 0 && request.start >= json.recordsFiltered) {
+            if (request.length !== -1 && request.start > 0 && request.start >= json.recordsFiltered) {
                 dataTable.page(Math.max(0, Math.ceil(json.recordsFiltered / request.length) - 1)).draw('page');
                 return;
             }
@@ -356,7 +356,7 @@
 
     const filteredExportButton = (type, label) => ({
         ...(type === 'print' ? {} : { extend: type }),
-        text: `${label} (filtered)`, className: 'btn btn-primary ml-3', title: 'Biometrics Logs', filename: 'Biometrics Logs - filtered',
+        text: label, className: 'btn btn-primary ml-3', title: 'Biometrics Logs', filename: 'Biometrics Logs - filtered',
         exportOptions: { modifier: { selected: null } },
         ...(type === 'pdfHtml5' ? { orientation: 'landscape', pageSize: 'A4' } : {}),
         action: function (event, table, node, config) {
@@ -383,7 +383,7 @@
         if (dataTable) return;
         dataTable = $(tableName).DataTable({
             lengthChange: true,
-            lengthMenu: [[5, 10, 20, 40, 80], [5, 10, 20, 40, 80]],
+            lengthMenu: [[5, 10, 20, 40, 80, -1], [5, 10, 20, 40, 80, 'All']],
             serverSide: true,
             processing: true,
             searching: true,
@@ -394,7 +394,7 @@
             ajax: requestGridPage,
             columns: getColumns(),
             pageLength: 5,
-            dom: '<"d-flex justify-content-between align-items-center mb-2"<"pull-left"lB><"pull-right"f>>tipr',
+            dom: '<"biometrics-table-toolbar"lBf>rtip',
             buttons: [filteredExportButton('excelHtml5', 'Excel'), filteredExportButton('pdfHtml5', 'PDF'), filteredExportButton('print', 'Print')],
             language: { emptyTable: 'No biometrics log data available', zeroRecords: 'No matching records found', search: 'Search:' }
         });

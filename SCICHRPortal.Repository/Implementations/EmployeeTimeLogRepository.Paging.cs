@@ -58,7 +58,10 @@ public partial class EmployeeTimeLogRepository
                 ? descending ? query.OrderByDescending(key) : query.OrderBy(key)
                 : descending ? ordered.ThenByDescending(key) : ordered.ThenBy(key);
         }
-        var rows = await ordered!.ThenBy(e => e.TimeLogId).Skip(request.Start).Take(request.Length)
+        IQueryable<EmployeeTimeLog> pageQuery = ordered!.ThenBy(e => e.TimeLogId);
+        // DataTables uses -1 for all rows matching the current filters and sort.
+        if (request.Length != -1) pageQuery = pageQuery.Skip(request.Start).Take(request.Length);
+        var rows = await pageQuery
             .Select(e => new EmployeeTimeLogPageRow
             {
                 TimeLogId = e.TimeLogId, EmployeeId = e.EmployeeId,

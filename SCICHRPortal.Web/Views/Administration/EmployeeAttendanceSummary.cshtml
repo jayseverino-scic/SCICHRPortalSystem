@@ -15,37 +15,33 @@
     <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
-    <link href="~/css/pages/admin/multicolumns.css" rel="stylesheet" />
     <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/pages/admin/employeeattendance.css" asp-append-version="true" />
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 }
 
 <div id="content-container" class="row">
-    <div class="container col-md-12">
+    <div class="container col-md-12 attendance-page">
         <div class="left-header-container">
             <img class="icon" src="/images/administration/attendancesummarybig.png">
             <h1 class="title">Employee Attendance Summary (Per Cut-Off)</h1>
         </div>
 
-        @* <form id="list-enrolled-student-report-filter"> *@
-        <div class="d-flex flex-wrap align-items-start gap-3 mb-3">
-            <div>
-                <div class="form-label">Project</div>
-                <select id="project" class="form-control select" style="width:200px"></select>
+        <fieldset class="attendance-section attendance-filters" aria-labelledby="attendance-filters-title">
+            <legend id="attendance-filters-title" class="attendance-section-title">Filters</legend>
+            <div class="form-group">
+                <label for="project" class="form-label">Project</label>
+                <select id="project" class="form-control select"></select>
+            </div>
+            <div class="form-group">
+                <label for="cutOff" class="form-label">Cut-Off</label>
+                <select id="cutOff" class="form-control select"></select>
             </div>
             <div>
-                <div class="form-label">Cut-Off</div>
-                <select id="cutOff" class="form-control select" style="width:200px"></select>
+                <button type="button" id="filter" class="btn btn-primary">Get Attendance Summary</button>
             </div>
-            <div>
-                <div class="form-label" style="color: transparent !important;">Button</div>
-                <button id="filter" class="btn btn-primary" style="height: 38px; width: auto;">Get Attendance Summary</button> &nbsp; &nbsp; &nbsp; &nbsp;
-            </div>
-        </div>
-        @* </form> *@
+        </fieldset>
 
-        <!-- Add this wrapper div for better table control -->
         <div class="table-responsive-container">
             <table id="employee-attendance-grid" class="display" cellspacing="0" width="100%" height="100%">
             </table>
@@ -76,5 +72,5 @@
     <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
-    <script src="~/js/pages/administration/employee-attendance-summary.js"></script>
+    <script src="~/js/pages/administration/employee-attendance-summary.js" asp-append-version="true"></script>
 }

@@ -95,16 +95,34 @@
     margin: 0;
 }
 
+#content-container .employee-shift-filters,
+#content-container .employee-shift-assignment {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    background: #f5faf5;
+}
+
+#content-container .employee-shift-section-title {
+    float: none;
+    width: auto;
+    max-width: 100%;
+    margin: 0 0 0 -8px;
+    padding: 0 8px;
+    border: 0;
+    color: #1b5e20;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
 #content-container .employee-shift-assignment {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
     gap: 16px;
     margin: 18px 0 16px;
-    padding: 16px;
-    border: 1px solid #c8e6c9;
-    border-radius: 8px;
-    background: #f5faf5;
 }
 
 #content-container .employee-shift-assignment .form-group {

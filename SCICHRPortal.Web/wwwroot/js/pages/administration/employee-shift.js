@@ -174,10 +174,10 @@
             if (!response.ok) throw new Error('Page unavailable');
             const result = await response.json();
             if (version !== _requestVersion) return;
-            if (!result || !Array.isArray(result.data) || result.data.length > request.length ||
+            if (!result || !Array.isArray(result.data) || (request.length !== -1 && result.data.length > request.length) ||
                 !Number.isInteger(result.total) || !Number.isInteger(result.filteredTotal) ||
                 result.filteredTotal < 0 || result.total < result.filteredTotal) throw new Error('Invalid page');
-            if (request.start > 0 && request.start >= result.filteredTotal) {
+            if (request.length !== -1 && request.start > 0 && request.start >= result.filteredTotal) {
                 dataTable.page(Math.max(0, Math.ceil(result.filteredTotal / request.length) - 1)).draw('page');
                 return;
             }
@@ -707,7 +707,7 @@
 
     const filteredExportButton = (type, label) => ({
         ...(type === 'print' ? {} : { extend: type }),
-        text: `${label} (filtered)`, className: 'btn btn-primary ml-3', title: 'Employee Shift Assignments', filename: 'Employee Shift Assignments - filtered',
+        text: label, className: 'btn btn-primary ml-3', title: 'Employee Shift Assignments', filename: 'Employee Shift Assignments - filtered',
         exportOptions: { columns: ':visible:not(:first-child)', modifier: { selected: null } },
         ...(type === 'pdfHtml5' ? { orientation: 'landscape', pageSize: 'A3', customize(document) {
             document.defaultStyle.fontSize = 7;
@@ -969,7 +969,7 @@
             paging: true,
             pageLength: 10,
             lengthChange: true,
-            lengthMenu: [5, 10, 20, 40, 80],
+            lengthMenu: [[5, 10, 20, 40, 80, -1], [5, 10, 20, 40, 80, 'All']],
             ordering: false,
             searching: true,
             autoWidth: true,

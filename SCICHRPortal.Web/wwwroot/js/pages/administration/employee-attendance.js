@@ -340,6 +340,7 @@
     let renderEmployeeAttendanceGrid = (data) => {
         const tableId = '#employee-attendance-grid';
         const $table = $(tableId);
+        const pageLength = dataTable ? dataTable.page.len() : 10;
 
         if ($.fn.DataTable.isDataTable(tableId)) {
             dataTable.destroy();
@@ -380,13 +381,15 @@
         `);
 
         dataTable = $table.DataTable({
-            dom: '<"top">rt<"bottom"ip><"clear">',
+            dom: '<"attendance-table-toolbar"lf>rtip',
             paging: true,
-            pageLength: 10,
+            pageLength,
+            lengthMenu: [[5, 10, 20, 40, 80, -1], [5, 10, 20, 40, 80, 'All']],
             searching: true,
             info: true,
             autoWidth: false,
-            lengthChange: false,
+            lengthChange: true,
+            scrollX: true,
             ordering: true,
             data: data,
             columns: getEmployeeAttendanceColumns(),
