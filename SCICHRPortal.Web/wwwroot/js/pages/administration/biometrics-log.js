@@ -14,6 +14,34 @@
 
     const setPageStatus = message => $('#biometrics-page-status').text(message);
     const updateExportButtons = () => dataTable?.buttons().enable(!!activeFilter && filteredCount > 0 && !isImporting && !isExporting);
+    const _daysOfWeekLookup = {
+        '1': 'Monday',
+        '2': 'Tuesday',
+        '3': 'Wednesday',
+        '4': 'Thursday',
+        '5': 'Friday',
+        '6': 'Saturday',
+        '7': 'Sunday'
+    };
+    // let getDayNames = function (days) {
+    //     return _.map(normalizeDays(days), function (day) {
+    //         return _daysOfWeekLookup[day] || day;
+    //     });
+    // }
+    const normalizeDays = function (value) {
+        if (!value) return [];
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return [];
+        // JS getDay(): 0=Sun..6=Sat -> convert to 1=Mon..7=Sun
+        const jsDay = date.getDay();
+        return [jsDay === 0 ? 7 : jsDay];
+    };
+
+    let getDayNames = function (days) {
+        return _.map(normalizeDays(days), function (day) {
+            return _daysOfWeekLookup[String(day)] || day;
+        });
+    };
     const cancelScheduledFilter = () => {
         clearTimeout(filterTimer);
         filterTimer = null;
@@ -364,19 +392,105 @@
         }
     });
 
+    // const getColumns = () => {
+    //     const text = (value, type) => type === 'display' ? escapeText(value) : value ?? '';
+    //     const column = (title, data, orderable = true, render = text) => ({ title, data, orderable, render, defaultContent: '', className: 'noVis dt-center' });
+    //     //const dayNames = getDayNames(data).join(', ');
+    //     return [
+    //         column('No.', null, false, (_, type, row, meta) => meta.row + 1 + (type === 'display' ? meta.settings._iDisplayStart : 0)),
+    //         column('Personnel Id', 'personnelId'),
+    //         column('Last Name', 'lastName'),
+    //         column('First Name', 'firstName'),
+    //         column('Date Logged', 'date', true, value => value ? _dateHelper.formatShortDate(value) : ''),
+    //         column('Day', 'date', true, value => value ? getDayNames(_dateHelper.formatShortDate(value)).join(', ') : getDayNames(value).join(', ')),
+    //         column('Time Logged', 'time', true, value => value ? _dateHelper.formatLocalShortTime(value) : ''),
+    //         column('Log Type', 'logType', false),
+    //         column('Project', 'projectName', false)
+    //     ];
+    // };
+
     const getColumns = () => {
-        const text = (value, type) => type === 'display' ? escapeText(value) : value ?? '';
-        const column = (title, data, orderable = true, render = text) => ({ title, data, orderable, render, defaultContent: '', className: 'noVis dt-center' });
-        return [
-            column('No.', null, false, (_, type, row, meta) => meta.row + 1 + (type === 'display' ? meta.settings._iDisplayStart : 0)),
-            column('Personnel Id', 'personnelId'),
-            column('Last Name', 'lastName'),
-            column('First Name', 'firstName'),
-            column('Date Logged', 'date', true, value => value ? _dateHelper.formatShortDate(value) : ''),
-            column('Time Logged', 'time', true, value => value ? _dateHelper.formatLocalShortTime(value) : ''),
-            column('Log Type', 'logType', false),
-            column('Project', 'projectName', false)
+        let columns = [
+            {
+                title: 'No.',
+                data: "personnelId",
+                width: "0.1em",
+                className: 'noVis dt-center',
+                render: (data, type, row, meta) => {
+                    let rowNumber = Number(meta.row) + 1;
+                    return rowNumber;
+                },
+            },
+            {
+                title: "Personnel Id",
+                data: "personnelId",
+                width: "5em",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return data;
+                },
+            },
+            {
+                title: "Last Name",
+                data: "lastName",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return data;
+                },
+            },
+            {
+                title: "First Name",
+                data: "firstName",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return data;
+                },
+            },
+            {
+                title: "Date Logged",
+                data: "date",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data);
+                },
+            },
+            {
+                title: "Day",
+                data: "date",
+                className: 'noVis dt-center',
+                render: (data, type) => {
+                    const dayNames = data ? getDayNames(data).join(', ') : '';
+                    return type === 'display'
+                        ? $.fn.dataTable.render.text().display(dayNames)
+                        : dayNames;
+                }
+            },
+            {
+                title: "Time Logged",
+                data: "time",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return _dateHelper.formatLocalShortTime(data)
+                },
+            },
+            {
+                title: "Log Type",
+                data: "logType",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return data;
+                },
+            },
+            {
+                title: "Project Name",
+                data: "projectName",
+                className: 'noVis dt-center',
+                render: (data, type, row) => {
+                    return data;
+                },
+            }
         ];
+        return columns;
     };
 
     const initializeGrid = () => {

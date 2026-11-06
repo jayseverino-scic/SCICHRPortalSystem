@@ -731,6 +731,12 @@
                 orderable: false
             },
             {
+                title: "Employee No.",
+                data: "employeeId",
+                className: 'dt-center',
+                render: (data, type) => type === 'display' ? $.fn.dataTable.render.text().display(data ? _stringHelper.capitalize(data) : '-') : data ? _stringHelper.capitalize(data) : '-'
+            },
+            {
                 title: "Employee",
                 data: "employeeName",
                 className: 'dt-center',
