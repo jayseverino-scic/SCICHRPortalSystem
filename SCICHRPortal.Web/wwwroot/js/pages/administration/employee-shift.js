@@ -652,6 +652,8 @@
                 if (typeof value === 'boolean') return value ? 'Yes' : 'No';
                 return column.render ? column.render(value, 'export', row, { row: index }) : value ?? '-';
             }));
+            // Buttons mutates export rows while trimming and formatting their values.
+            const employeeNumbers = body.map(values => values[0]);
             if (printWindow) {
                 if (printWindow.closed) return;
                 const cells = (values, tag) => '<tr>' + values.map(value => `<${tag}>${escapeExportText(value)}</${tag}>`).join('') + '</tr>';
@@ -683,6 +685,30 @@
                     try {
                         $.fn.dataTable.ext.buttons[type].action.call(nativeContext, event, table, node, {
                             ...config, footer: false,
+                            ...(type === 'excelHtml5' ? { customize(workbook) {
+                                config.customize?.(workbook);
+                                // Employee Id is the first exported column. Restore the original
+                                // strings after Buttons' numeric/percentage detection, before XLSX serialization.
+                                const sheet = workbook.xl.worksheets['sheet1.xml'];
+                                const rows = Array.from(sheet.getElementsByTagName('row'));
+                                const firstCell = row => Array.from(row.getElementsByTagName('c'))
+                                    .find(cell => /^A[0-9]+$/.test(cell.getAttribute('r')));
+                                const headerRow = rows.findIndex(row => firstCell(row)?.textContent === header[0]);
+                                if (headerRow < 0) throw new Error('Employee Id export header unavailable.');
+                                employeeNumbers.forEach((employeeNo, index) => {
+                                    const cell = firstCell(rows[headerRow + index + 1]);
+                                    cell.setAttribute('t', 'inlineStr');
+                                    cell.removeAttribute('s');
+                                    cell.replaceChildren();
+                                    const inline = sheet.createElementNS(cell.namespaceURI, 'is');
+                                    const text = sheet.createElementNS(cell.namespaceURI, 't');
+                                    text.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+                                    text.textContent = String(employeeNo ?? '')
+                                        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+                                    inline.appendChild(text);
+                                    cell.appendChild(inline);
+                                });
+                            } } : {}),
                             exportOptions: { ...config.exportOptions, customizeData(data) {
                                 data.header = header;
                                 data.body = body;
@@ -731,10 +757,13 @@
                 orderable: false
             },
             {
-                title: "Employee No.",
-                data: "employeeId",
+                title: "Employee Id",
+                data: "employeeNo",
                 className: 'dt-center',
-                render: (data, type) => type === 'display' ? $.fn.dataTable.render.text().display(data ? _stringHelper.capitalize(data) : '-') : data ? _stringHelper.capitalize(data) : '-'
+                render: (data, type) => {
+                    const employeeNo = data === null || data === undefined || data === '' ? '-' : String(data);
+                    return type === 'display' ? $.fn.dataTable.render.text().display(employeeNo) : employeeNo;
+                }
             },
             {
                 title: "Employee",
@@ -961,10 +990,10 @@
         ].map(column => {
             if (column.visible === false) return column;
             let width = '100px';
-            const wraps = ['employeeName', 'shiftName', 'projectName', 'effectiveStartDate', 'effectiveEndDate'].includes(column.data);
+            const wraps = ['employeeNo', 'employeeName', 'shiftName', 'projectName', 'effectiveStartDate', 'effectiveEndDate'].includes(column.data);
             if (column.data === 'employeeName') width = '240px';
             else if (['shiftName', 'projectName'].includes(column.data)) width = '180px';
-            else if (['effectiveStartDate', 'effectiveEndDate'].includes(column.data)) width = '160px';
+            else if (['employeeNo', 'effectiveStartDate', 'effectiveEndDate'].includes(column.data)) width = '160px';
             else if (['isSelected', 'isFlexibleShift', 'isNoShift', 'isNoBreak'].includes(column.data)) width = '130px';
             return {
                 ...column,

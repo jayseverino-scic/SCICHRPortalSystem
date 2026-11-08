@@ -55,6 +55,12 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View();
         }
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public IActionResult Tardiness()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
         public IActionResult EmployeeAttendance()
         {
             ViewBag.SystemSelected = "Administration";

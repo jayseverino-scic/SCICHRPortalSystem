@@ -49,6 +49,23 @@ namespace SCICHRPortal.Repository.Implementations
             return employees;
         }
 
+        public async Task<Dictionary<int, string?>> GetPositionsByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken = default)
+        {
+            var result = new Dictionary<int, string?>();
+            foreach (var batch in ids.Distinct().Chunk(500))
+            {
+                var positions = await XscribeContext.Employee.AsNoTracking()
+                    .Where(employee => !employee._Deleted && batch.Contains(employee.Id))
+                    .Select(employee => new { employee.Id, employee.Position,
+                        CompanyPosition = employee.Company_Position == null ? null : employee.Company_Position.Name })
+                    .ToListAsync(cancellationToken);
+                foreach (var position in positions)
+                    result[position.Id] = !string.IsNullOrWhiteSpace(position.CompanyPosition) ? position.CompanyPosition.Trim()
+                        : string.IsNullOrWhiteSpace(position.Position) ? null : position.Position.Trim();
+            }
+            return result;
+        }
+
         public async Task<XEmployee> GetAsync(int id)
         {
             var employee = await XscribeContext.Employee!
