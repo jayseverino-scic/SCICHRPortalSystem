@@ -55,6 +55,7 @@
         $('#shift-form #RestDays').select2({
             multiple: isMultiple,
             theme: "bootstrap",
+            dropdownParent: $('#shift-modal'),
             width: 'element',
             width: 'resolve',
             //closeOnSelect: !params.autoClose,
