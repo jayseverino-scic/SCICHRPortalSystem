@@ -75,9 +75,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(employees);
         }
         [HttpGet("Filter")]
-        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword)
+        public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword, int projectId = 0)
         {
-            var tuple = await EmployeeService.FilterAsync(pageNumber, pageSize, searchKeyword!);
+            if (projectId < 0 || pageNumber < 1 || pageSize < 1 || (long)pageNumber * pageSize > int.MaxValue)
+                return BadRequest("Enter a valid project and page.");
+
+            var tuple = await EmployeeService.FilterAsync(pageNumber, pageSize, searchKeyword ?? string.Empty, projectId);
             var maxOrderNumber = pageNumber * pageSize;
             var orderNumber = maxOrderNumber - pageSize + 1;
             var dateToday = DateTime.Today;

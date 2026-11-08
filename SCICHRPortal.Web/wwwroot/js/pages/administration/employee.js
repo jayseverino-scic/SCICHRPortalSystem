@@ -78,12 +78,17 @@
 
     let _department = [];
     let _project = [];
+    let dataTable = null;
+    let employeeRequestVersion = 0;
 
     let attachEvents = () => {
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
         $('#employee-form').on('submit', onFormSubmit);
         $('#import').on('click', onSubmitUploadForm);
         $('#dbfilter').on(CLICK_EVENT, onClickDbFilter);
+        $('#employee-project-filter').on('change', function () {
+            if (dataTable) dataTable.ajax.reload(null, true);
+        });
     };
 
     let onClickAddModal = function () {
@@ -219,12 +224,18 @@
     }
 
     let initializeGrid = async () => {
+        if (dataTable) {
+            dataTable.ajax.reload(null, false);
+            return;
+        }
         let columns = await getColumns();
-        let table = $('#employee-grid').DataTable({
+        dataTable = $('#employee-grid').DataTable({
             bLengthChange: true,
             lengthMenu: [[5, 10, 20, 40, 80], [5, 10, 20, 40, 80]],
             bFilter: true,
             bInfo: true,
+            // This page has no export configuration; do not instantiate missing default button types.
+            buttons: [],
             serverSide: true,
             targets: 'no-sort',
             bSort: false,
@@ -232,43 +243,54 @@
             scrollX: true,
             order: [1, 'asc'],
             ajax: async function (params, success, settings) {
-                let gridInfo = $('#employee-grid').DataTable().page.info();
-                let searchKeyword = params.search.value;
-                let pageSize = params.length;
-                let response = await _apiHelper.get({
-                    url: `Authenticated/Employee/Filter?pageNumber=${gridInfo.page + 1}&pageSize=${pageSize}&searchKeyword=${searchKeyword}`,
+                const version = ++employeeRequestVersion;
+                const empty = { draw: params.draw, recordsFiltered: 0, recordsTotal: 0, data: [] };
+                const query = new URLSearchParams({
+                    pageNumber: Math.floor(params.start / params.length) + 1,
+                    pageSize: params.length,
+                    searchKeyword: params.search.value || '',
+                    projectId: $('#employee-project-filter').val() || '0'
                 });
-
-                if (response.ok) {
-                    let json = await response.json();
-                    let total = json.total;
+                $('#employee-page-status').text('Loading employees...');
+                try {
+                    const response = await _apiHelper.get({ url: `Authenticated/Employee/Filter?${query}` });
+                    if (version !== employeeRequestVersion) return;
+                    if (!response.ok) throw new Error('Employees unavailable');
+                    const json = await response.json();
+                    if (version !== employeeRequestVersion) return;
+                    if (!json || !Array.isArray(json.data) || !Number.isInteger(json.total) || json.total < 0 ||
+                        json.data.length > params.length) throw new Error('Invalid employee page');
+                    if (params.start > 0 && params.start >= json.total) {
+                        dataTable.page(Math.max(0, Math.ceil(json.total / params.length) - 1)).draw('page');
+                        return;
+                    }
                     success({
-                        recordsFiltered: total,
-                        recordsTotal: total,
+                        draw: params.draw,
+                        recordsFiltered: json.total,
+                        recordsTotal: json.total,
                         data: json.data
                     });
-
-                    $('.icon-delete').on('click', function (e) {
-                        var data = table.row($(this).closest('tr')).data();
-                        _formHelper.deleteRecord(e, `${data.lastName}, ${data.firstName}`, SYSTEM);
-
-                    });
-                    $('#employee-grid tbody').on('click', '.icon-edit', function () {
-                        var data = table.row($(this).closest('tr')).data();
-                        let form = $('#employee-form');
-                        console.log(data);
-                        populateForm(form, data);
-                        $('#employee-modal').modal('show');
-                    });
-
-
-                } else {
-                    success(null);
+                    $('#employee-page-status').text('');
+                } catch (_) {
+                    if (version !== employeeRequestVersion) return;
+                    success(empty);
+                    $('#employee-page-status').text('Could not load employees. Change the project or search to try again.');
                 }
             },
             columns: columns,
             pageLength: 5,
             dom: '<"pull-left">lBf<"pull-right">tipr',
+        });
+        $('#employee-grid').on('click', '.icon-delete', function (event) {
+            const data = dataTable.row($(this).closest('tr')).data();
+            if (data) _formHelper.deleteRecord(event, `${data.lastName}, ${data.firstName}`, SYSTEM);
+        });
+        $('#employee-grid').on('click', '.icon-edit', function (event) {
+            event.preventDefault();
+            const data = dataTable.row($(this).closest('tr')).data();
+            if (!data) return;
+            populateForm($('#employee-form'), data);
+            $('#employee-modal').modal('show');
         });
     }
 
@@ -327,6 +349,7 @@
             {
                 title: "Project",
                 data: "project.name",
+                defaultContent: '-',
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return data
@@ -335,6 +358,7 @@
             {
                 title: "Department",
                 data: "department.departmentName",
+                defaultContent: '-',
                 className: 'noVis dt-center',
                 render: (data, type, row) => {
                     return data
@@ -361,7 +385,7 @@
     };
 
     let initializeModals = e => {
-        $('#employee-modal').modal({ backdrop: 'static', keyboard: false });
+        $('#employee-modal').modal({ backdrop: 'static', keyboard: false, show: false });
         $('#master-data-menu').removeClass('d-none');
         $('#master-data-menu .employee').addClass('active');
     }
@@ -378,36 +402,33 @@
     };
 
     let getDropdownData = async () => {
-        let [departmentResp, projectResp] = await Promise.all([
-            _apiHelper.get({
-                url: `Authenticated/Department`
-            }),
-            _apiHelper.get({
-                url: `Authenticated/Project`
-            }),
-        ]);
+        const results = await Promise.allSettled(['Department', 'Project'].map(async name => {
+            const response = await _apiHelper.get({ url: `Authenticated/${name}` });
+            if (!response.ok) throw new Error('Options unavailable');
+            const items = await response.json();
+            if (!Array.isArray(items)) throw new Error('Invalid options');
+            return items;
+        }));
+        if (results[0].status === 'fulfilled' && results[0].value.every(item => item &&
+            Number.isInteger(item.departmentId) && typeof item.departmentName === 'string')) {
+            _department = results[0].value.map(item => ({ departmentId: item.departmentId, description: item.departmentName }));
+        } else {
+            toastr.error('Departments could not be loaded. Refresh before editing employees.');
+        }
 
-        let [departmentComponent, projectComponent] = await Promise.all(
-            [
-                departmentResp.json(),
-                projectResp.json(),
-            ]
-        );
-
-        _department = _.map(departmentComponent, (s) => {
-            return {
-                departmentId : s.departmentId,
-                description: s.departmentName
-            }
-        });
-        _project = _.map(projectComponent, (s) => {
-            return {
-                id: s.id,
-                name: s.name
-            }
-        });
-
-        console.log(_project)
+        const filter = $('#employee-project-filter');
+        const selected = filter.val() || '0';
+        filter.empty().append($('<option>').val('0').text('All Projects'));
+        if (results[1].status === 'fulfilled' && results[1].value.every(item => item &&
+            Number.isInteger(item.id) && item.id > 0 && typeof item.name === 'string' && item.name.trim())) {
+            _project = results[1].value.map(item => ({ id: item.id, name: item.name }));
+            for (const project of _project) filter.append($('<option>').val(project.id).text(project.name));
+            filter.val(_project.some(project => String(project.id) === selected) ? selected : '0');
+            $('#employee-project-filter-status').text(_project.length ? '' : 'No projects available. All Projects is still available.');
+        } else {
+            $('#employee-project-filter-status').text('Projects could not be loaded. Refresh the page to try again.');
+        }
+        filter.prop('disabled', false).trigger('change.select2');
     }
 
 

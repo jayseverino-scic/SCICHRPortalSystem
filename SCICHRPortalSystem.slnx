@@ -11,4 +11,5 @@
   <Project Path="SCICHRPortal.Repository/SCICHRPortal.Repository.csproj" />
   <Project Path="SCICHRPortal.Service/SCICHRPortal.Service.csproj" />
   <Project Path="SCICHRPortal.Utility/SCICHRPortal.Utility.csproj" />
+  <Project Path="tests/SCICHRPortal.Employee.Tests/SCICHRPortal.Employee.Tests.csproj" />
 </Solution>
