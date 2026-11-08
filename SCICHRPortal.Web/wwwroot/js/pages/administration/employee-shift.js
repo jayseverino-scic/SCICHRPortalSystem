@@ -958,7 +958,20 @@
                 data: "projectId",
                 visible: false
             }
-        ];
+        ].map(column => {
+            if (column.visible === false) return column;
+            let width = '100px';
+            const wraps = ['employeeName', 'shiftName', 'projectName', 'effectiveStartDate', 'effectiveEndDate'].includes(column.data);
+            if (column.data === 'employeeName') width = '240px';
+            else if (['shiftName', 'projectName'].includes(column.data)) width = '180px';
+            else if (['effectiveStartDate', 'effectiveEndDate'].includes(column.data)) width = '160px';
+            else if (['isSelected', 'isFlexibleShift', 'isNoShift', 'isNoBreak'].includes(column.data)) width = '130px';
+            return {
+                ...column,
+                width,
+                className: `${column.className || ''}${wraps ? ' shift-text-column' : ''}`
+            };
+        });
     };
 
     const initializeGrid = () => {
@@ -978,7 +991,7 @@
             lengthMenu: [[5, 10, 20, 40, 80, -1], [5, 10, 20, 40, 80, 'All']],
             ordering: false,
             searching: true,
-            autoWidth: true,
+            autoWidth: false,
             scrollX: true,
             ajax: requestGridPage,
             columns: getEmployeeShiftColumns(),
