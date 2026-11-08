@@ -1,0 +1,43 @@
+@model SCICHRPortal.Web.Models.ViewModels.Administration.LogImportModalViewModel
+<div class="modal log-import-modal" id="@Model.Id" tabindex="-1" role="dialog" aria-labelledby="@(Model.Id)-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form novalidate>
+                <div class="modal-header">
+                    <h4 class="modal-title" id="@(Model.Id)-title">@Model.Title</h4>
+                </div>
+                <div class="modal-body">
+                    @if (Model.IsFileImport)
+                    {
+                        <div class="form-group">
+                            <label for="@(Model.Id)-file">Log file</label>
+                            <input id="@(Model.Id)-file" data-import-field="file" type="file" accept=".xls,.xlsx" class="form-control" required />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group">
+                            <label for="@(Model.Id)-from">From</label>
+                            <input id="@(Model.Id)-from" data-import-field="from" type="date" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="@(Model.Id)-to">To</label>
+                            <input id="@(Model.Id)-to" data-import-field="to" type="date" class="form-control" required />
+                        </div>
+                    }
+                    <div class="form-group">
+                        <label for="@(Model.Id)-project">Project</label>
+                        <select id="@(Model.Id)-project" data-import-field="project" class="form-control" required disabled>
+                            <option value="">Select project</option>
+                        </select>
+                    </div>
+                    <div data-import-status role="status" aria-live="polite">Loading projects...</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-import-cancel class="btn btn-default">Cancel</button>
+                    <button type="submit" class="btn btn-primary" disabled>Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

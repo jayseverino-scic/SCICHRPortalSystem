@@ -28,10 +28,13 @@ namespace SCICHRPortal.Repository.Implementations
             return true;
         }
 
-        public async Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
+        public async Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, int projectId = 0)
         {
-            var employees = Context.Employee!
+            var employees = Context.Employee!.AsNoTracking()
               .Where(e => e.Deleted == false);
+
+            if (projectId > 0)
+                employees = employees.Where(e => e.ProjectId == projectId);
 
             if (!String.IsNullOrWhiteSpace(searchKeyword))
             {
@@ -40,17 +43,15 @@ namespace SCICHRPortal.Repository.Implementations
                         e.LastName!.ToLower().Contains(searchKeyword.ToLower()));
             }
 
-            employees.Select(e => e.Department).Load();
-            employees.Select(e => e.Project).Load();
-
-            var total = employees.Count();
+            var total = await employees.CountAsync();
 
             employees = employees
                 .OrderByDescending(e => e.EmployeeId)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
 
-            return new Tuple<IEnumerable<Employee>, int>(await employees.ToListAsync(), total);
+            return new Tuple<IEnumerable<Employee>, int>(await employees.Include(e => e.Department)
+                .Include(e => e.Project).ToListAsync(), total);
         }
 
         public async Task<IEnumerable<Employee>> GetAllAsync()

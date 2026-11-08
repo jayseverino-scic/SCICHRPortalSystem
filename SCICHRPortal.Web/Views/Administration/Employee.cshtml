@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
     <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/pages/admin/masterdata.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/admin/employee.css" asp-append-version="true" />
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 
 }
@@ -140,6 +141,15 @@
                 </div>
             </div>
         }
+        <fieldset id="employee-project-filters">
+            <legend>Filters</legend>
+            <label for="employee-project-filter">Project</label>
+            <select id="employee-project-filter" class="form-control" disabled>
+                <option value="0">All Projects</option>
+            </select>
+            <div id="employee-project-filter-status" role="status" aria-live="polite">Loading projects...</div>
+        </fieldset>
+        <div id="employee-page-status" role="status" aria-live="polite"></div>
         <table id="employee-grid" class="display" cellspacing="0" width="100%">
         </table>
     </div>
@@ -166,5 +176,5 @@
     <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
     <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
-    <script src="~/js/pages/administration/employee.js"></script>
+    <script src="~/js/pages/administration/employee.js" asp-append-version="true"></script>
 }

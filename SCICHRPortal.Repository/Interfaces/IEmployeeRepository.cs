@@ -16,7 +16,7 @@ namespace SCICHRPortal.Repository.Interfaces
     {
         Task<bool> DeleteAsync(int employeeId);
         Task<bool> UpdateAsync(Employee employee);
-        Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
+        Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, int projectId = 0);
         Task<IEnumerable<Employee>> GetEmployeeByDepartment(int departmentId);
         Task<DuplicateMessage> HasDuplicateName(Employee employee);
         Task<Employee> GetByUserId(int userId);

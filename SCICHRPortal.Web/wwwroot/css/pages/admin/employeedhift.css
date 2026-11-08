@@ -193,6 +193,10 @@
     }
 }
 
+#employee-shift-grid_wrapper table.dataTable {
+    table-layout: fixed;
+}
+
 #employee-shift-grid_wrapper table.dataTable thead th {
     background: #2e7d32 !important;
     color: #ffffff !important;
@@ -200,6 +204,8 @@
     font-weight: 600;
     border: none !important;
     padding: 11px 14px;
+    vertical-align: middle;
+    white-space: normal;
 }
 
 #employee-shift-grid tbody tr:hover {
@@ -212,6 +218,12 @@
     border-bottom: 1px solid #e8f5e9 !important;
     padding: 10px 14px;
     vertical-align: middle;
+    white-space: nowrap;
+}
+
+#employee-shift-grid_wrapper table.dataTable .shift-text-column {
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 #employee-shift-grid_paginate .paginate_button {

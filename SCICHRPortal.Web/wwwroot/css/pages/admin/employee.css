@@ -1,0 +1,34 @@
+#employee-project-filters {
+    margin: 18px 0;
+    padding: 16px;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    background: #f5faf5;
+}
+
+#employee-project-filters legend {
+    float: none;
+    width: auto;
+    margin: 0;
+    padding: 0 8px;
+    border: 0;
+    color: #1b5e20;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#employee-project-filters > .select2-container {
+    max-width: 420px;
+}
+
+#employee-project-filter-status,
+#employee-page-status {
+    color: #1b5e20;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+#employee-project-filter-status:empty,
+#employee-page-status:empty {
+    display: none;
+}

@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="~/css/pages/admin/biometricslog.css" asp-append-version="true" />
     <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/pages/admin/log-import-modal.css" asp-append-version="true" />
 }
 <div id="content-container" class="row">
     <div class="container col-md-12">
@@ -51,14 +52,8 @@
             <div>
                 <button type="button" id="dbfilter" class="btn btn-primary">Import Records</button>
             </div>
-            <div class="form-group">
-                <label for="upload-file" class="form-label">Import Log File</label>
-                <div class="biometrics-upload-control">
-                    <input type="file" id="upload-file" class="form-control">
-                    <button type="button" id="import" class="btn btn-primary">Import
-                        <i class="fas fa-upload" aria-hidden="true"></i>
-                    </button>
-                </div>
+            <div>
+                <button type="button" id="import" class="btn btn-primary">Import Log File</button>
             </div>
             <div id="biometrics-import-status" class="biometrics-import-status" role="status" aria-live="polite"></div>
         </fieldset>
@@ -68,6 +63,9 @@
     </div>
 </div>
 
+
+<partial name="_LogImportModal" model='new SCICHRPortal.Web.Models.ViewModels.Administration.LogImportModalViewModel { Id = "biometrics-database-import-modal", Title = "Import biometrics logs from database" }' />
+<partial name="_LogImportModal" model='new SCICHRPortal.Web.Models.ViewModels.Administration.LogImportModalViewModel { Id = "biometrics-file-import-modal", Title = "Import biometrics log file", IsFileImport = true }' />
 
 @section Scripts {
     @{
@@ -91,5 +89,6 @@
     <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
+    <script src="~/js/helpers/log-import-modal-helper.js" asp-append-version="true"></script>
     <script src="~/js/pages/administration/biometrics-log.js" asp-append-version="true"></script>
 }

@@ -14,5 +14,6 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<IEnumerable<XEmployee>> GetEmployeeByDepartment(int departmentId);
         Task<IEnumerable<XEmployee>> GetEmployeeByProject(int projectId);
         Task<XEmployee> GetByEmployeeNoAsync(string employeeNo);
+        Task<Dictionary<int, string?>> GetPositionsByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken = default);
     }
 }

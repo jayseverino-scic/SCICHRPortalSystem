@@ -1,6 +1,8 @@
 (function ($) {
     const _apiHelper = new ApiHelper();
     const _dateHelper = new DateHelper();
+    const _databaseImportModal = new LogImportModal('biometrics-database-import-modal');
+    const _fileImportModal = new LogImportModal('biometrics-file-import-modal');
     const tableName = '#biometrics-log-grid';
     let dataTable = null;
     let requestVersion = 0;
@@ -183,8 +185,12 @@
             if (!items.length) select.append($('<option>').val('').text('No data available'));
             select.val(selectedValue).trigger('change.select2');
             $('#project-filter-status').text(items.length ? '' : 'No projects available. Ask an administrator to add one.');
+            _databaseImportModal.setProjects(items);
+            _fileImportModal.setProjects(items);
         } catch (_) {
             $('#project-filter-status').text('Projects could not be loaded. Refresh the page and try again.');
+            _databaseImportModal.setStatus('Projects could not be loaded. Refresh the page and try again.');
+            _fileImportModal.setStatus('Projects could not be loaded. Refresh the page and try again.');
         } finally {
             select.prop('disabled', false);
         }
@@ -192,96 +198,95 @@
 
     const setImporting = importing => {
         isImporting = importing;
-        $('#import, #dbfilter, #upload-file').prop('disabled', importing);
+        $('#import, #dbfilter').prop('disabled', importing);
+        _databaseImportModal.setBusy(importing);
+        _fileImportModal.setBusy(importing);
         updateExportButtons();
     };
 
+    const setImportStatus = (message, modal) => {
+        $('#biometrics-import-status').text(message);
+        modal.setStatus(message);
+    };
+
     const completeImport = (result, fileImport) => {
+        const modal = fileImport ? _fileImportModal : _databaseImportModal;
         if (!result || typeof result !== 'object' ||
             (!Number.isInteger(result.inserted) && typeof result.message !== 'string')) {
-            $('#biometrics-import-status').text('The import response could not be confirmed. Filter the logs before retrying the import.');
-            return;
+            setImportStatus('The import response could not be confirmed. Filter the logs before retrying the import.', modal);
+            return false;
         }
         const inserted = result.inserted ?? 0;
         const failed = result.failed ?? 0;
         const skipped = result.skippedCount ?? 0;
         const message = result.message || `Import completed: ${inserted} inserted, ${failed} failed, ${skipped} skipped.`;
-        $('#biometrics-import-status').text(message);
-        if (failed > 0) toastr.warning(message);
-        else if (inserted > 0) toastr.success(message);
-        else toastr.info(message);
-        if (fileImport && failed === 0) $('#upload-file').val('');
+        setImportStatus(message, modal);
+        if (failed > 0) toastr.warning(message, '', { escapeHtml: true });
+        else if (inserted > 0) toastr.success(message, '', { escapeHtml: true });
+        else toastr.info(message, '', { escapeHtml: true });
+        if (fileImport && failed === 0) modal.form.find('[data-import-field="file"]').val('');
         // Import endpoints return summaries, not rows. A failed refresh must not retry the import.
-        refreshCurrentFilter(true);
+        try { refreshCurrentFilter(true); }
+        catch (_) { setPageStatus('Import completed, but refreshing the logs failed. Use Filter to try again.'); }
+        return failed === 0;
     };
 
-    const onSubmitUploadForm = event => {
+    const onSubmitUploadForm = async event => {
         event.preventDefault();
         if (isImporting) return;
-        const fileInput = $('#upload-file')[0];
-        if (!fileInput.files.length) {
-            Swal.fire('No File!', 'Please Select File', 'error');
-            return;
-        }
-        const projectName = $('#project').val();
-        if (!projectName) {
-            Swal.fire('Project required', 'Select a project before importing the file.', 'error');
-            return;
-        }
+        const values = _fileImportModal.getValues();
+        if (!values) return;
+        const { file, projectName } = values;
+        let completed = false;
         setImporting(true);
         invalidatePage();
-        $('#biometrics-import-status').text('Uploading file. The import finishes after server processing.');
+        setImportStatus('Uploading file. The import finishes after server processing.', _fileImportModal);
         try {
-            _apiHelper.ajaxRequest('POST', {
+            const result = await _apiHelper.ajaxRequest('POST', {
                 url: 'Authenticated/BiometricsLog/Import',
-                dataObject: { file: fileInput.files[0], projectName },
+                dataObject: { file, projectName },
                 xhr: () => {
                     const xhr = new window.XMLHttpRequest();
                     xhr.upload.addEventListener('progress', progress => {
                         if (progress.lengthComputable) {
                             const percent = Math.round(progress.loaded / progress.total * 100);
-                            $('#biometrics-import-status').text(`Upload ${percent}%. Waiting for server import completion.`);
+                            setImportStatus(`Upload ${percent}%. Waiting for server import completion.`, _fileImportModal);
                         }
                     });
                     return xhr;
-                },
-                error: () => {
-                    $('#biometrics-import-status').text('The import could not be confirmed. Filter the logs before retrying.');
-                    toastr.error('The file import could not be confirmed.');
-                },
-                success: result => completeImport(result, true),
-                complete: () => setImporting(false)
+                }
             });
+            completed = completeImport(result, true);
         } catch (_) {
+            setImportStatus('The import could not be confirmed. Filter the logs before retrying.', _fileImportModal);
+            toastr.error('The file import could not be confirmed.');
+        } finally {
             setImporting(false);
-            $('#biometrics-import-status').text('The import could not be confirmed. Filter the logs before retrying.');
+            if (completed) _fileImportModal.hide();
         }
     };
 
     const onClickDbFilter = async event => {
         event.preventDefault();
         if (isImporting) return;
-        const projectName = $('#project').val();
-        const start = $('#start-date-filter').val();
-        const end = $('#end-date-filter').val();
-        if (!projectName || !start || !end) {
-            $('#biometrics-import-status').text('Select a project and both dates before importing records.');
-            return;
-        }
-        if (!validDateRange()) return;
+        const values = _databaseImportModal.getValues();
+        if (!values) return;
+        const { projectName, start, end } = values;
         const parameters = new URLSearchParams({ startImport: start, endImport: `${end}T23:59:59.9999999`, projectName });
+        let completed = false;
         setImporting(true);
         invalidatePage();
-        $('#biometrics-import-status').text('Importing records...');
+        setImportStatus('Importing records...', _databaseImportModal);
         try {
             const response = await _apiHelper.get({ url: `Authenticated/BiometricsLog/ImportDb?${parameters}` });
             if (!response.ok) throw new Error('Import unavailable');
-            completeImport(await response.json(), false);
+            completed = completeImport(await response.json(), false);
         } catch (_) {
-            $('#biometrics-import-status').text('The import could not be confirmed. Filter the logs before retrying.');
+            setImportStatus('The import could not be confirmed. Filter the logs before retrying.', _databaseImportModal);
             toastr.error('The record import could not be confirmed.');
         } finally {
             setImporting(false);
+            if (completed) _databaseImportModal.hide();
         }
     };
 
@@ -523,8 +528,10 @@
     const attachEvents = () => {
         onChangeStartFilter();
         $('#filter').on('click', onClickFilter);
-        $('#dbfilter').on('click', onClickDbFilter);
-        $('#import').on('click', onSubmitUploadForm);
+        $('#dbfilter').on('click', event => { event.preventDefault(); if (!isImporting) _databaseImportModal.show(); });
+        $('#import').on('click', event => { event.preventDefault(); if (!isImporting) _fileImportModal.show(); });
+        _databaseImportModal.form.on('submit', onClickDbFilter);
+        _fileImportModal.form.on('submit', onSubmitUploadForm);
         $('#start-date-filter').on('change', onChangeStartFilter);
         $('#start-date-filter, #end-date-filter, #project').on('change', scheduleCurrentFilter);
     };

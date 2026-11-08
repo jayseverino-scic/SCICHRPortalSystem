@@ -56,9 +56,9 @@ namespace SCICHRPortal.Service.Implementations
             return await EmployeeRepository.DeleteAsync(EmployeeId);
         }
 
-        public async Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
+        public async Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, int projectId = 0)
         {
-            return await EmployeeRepository.FilterAsync(pageNumber, pageSize, searchKeyword);
+            return await EmployeeRepository.FilterAsync(pageNumber, pageSize, searchKeyword, projectId);
         }
 
         public async Task<IEnumerable<Employee>> GetEmployeeByDepartment(int departmentId)
