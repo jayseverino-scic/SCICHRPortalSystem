@@ -16,6 +16,7 @@
     <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/pages/admin/employeetimelog.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/admin/log-import-modal.css" asp-append-version="true" />
     <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
 
@@ -159,6 +160,8 @@
 </div>
 
 
+<partial name="_LogImportModal" model='new SCICHRPortal.Web.Models.ViewModels.Administration.LogImportModalViewModel { Id = "time-log-import-modal", Title = "Import time logs from database" }' />
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
@@ -177,5 +180,6 @@
     <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
     <script src="~/js/helpers/token-helper.js"></script>
     <script src="~/js/pages/administration/time-log-record.js" asp-append-version="true"></script>
+    <script src="~/js/helpers/log-import-modal-helper.js" asp-append-version="true"></script>
     <script src="~/js/pages/administration/employee-time-log.js" asp-append-version="true"></script>
 }

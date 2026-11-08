@@ -250,6 +250,11 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [Authorize]
         public async Task<ActionResult> ImportDb(DateTime? startImport, DateTime? endImport, string? projectName)
         {
+            if (!startImport.HasValue || !endImport.HasValue || string.IsNullOrWhiteSpace(projectName))
+                return BadRequest("Select a project and both dates before importing records.");
+            if (startImport > endImport)
+                return BadRequest("From date must be on or before To date.");
+
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             try

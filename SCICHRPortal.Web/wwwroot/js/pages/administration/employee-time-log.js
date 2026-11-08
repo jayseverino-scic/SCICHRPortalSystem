@@ -10,6 +10,7 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
+    const _importModal = new LogImportModal('time-log-import-modal');
 
     let _projects = [];
     let _currentproject = '';
@@ -50,25 +51,24 @@
         $('#filter').on(CLICK_EVENT, onClickFilter);
         $('#start-import-filter').on('change', onChangeStartImport)
         $('#start-import-filter, #end-import-filter, #project').on('change', scheduleCurrentFilter);
-        $('#import').on(CLICK_EVENT, onClickImport);
+        $('#import').on(CLICK_EVENT, function (event) {
+            event.preventDefault();
+            if (!isImporting) _importModal.show();
+        });
+        _importModal.form.on('submit', onClickImport);
     };
 
     let onClickImport = async e => {
         e.preventDefault();
         if (isImporting) return;
 
-        const status = $('#time-log-import-status');
-        const projectName = $('#project').val() || '';
-        const startImportDate = $('#start-import-filter').val();
-        const endImportDate = $('#end-import-filter').val();
-        if (!projectName || !startImportDate || !endImportDate) {
-            status.text('Select a project and both dates before getting imported logs. These fields are optional for Filter only.');
-            return;
-        }
-        if (startImportDate > endImportDate) {
-            status.text('Start date must be on or before end date.');
-            return;
-        }
+        const values = _importModal.getValues();
+        if (!values) return;
+        const { projectName, start: startImportDate, end: endImportDate } = values;
+        const setStatus = message => {
+            $('#time-log-import-status').text(message);
+            _importModal.setStatus(message);
+        };
 
         const button = $('#import');
         const buttonText = button.text();
@@ -76,25 +76,26 @@
         const refreshWarning = 'The time logs could not be refreshed. Use Filter to try again.';
         let importCompleted = false;
         isImporting = true;
+        _importModal.setBusy(true);
         button.prop('disabled', true).attr('aria-busy', 'true').text('Importing...');
-        status.text('Importing from database... Please wait for server processing to finish.');
+        setStatus('Importing from database... Please wait for server processing to finish.');
         try {
             // The API responds only after the import saves finish; upload progress is not completion.
             await _apiHelper.ajaxRequest('POST', {
                 url: `Authenticated/EmployeeTimeLog/Import?startImportDate=${encodeURIComponent(startImportDate)}&endImportDate=${encodeURIComponent(endImportDate + 'T23:59:59')}&projectName=${encodeURIComponent(projectName)}`
             });
             importCompleted = true;
-            status.text(completionMessage);
+            setStatus(completionMessage);
             toastr.success(completionMessage);
             const refreshed = await refreshCurrentFilter();
             if (refreshed === false) {
-                status.text(`${completionMessage} ${refreshWarning}`);
+                setStatus(`${completionMessage} ${refreshWarning}`);
                 toastr.warning(refreshWarning);
             }
         } catch (error) {
             if (importCompleted) {
                 // A refresh failure must not invite retrying an already completed import.
-                status.text(`${completionMessage} ${refreshWarning}`);
+                setStatus(`${completionMessage} ${refreshWarning}`);
                 toastr.warning(refreshWarning);
             } else {
                 let detail = 'The import could not be confirmed. Use Filter to check the logs before trying again.';
@@ -107,12 +108,14 @@
                         (typeof message === 'string' ? message : '') || error.responseText ||
                         'Import failed. Review the dates and employee schedules.';
                 }
-                status.text(detail);
+                setStatus(detail);
                 toastr.error(detail, '', { escapeHtml: true });
             }
         } finally {
             isImporting = false;
             button.prop('disabled', false).removeAttr('aria-busy').text(buttonText);
+            _importModal.setBusy(false);
+            if (importCompleted) _importModal.hide();
         }
     };
 
@@ -723,6 +726,7 @@
             if (kind === 'Project') {
                 _projects = items;
                 projectsLoaded = true;
+                _importModal.setProjects(items);
             } else {
                 _devices = items;
                 devicesLoaded = true;
@@ -731,6 +735,7 @@
             $(statusSelector).text(items.length ? '' : `No ${kind.toLowerCase()}s available. Ask an administrator to add one.`);
         } catch (_) {
             $(statusSelector).text(`${kind}s could not be loaded. Refresh the page and try again.`);
+            if (kind === 'Project') _importModal.setStatus('Projects could not be loaded. Refresh the page and try again.');
         }
     };
 
@@ -1034,7 +1039,7 @@
     };
 
     let initializeModals = e => {
-        $('#employee-time-log-modal').modal({ backdrop: 'static', keyboard: false });
+        $('#employee-time-log-modal').modal({ backdrop: 'static', keyboard: false, show: false });
         $('#employee-time-log-form #dateIn').attr('value', moment().format('YYYY-MM-DD'));
         $('#employee-time-log-form #dateOut').attr('value', moment().format('YYYY-MM-DD'));
     };
