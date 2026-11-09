@@ -72,7 +72,7 @@
 
         const button = $('#import');
         const buttonText = button.text();
-        const completionMessage = 'Importing from database is done!';
+        let completionMessage;
         const refreshWarning = 'The time logs could not be refreshed. Use Filter to try again.';
         let importCompleted = false;
         isImporting = true;
@@ -81,12 +81,18 @@
         setStatus('Importing from database... Please wait for server processing to finish.');
         try {
             // The API responds only after the import saves finish; upload progress is not completion.
-            await _apiHelper.ajaxRequest('POST', {
+            const result = await _apiHelper.ajaxRequest('POST', {
                 url: `Authenticated/EmployeeTimeLog/Import?startImportDate=${encodeURIComponent(startImportDate)}&endImportDate=${encodeURIComponent(endImportDate + 'T23:59:59')}&projectName=${encodeURIComponent(projectName)}`
             });
+            if (!Number.isInteger(result?.imported) || result.imported < 0 ||
+                !Number.isInteger(result.skipped) || result.skipped < 0) {
+                throw new Error('Invalid time log import summary.');
+            }
+            completionMessage = `Import complete. ${result.imported} imported, ${result.skipped} skipped.`;
             importCompleted = true;
             setStatus(completionMessage);
-            toastr.success(completionMessage);
+            if (result.imported > 0) toastr.success(completionMessage);
+            else toastr.info(completionMessage);
             const refreshed = await refreshCurrentFilter();
             if (refreshed === false) {
                 setStatus(`${completionMessage} ${refreshWarning}`);

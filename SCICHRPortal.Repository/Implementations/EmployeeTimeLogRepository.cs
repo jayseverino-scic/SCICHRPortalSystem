@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Data;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
@@ -131,6 +132,77 @@ namespace SCICHRPortal.Repository.Implementations
             await Context.EmployeeTimeLog!.AddAsync(entity);
             await Context.SaveChangesAsync();
             await transaction.CommitAsync();
+        }
+
+        public async Task<(int Imported, int Skipped)> ImportAsync(IReadOnlyList<EmployeeTimeLog> rows)
+        {
+            if (rows.Count == 0) return (0, 0);
+
+            var employeeIds = rows.Select(row => row.EmployeeId).Distinct().ToArray();
+            var firstDate = rows.Min(row => row.DateIn)?.Date;
+            var firstShiftDate = rows.Min(row => row.ShiftStart)?.Date;
+            if (firstShiftDate < firstDate) firstDate = firstShiftDate;
+            var endExclusive = rows.Max(row => row.DateOut)?.Date.AddDays(1);
+
+            const int maxAttempts = 3;
+            for (var attempt = 1; ; attempt++)
+            {
+                var pending = new List<EmployeeTimeLog>();
+                try
+                {
+                    await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                    var existing = await Context.EmployeeTimeLog.AsNoTracking()
+                        .Where(row => !row.Deleted && employeeIds.Contains(row.EmployeeId)
+                            && row.DateIn >= firstDate && row.DateIn < endExclusive)
+                        .Select(row => new EmployeeTimeLog
+                        {
+                            EmployeeId = row.EmployeeId, DateIn = row.DateIn, DateOut = row.DateOut,
+                            TimeIn = row.TimeIn, TimeOut = row.TimeOut, ShiftStart = row.ShiftStart,
+                            ShiftEnd = row.ShiftEnd, SystemRemarks = row.SystemRemarks
+                        })
+                        .ToListAsync();
+                    var byEmployee = existing.ToLookup(row => row.EmployeeId);
+                    foreach (var group in rows.GroupBy(row => row.EmployeeId))
+                    {
+                        var known = byEmployee[group.Key].ToList();
+                        foreach (var row in group)
+                        {
+                            if (known.Any(saved => MatchesImportedSession(saved, row))) continue;
+                            pending.Add(row);
+                            known.Add(row);
+                        }
+                    }
+
+                    if (pending.Count == 0) return (0, rows.Count);
+
+                    Context.EmployeeTimeLog.AddRange(pending);
+                    await Context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return (pending.Count, rows.Count - pending.Count);
+                }
+                catch (Exception exception)
+                {
+                    // Discard entries from the failed transaction, including generated audit rows.
+                    Context.ChangeTracker.Clear();
+                    foreach (var row in pending) row.TimeLogId = 0;
+                    if (attempt >= maxAttempts || exception.GetBaseException() is not PostgresException
+                        { SqlState: PostgresErrorCodes.SerializationFailure })
+                        throw;
+                }
+            }
+        }
+
+        private static bool MatchesImportedSession(EmployeeTimeLog saved, EmployeeTimeLog incoming)
+        {
+            if (saved.DateIn?.Date == incoming.DateIn?.Date && saved.DateOut?.Date == incoming.DateOut?.Date
+                && saved.TimeIn == incoming.TimeIn && saved.TimeOut == incoming.TimeOut)
+                return true;
+
+            // Earlier imports could choose different punches for this same shift.
+            return saved.SystemRemarks is "Biometrics" or "File"
+                && ((saved.ShiftStart.HasValue && saved.ShiftEnd.HasValue
+                        && saved.ShiftStart == incoming.ShiftStart && saved.ShiftEnd == incoming.ShiftEnd)
+                    || (saved.TimeIn < incoming.TimeOut && incoming.TimeIn < saved.TimeOut));
         }
 
         public async Task<bool> UpdateAsync(EmployeeTimeLog employeeTimeLog)

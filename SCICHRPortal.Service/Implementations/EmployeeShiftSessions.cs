@@ -35,7 +35,7 @@ namespace SCICHRPortal.Service.Implementations
             var errors = new List<string>();
             var punches = source.Where(row => row.Date.HasValue && row.Time.HasValue)
                 .Select(row => (Timestamp: PhilippineTime.SessionStart(row.Date!.Value, row.Time), Row: row))
-                .OrderBy(row => row.Timestamp).DistinctBy(row => row.Timestamp).ToList();
+                .OrderBy(row => row.Timestamp).ToList();
             var index = 0;
             while (index < punches.Count)
             {
@@ -109,24 +109,36 @@ namespace SCICHRPortal.Service.Implementations
                 if (ownershipBoundary.HasValue && lastIndex + 1 < punches.Count && punches[lastIndex + 1].Timestamp == ownershipBoundary &&
                     punches[lastIndex + 1].Timestamp.Date >= from.Date && punches[lastIndex + 1].Timestamp.Date <= until.Date)
                     errors.Add($"Employee {employeeId}, {ownershipBoundary:yyyy-MM-dd HH:mm}: punch falls between sessions; review the pair.");
-                var last = punches[lastIndex];
-                if (lastIndex == index)
+                if (first.Timestamp.Date >= from.Date && first.Timestamp.Date <= until.Date)
                 {
-                    if (first.Timestamp.Date >= from.Date && first.Timestamp.Date <= until.Date)
-                        errors.Add($"Employee {employeeId}, {first.Timestamp:yyyy-MM-dd HH:mm}: a matching checkout is missing.");
-                }
-                else if (first.Timestamp.Date >= from.Date && first.Timestamp.Date <= until.Date)
-                {
-                    sessions.Add(new EmployeeTimeLog
+                    var lastInIndex = -1;
+                    var lastOutIndex = -1;
+                    for (var punchIndex = index; punchIndex <= lastIndex; punchIndex++)
                     {
-                        EmployeeId = employeeId, DateIn = first.Timestamp.Date, DateOut = last.Timestamp.Date,
-                        TimeIn = first.Timestamp, TimeOut = last.Timestamp,
-                        ShiftStart = window.Start ?? first.Timestamp, ShiftEnd = window.End ?? last.Timestamp,
-                        IsFlexibleShift = assignment.IsFlexibleShift, IsNoShift = assignment.IsNoShift, IsNoBreak = assignment.IsNoBreak,
-                        ProjectTimeIn = TimeLogChanges.Optional(first.Row.ProjectName), ProjectTimeOut = TimeLogChanges.Optional(last.Row.ProjectName),
-                        DeviceTimeIn = TimeLogChanges.Optional(first.Row.DeviceName), DeviceTimeOut = TimeLogChanges.Optional(last.Row.DeviceName),
-                        SystemRemarks = first.Row.ImportSource == "File" || last.Row.ImportSource == "File" ? "File" : "Biometrics"
-                    });
+                        var type = punches[punchIndex].Row.LogType?.Trim();
+                        if (string.Equals(type, "IN", StringComparison.OrdinalIgnoreCase)) lastInIndex = punchIndex;
+                        if (string.Equals(type, "OUT", StringComparison.OrdinalIgnoreCase)) lastOutIndex = punchIndex;
+                    }
+
+                    if (lastInIndex < 0)
+                        errors.Add($"Employee {employeeId}, {first.Timestamp:yyyy-MM-dd HH:mm}: a matching check-in is missing.");
+                    else if (lastOutIndex < 0 || punches[lastOutIndex].Timestamp <= punches[lastInIndex].Timestamp)
+                        errors.Add($"Employee {employeeId}, {punches[lastInIndex].Timestamp:yyyy-MM-dd HH:mm}: a matching checkout after the last check-in is missing.");
+                    else
+                    {
+                        var lastIn = punches[lastInIndex];
+                        var lastOut = punches[lastOutIndex];
+                        sessions.Add(new EmployeeTimeLog
+                        {
+                            EmployeeId = employeeId, DateIn = lastIn.Timestamp.Date, DateOut = lastOut.Timestamp.Date,
+                            TimeIn = lastIn.Timestamp, TimeOut = lastOut.Timestamp,
+                            ShiftStart = window.Start ?? lastIn.Timestamp, ShiftEnd = window.End ?? lastOut.Timestamp,
+                            IsFlexibleShift = assignment.IsFlexibleShift, IsNoShift = assignment.IsNoShift, IsNoBreak = assignment.IsNoBreak,
+                            ProjectTimeIn = TimeLogChanges.Optional(lastIn.Row.ProjectName), ProjectTimeOut = TimeLogChanges.Optional(lastOut.Row.ProjectName),
+                            DeviceTimeIn = TimeLogChanges.Optional(lastIn.Row.DeviceName), DeviceTimeOut = TimeLogChanges.Optional(lastOut.Row.DeviceName),
+                            SystemRemarks = lastIn.Row.ImportSource == "File" || lastOut.Row.ImportSource == "File" ? "File" : "Biometrics"
+                        });
+                    }
                 }
                 index = lastIndex + 1;
             }

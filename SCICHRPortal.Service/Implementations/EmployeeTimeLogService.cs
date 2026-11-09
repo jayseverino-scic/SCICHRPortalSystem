@@ -55,6 +55,18 @@ namespace SCICHRPortal.Service.Implementations
             await EmployeeTimeLogRepository.InsertAsync(entity);
         }
 
+        public Task<(int Imported, int Skipped)> ImportAsync(IReadOnlyList<EmployeeTimeLog> rows, string actor)
+        {
+            var now = DateTime.UtcNow;
+            foreach (var row in rows)
+            {
+                row.CreatedAt = now;
+                row.CreatedBy = actor;
+                row.Comment = TimeLogChanges.Append(null, actor, [$"Imported time record ({row.SystemRemarks})"], now);
+            }
+            return EmployeeTimeLogRepository.ImportAsync(rows);
+        }
+
         public async Task<EmployeeTimeLog> GetAsync(int id)
         {
             return await EmployeeTimeLogRepository.GetAsync(id);

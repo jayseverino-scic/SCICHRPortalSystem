@@ -19,6 +19,7 @@ namespace SCICHRPortal.Service.Interfaces
         //Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByDeptAsync(int departmentId, DateTime logDate);
         Task<IEnumerable<EmployeeTimeLog>> GetDailyLogByProjectAsync(int projectId, DateTime logDate);
         Task<DuplicateMessage> HasDuplicateName(EmployeeTimeLog employeeTimeLog);
+        Task<(int Imported, int Skipped)> ImportAsync(IReadOnlyList<EmployeeTimeLog> rows, string actor);
         Task<IEnumerable<EmployeeTimeLog>> FilterByProjectAndDateRange(DateTime? startDate, DateTime? endDate, string? projectName);
     }
 }

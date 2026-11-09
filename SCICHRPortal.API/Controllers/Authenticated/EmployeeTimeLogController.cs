@@ -209,40 +209,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 }
             }
             if (errors.Count > 0) return BadRequest(new { Message = "Review missing or ambiguous sessions before importing. No records were imported.", Errors = errors });
-            var inserted = new List<EmployeeTimeLog>();
-            foreach (var row in timeLogs)
-            {
-                if ((await EmployeeTimeLogService.HasDuplicateName(row)).IsDuplicated) continue;
-                row.CreatedAt = DateTime.UtcNow;
-                row.CreatedBy = Actor;
-                row.Comment = TimeLogChanges.Append(null, Actor, [$"Imported time record ({row.SystemRemarks})"], DateTime.UtcNow);
-                await EmployeeTimeLogService.InsertAsync(row);
-                inserted.Add(row);
-            }
-            timeLogs = inserted;
-            var displayData = timeLogs.Select(d => new
-            {
-                d.TimeLogId,
-                d.EmployeeId,
-                employeeNo = d.EmployeeId.ToString(),
-                EmployeeName = employees.Where(row => row.EmployeeId == d.EmployeeId).Select(row => row.LastName + ", " + row.FirstName).FirstOrDefault(),
-                d.DateIn,
-                d.DateOut,
-                d.TimeIn,
-                d.TimeOut,
-                d.ShiftStart,
-                d.ShiftEnd,
-                d.IsFlexibleShift,
-                d.IsNoShift,
-                d.IsNoBreak,
-                d.ProjectTimeIn,
-                d.ProjectTimeOut,
-                d.DeviceTimeIn,
-                d.DeviceTimeOut,
-                d.SystemRemarks,
-                d.CreatedAt
-            });
-            return Ok(displayData);
+            var summary = await EmployeeTimeLogService.ImportAsync(timeLogs, Actor);
+            return Ok(new { summary.Imported, summary.Skipped });
         }
 
         [HttpPost()]
