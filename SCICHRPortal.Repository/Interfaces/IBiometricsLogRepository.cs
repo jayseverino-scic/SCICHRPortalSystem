@@ -29,15 +29,16 @@ namespace SCICHRPortal.Repository.Interfaces
         Task UpdateAsync(BiometricsLog biometricsLog);
         Task DeleteAsync(int id);
 
-        // Time logs from TimekeepingContext - FIXED: Use List<TimeLog> instead of dynamic
-        Task<List<STimeLogs>> GetTimeLogsFromTimekeepingAsync(DateTime? startDate, DateTime? endDate, string? projectName);
+        Task<(List<STimeLogs> Logs, Dictionary<string, string> DeviceAliases)> GetTimeLogsFromTimekeepingAsync(
+            DateTime? startDate, DateTime? endDate, string? projectName);
 
         // Employees from XscribeContext
         //Task<Employee> GetEmployeeFromDBAsync(string personnelNo);
 
         // Bulk import methods
         Task<int> BulkInsertAsync(List<BiometricsLog> logs);
-        Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(List<BiometricsLog> logs);
+        Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(
+            List<BiometricsLog> logs, bool skipExistingPunches = false, IReadOnlyDictionary<string, string>? deviceAliases = null);
         Task<int> BulkInsertWithTransactionAsync(List<BiometricsLog> logs);
         Task<int> BulkInsertWithProgressAsync(List<BiometricsLog> logs, IProgress<(int Processed, int Total, string Status)> progress);
         //DataTable BuildDataTableFromLogs(List<BiometricsLog> logs);

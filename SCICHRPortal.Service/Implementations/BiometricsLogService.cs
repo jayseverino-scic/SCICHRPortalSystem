@@ -89,7 +89,7 @@ namespace SCICHRPortal.Service.Implementations
 
         // ============ TIMELOGS FROM TIMEKEEPING - FIXED ============
 
-        public async Task<List<STimeLogs>> ImportDbDateRange(
+        public async Task<(List<STimeLogs> Logs, Dictionary<string, string> DeviceAliases)> ImportDbDateRange(
             DateTime? startImport,
             DateTime? endImport,
             string? projectName)
@@ -140,13 +140,14 @@ namespace SCICHRPortal.Service.Implementations
             return result;
         }
 
-        public async Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(List<BiometricsLog> logs)
+        public async Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(
+            List<BiometricsLog> logs, bool skipExistingPunches = false, IReadOnlyDictionary<string, string>? deviceAliases = null)
         {
             if (logs == null || logs.Count == 0)
                 return (0, 0, new List<string>());
 
             var stopwatch = Stopwatch.StartNew();
-            var result = await _repository.BulkInsertWithResultAsync(logs);
+            var result = await _repository.BulkInsertWithResultAsync(logs, skipExistingPunches, deviceAliases);
             stopwatch.Stop();
 
             _logger.LogInformation(

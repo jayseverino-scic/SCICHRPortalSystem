@@ -27,8 +27,8 @@ namespace SCICHRPortal.Service.Interfaces
         Task<bool> UpdateAsync(BiometricsLog biometricsLog);
         Task DeleteAsync(int id);
 
-        // Time logs from database - FIXED: Use concrete type instead of dynamic
-        Task<List<STimeLogs>> ImportDbDateRange(DateTime? startImport, DateTime? endImport, string? projectName);
+        Task<(List<STimeLogs> Logs, Dictionary<string, string> DeviceAliases)> ImportDbDateRange(
+            DateTime? startImport, DateTime? endImport, string? projectName);
 
         // Employees from Xscribe
         //Task<XEmployee> GetEmployeeAsync(string personnelNo);
@@ -36,7 +36,8 @@ namespace SCICHRPortal.Service.Interfaces
 
         // Bulk import methods
         Task<int> BulkInsertBiometricsLogsAsync(List<BiometricsLog> logs);
-        Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(List<BiometricsLog> logs);
+        Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(
+            List<BiometricsLog> logs, bool skipExistingPunches = false, IReadOnlyDictionary<string, string>? deviceAliases = null);
         Task<int> BulkInsertWithTransactionAsync(List<BiometricsLog> logs);
         Task<int> BulkInsertWithProgressAsync(List<BiometricsLog> logs, IProgress<(int Processed, int Total, string Status)> progress);
     }

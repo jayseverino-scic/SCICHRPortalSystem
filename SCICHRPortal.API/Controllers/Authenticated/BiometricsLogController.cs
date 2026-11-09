@@ -259,11 +259,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             try
             {
-                // Step 1: Fetch time logs from TimekeepingContext - FIXED: Now returns List<TimeLog>
-                var timeLogs = await _biometricsLogService.ImportDbDateRange(startImport, endImport, projectName);
+                var (timeLogs, deviceAliases) = await _biometricsLogService.ImportDbDateRange(startImport, endImport, projectName);
 
-                // FIXED: Use Count property instead of Any() for List<T>
-                if (timeLogs == null || timeLogs.Count == 0)
+                if (timeLogs.Count == 0)
                 {
                     return Ok(new
                     {
@@ -288,7 +286,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
                 foreach (var timeLog in timeLogs)
                 {
-                    if (employeeDict.TryGetValue(timeLog.AccessNumber, out var employee))
+                    if (timeLog.AccessNumber is not null && employeeDict.TryGetValue(timeLog.AccessNumber, out var employee))
                     {
                         biometricsLogs.Add(new BiometricsLog
                         {
@@ -311,10 +309,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     }
                 }
 
-                // Step 5: Bulk insert all records
+                // Step 5: Insert punches that are not already in the portal.
                 if (biometricsLogs.Any())
                 {
-                    var result = await _biometricsLogService.BulkInsertWithResultAsync(biometricsLogs);
+                    var result = await _biometricsLogService.BulkInsertWithResultAsync(
+                        biometricsLogs, skipExistingPunches: true, deviceAliases: deviceAliases);
+                    var duplicateCount = biometricsLogs.Count - result.Inserted - result.Failed;
 
                     stopwatch.Stop();
 
@@ -322,7 +322,8 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     {
                         TotalFetched = timeLogs.Count,  // FIXED: Now works with List<T>
                         ProcessedCount = biometricsLogs.Count,
-                        SkippedCount = skippedCount,
+                        SkippedCount = skippedCount + duplicateCount,
+                        DuplicateCount = duplicateCount,
                         Inserted = result.Inserted,
                         Failed = result.Failed,
                         Errors = result.Errors,

@@ -139,7 +139,7 @@ namespace SCICHRPortal.Repository.Implementations
 
         // ============ TIMELOGS FROM TIMEKEEPING CONTEXT - FIXED ============
 
-        public async Task<List<STimeLogs>> GetTimeLogsFromTimekeepingAsync(
+        public async Task<(List<STimeLogs> Logs, Dictionary<string, string> DeviceAliases)> GetTimeLogsFromTimekeepingAsync(
             DateTime? startDate,
             DateTime? endDate,
             string? projectName)
@@ -147,29 +147,35 @@ namespace SCICHRPortal.Repository.Implementations
             // Validate inputs
             if (!startDate.HasValue || !endDate.HasValue || string.IsNullOrEmpty(projectName))
             {
-                return new List<STimeLogs>();
+                return ([], new(StringComparer.OrdinalIgnoreCase));
             }
 
-            var devices = TimekeepingContext.SGroups!
-                .Where(e => e.Description != null && e.Description.ToUpper() == projectName.ToUpper())
-                .ToList();
-
-            if (!devices.Any())
-            {
-                return new List<STimeLogs>();
-            }
-
+            var project = projectName.ToUpper();
+            var deviceNames = await TimekeepingContext.SGroups
+                .Where(e => e.Description != null && e.Description.ToUpper() == project && e.Name != null)
+                .Select(e => e.Name ?? string.Empty)
+                .ToListAsync();
             var biometricsLogs = new List<STimeLogs>();
+            var deviceAliases = new List<(string Alias, string Serial)>();
 
-            foreach (var device in devices)
+            foreach (var deviceName in deviceNames)
             {
-                // Find the ZK device
-                IEnumerable<SZKDevices> sZKDevices = TimekeepingContext.ZKDevices!.Where(e => e.Name.ToUpper() == device.Name.ToUpper());
-                var sZKDevice = TimekeepingContext.ZKDevices!
-                    .FirstOrDefault(e => e.Name != null && e.Name.ToUpper() == device.Name!.ToUpper());
+                var name = deviceName.ToUpper();
+                var serialNumbers = await TimekeepingContext.ZKDevices
+                    .Where(e => e.Name != null && e.Name.ToUpper() == name)
+                    .Select(e => e.SerialNumber)
+                    .ToListAsync();
+                // Older imports stored a device name or project label instead of the serial number.
+                foreach (var serial in serialNumbers)
+                {
+                    if (string.IsNullOrWhiteSpace(serial)) continue;
+                    deviceAliases.Add((serial.Trim(), serial));
+                    deviceAliases.Add((deviceName.Trim(), serial));
+                    deviceAliases.Add((projectName.Trim(), serial));
+                }
 
-                // Check if device exists and has a serial number
-                if (sZKDevice == null || string.IsNullOrEmpty(sZKDevice.SerialNumber))
+                var serialNumber = serialNumbers.FirstOrDefault();
+                if (string.IsNullOrEmpty(serialNumber))
                 {
                     continue; // Skip this device if no ZK device found
                 }
@@ -178,13 +184,17 @@ namespace SCICHRPortal.Repository.Implementations
                 var logs = await TimekeepingContext.TimeLogs!
                     .Where(b => b.RecordDate >= startDate.Value &&
                                 b.RecordDate <= endDate.Value &&
-                                b.DeviceSerialNumber == sZKDevice.SerialNumber)
+                                b.DeviceSerialNumber == serialNumber)
                     .ToListAsync();
 
                 biometricsLogs.AddRange(logs);
             }
 
-            return biometricsLogs;
+            var uniqueAliases = deviceAliases.Where(device => device.Alias.Length > 0)
+                .GroupBy(device => device.Alias, StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Select(device => device.Serial).Distinct().Take(2).Count() == 1)
+                .ToDictionary(group => group.Key, group => group.First().Serial, StringComparer.OrdinalIgnoreCase);
+            return (biometricsLogs, uniqueAliases);
             //var query = TimekeepingContext.TimeLogs.AsQueryable();
 
             //if (startDate.HasValue)
@@ -284,9 +294,10 @@ namespace SCICHRPortal.Repository.Implementations
             using var connection = new NpgsqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            using var writer = connection.BeginBinaryImport(
-                "COPY \"BiometricsLog\" (\"PersonnelId\", \"LastName\", \"FirstName\", \"Date\", \"Time\", \"LogType\", \"DeviceName\", \"ProjectName\", \"CreatedAt\", \"CreatedBy\", \"ImportSource\") FROM STDIN (FORMAT BINARY)"
-            );
+            await using var writer = await connection.BeginBinaryImportAsync("""
+                COPY "BiometricsLog" ("PersonnelId", "LastName", "FirstName", "Date", "Time", "LogType", "DeviceName",
+                    "ProjectName", "CreatedAt", "CreatedBy", "ImportSource") FROM STDIN (FORMAT BINARY)
+                """);
 
             foreach (var log in logs)
             {
@@ -308,10 +319,106 @@ namespace SCICHRPortal.Repository.Implementations
             return logs.Count;
         }
 
+        private async Task<int> BulkInsertNewPunchesAsync(
+            List<BiometricsLog> logs, IReadOnlyDictionary<string, string>? deviceAliases)
+        {
+            var punches = logs.OrderBy(log => log.CreatedAt)
+                .DistinctBy(GetPunchKey)
+                .ToList();
+            var personnelIds = punches.Select(log => log.PersonnelId ?? string.Empty).Distinct().ToArray();
+            var dates = punches.Select(log => ToPostgresTimestampPrecision(log.Date)).Distinct().ToArray();
+            var projects = punches.Select(log => log.ProjectName?.ToUpperInvariant() ?? string.Empty).Distinct().ToArray();
+            var aliases = deviceAliases?.ToDictionary(device => device.Key, device => device.Value, StringComparer.OrdinalIgnoreCase);
+
+            const int maxAttempts = 3;
+            for (var attempt = 1; ; attempt++)
+            {
+                List<BiometricsLog> newLogs = [];
+                try
+                {
+                    await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                    var existing = await Context.BiometricsLog.AsNoTracking()
+                        .Where(row => !row.Deleted && row.PersonnelId != null && personnelIds.Contains(row.PersonnelId)
+                            && row.Date.HasValue && dates.Contains(row.Date) && row.Time.HasValue
+                            && row.ProjectName != null && projects.Contains(row.ProjectName.ToUpper()))
+                        .Select(row => new PunchKey(row.PersonnelId ?? string.Empty, row.Date, row.Time,
+                            row.LogType ?? string.Empty, row.DeviceName ?? string.Empty,
+                            (row.ProjectName ?? string.Empty).ToUpper()))
+                        .ToListAsync();
+                    var existingKeys = existing.ToHashSet();
+                    var aliasedKeys = new HashSet<PunchKey>();
+                    foreach (var key in existing)
+                    {
+                        if (aliases != null && aliases.TryGetValue(key.DeviceName.Trim(), out var serial))
+                            aliasedKeys.Add(key with { DeviceName = serial.ToUpperInvariant() });
+                    }
+
+                    foreach (var log in punches)
+                    {
+                        var key = GetPunchKey(log);
+                        if (existingKeys.Contains(key) || aliasedKeys.Contains(key with { DeviceName = key.DeviceName.ToUpperInvariant() }))
+                            continue;
+
+                        newLogs.Add(new BiometricsLog
+                        {
+                            PersonnelId = key.PersonnelId,
+                            LastName = log.LastName ?? string.Empty,
+                            FirstName = log.FirstName ?? string.Empty,
+                            Date = key.Date,
+                            Time = key.Time,
+                            LogType = key.LogType,
+                            DeviceName = key.DeviceName,
+                            ProjectName = log.ProjectName ?? string.Empty,
+                            CreatedAt = log.CreatedAt,
+                            CreatedBy = log.CreatedBy ?? string.Empty,
+                            ImportSource = log.ImportSource
+                        });
+                    }
+
+                    if (newLogs.Count == 0) return 0;
+
+                    Context.BiometricsLog.AddRange(newLogs);
+                    // Use the EF save overload to preserve the import's existing audit behavior.
+                    await Context.SaveChangesAsync(acceptAllChangesOnSuccess: false);
+                    await transaction.CommitAsync();
+                    return newLogs.Count;
+                }
+                catch (Exception exception) when (attempt < maxAttempts &&
+                    exception.GetBaseException() is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure })
+                {
+                    // A competing import committed first. Check for its punches in a new transaction.
+                }
+                finally
+                {
+                    foreach (var log in newLogs)
+                        Context.Entry(log).State = EntityState.Detached;
+                }
+            }
+        }
+
+        private static PunchKey GetPunchKey(BiometricsLog log) => new(
+            log.PersonnelId ?? string.Empty, ToPostgresTimestampPrecision(log.Date),
+            ToPostgresTimestampPrecision(log.Time), log.LogType ?? string.Empty,
+            log.DeviceName ?? string.Empty, log.ProjectName?.ToUpperInvariant() ?? string.Empty);
+
+        private static DateTime? ToPostgresTimestampPrecision(DateTime? value)
+        {
+            if (value is not { } timestamp || timestamp == DateTime.MinValue || timestamp == DateTime.MaxValue)
+                return value;
+
+            // PostgreSQL stores whole microseconds relative to its 2000-01-01 epoch.
+            var ticksFromEpoch = (timestamp - new DateTime(2000, 1, 1)).Ticks;
+            return timestamp.AddTicks(-(ticksFromEpoch % TimeSpan.TicksPerMicrosecond));
+        }
+
+        private readonly record struct PunchKey(
+            string PersonnelId, DateTime? Date, DateTime? Time, string LogType, string DeviceName, string ProjectName);
+
         /// <summary>
-        /// PostgreSQL COPY with result tracking
+        /// Inserts biometric logs and reports the outcome.
         /// </summary>
-        public async Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(List<BiometricsLog> logs)
+        public async Task<(int Inserted, int Failed, List<string> Errors)> BulkInsertWithResultAsync(
+            List<BiometricsLog> logs, bool skipExistingPunches = false, IReadOnlyDictionary<string, string>? deviceAliases = null)
         {
             var errors = new List<string>();
             var inserted = 0;
@@ -322,7 +429,9 @@ namespace SCICHRPortal.Repository.Implementations
 
             try
             {
-                inserted = await BulkInsertAsync(logs);
+                inserted = skipExistingPunches
+                    ? await BulkInsertNewPunchesAsync(logs, deviceAliases)
+                    : await BulkInsertAsync(logs);
             }
             catch (Exception ex)
             {

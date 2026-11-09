@@ -219,7 +219,9 @@
         const inserted = result.inserted ?? 0;
         const failed = result.failed ?? 0;
         const skipped = result.skippedCount ?? 0;
-        const message = result.message || `Import completed: ${inserted} inserted, ${failed} failed, ${skipped} skipped.`;
+        const duplicates = result.duplicateCount ?? 0;
+        const skippedDetails = duplicates > 0 ? ` (${duplicates} duplicate${duplicates === 1 ? '' : 's'})` : '';
+        const message = result.message || `Import completed: ${inserted} inserted, ${failed} failed, ${skipped} skipped${skippedDetails}.`;
         setImportStatus(message, modal);
         if (failed > 0) toastr.warning(message, '', { escapeHtml: true });
         else if (inserted > 0) toastr.success(message, '', { escapeHtml: true });
@@ -455,9 +457,7 @@
                 title: "Date Logged",
                 data: "date",
                 className: 'noVis dt-center',
-                render: (data, type, row) => {
-                    return _dateHelper.formatLocalShortTime(data);
-                },
+                render: data => data ? _dateHelper.formatShortDate(data) : '',
             },
             {
                 title: "Day",
