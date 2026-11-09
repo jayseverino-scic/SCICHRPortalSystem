@@ -463,7 +463,7 @@
                 title: "Day",
                 data: "date",
                 className: 'noVis dt-center',
-                render: (data, type) => {
+                render: (data, type, row) => {
                     const dayNames = data ? getDayNames(data).join(', ') : '';
                     return type === 'display'
                         ? $.fn.dataTable.render.text().display(dayNames)
