@@ -3,6 +3,13 @@ using SCICHRPortal.Utility.Helpers;
 
 namespace SCICHRPortal.Service.Implementations
 {
+    public enum AttendanceSessionPhase
+    {
+        All,
+        Daytime,
+        Overnight
+    }
+
     public static class EmployeeShiftSessions
     {
         public static EmployeeShift? At(IEnumerable<EmployeeShift> periods, DateTime timestamp) => periods.SingleOrDefault(row =>
@@ -29,7 +36,8 @@ namespace SCICHRPortal.Service.Implementations
         }
 
         public static (List<EmployeeTimeLog> Sessions, List<string> Errors) Build(int employeeId,
-            IEnumerable<BiometricsLog> source, List<EmployeeShift> periods, DateTime from, DateTime until)
+            IEnumerable<BiometricsLog> source, List<EmployeeShift> periods, DateTime from, DateTime until,
+            AttendanceSessionPhase phase = AttendanceSessionPhase.All)
         {
             var sessions = new List<EmployeeTimeLog>();
             var errors = new List<string>();
@@ -37,6 +45,7 @@ namespace SCICHRPortal.Service.Implementations
                 .Select(row => (Timestamp: PhilippineTime.SessionStart(row.Date!.Value, row.Time), Row: row))
                 .OrderBy(row => row.Timestamp).ToList();
             var index = 0;
+            bool IsInRange(DateTime date) => date.Date >= from.Date && date.Date <= until.Date;
             while (index < punches.Count)
             {
                 var first = punches[index];
@@ -44,34 +53,44 @@ namespace SCICHRPortal.Service.Implementations
                 try { assignment = At(periods, first.Timestamp); }
                 catch (InvalidOperationException)
                 {
-                    errors.Add($"Employee {employeeId}, {first.Timestamp:yyyy-MM-dd}: overlapping assignment periods.");
-                    break;
+                    if (phase == AttendanceSessionPhase.All || IsInRange(first.Timestamp))
+                    {
+                        errors.Add($"Employee {employeeId}, {first.Timestamp:yyyy-MM-dd}: overlapping assignment periods.");
+                        break;
+                    }
+                    index++;
+                    continue;
                 }
                 if (assignment == null)
                 {
-                    if (first.Timestamp.Date >= from.Date && first.Timestamp.Date <= until.Date)
+                    if (phase != AttendanceSessionPhase.Overnight && IsInRange(first.Timestamp))
                         errors.Add($"Employee {employeeId}, {first.Timestamp:yyyy-MM-dd HH:mm}: no effective assignment.");
                     index++;
                     continue;
                 }
                 var window = Window(assignment, first.Timestamp.Date);
                 var previous = Window(assignment, first.Timestamp.Date.AddDays(-1));
-                if (previous.End >= first.Timestamp && previous.End.Value.Date > previous.Start!.Value.Date)
+                if (previous.Start is { } previousStart && previous.End is { } previousEnd
+                    && previousEnd >= first.Timestamp && previousEnd.Date > previousStart.Date)
                 {
                     // A checkout with no preceding clock-in is not a new overnight session.
-                    if (first.Timestamp.Date >= from.Date && first.Timestamp.Date <= until.Date)
+                    var reportMissingEntry = phase == AttendanceSessionPhase.All
+                        ? IsInRange(first.Timestamp)
+                        : phase == AttendanceSessionPhase.Overnight && IsInRange(previousStart);
+                    if (reportMissingEntry)
                         errors.Add($"Employee {employeeId}, {first.Timestamp:yyyy-MM-dd HH:mm}: overnight entry is missing; review the punches.");
                     index++;
                     continue;
                 }
                 if ((window.Start == null || window.End == null) && !assignment.IsNoShift && !assignment.IsFlexibleShift)
                 {
-                    if (first.Timestamp.Date >= from.Date && first.Timestamp.Date <= until.Date)
+                    if (phase != AttendanceSessionPhase.Overnight && IsInRange(first.Timestamp))
                         errors.Add($"Employee {employeeId}, {first.Timestamp:yyyy-MM-dd}: schedule times are incomplete.");
                     index++;
                     continue;
                 }
                 var overnight = window.End.HasValue && window.End.Value.Date > first.Timestamp.Date;
+                var include = phase == AttendanceSessionPhase.All || (phase == AttendanceSessionPhase.Overnight) == overnight;
                 var cutoff = first.Timestamp.Date.AddDays(overnight ? 2 : 1);
                 DateTime? ownershipBoundary = null;
                 DateTime? nextStart = null;
@@ -106,10 +125,11 @@ namespace SCICHRPortal.Service.Implementations
                 }
                 var lastIndex = index;
                 while (lastIndex + 1 < punches.Count && punches[lastIndex + 1].Timestamp < cutoff) lastIndex++;
-                if (ownershipBoundary.HasValue && lastIndex + 1 < punches.Count && punches[lastIndex + 1].Timestamp == ownershipBoundary &&
-                    punches[lastIndex + 1].Timestamp.Date >= from.Date && punches[lastIndex + 1].Timestamp.Date <= until.Date)
+                if (include && ownershipBoundary.HasValue && lastIndex + 1 < punches.Count &&
+                    punches[lastIndex + 1].Timestamp == ownershipBoundary &&
+                    IsInRange(phase == AttendanceSessionPhase.All ? punches[lastIndex + 1].Timestamp : first.Timestamp))
                     errors.Add($"Employee {employeeId}, {ownershipBoundary:yyyy-MM-dd HH:mm}: punch falls between sessions; review the pair.");
-                if (first.Timestamp.Date >= from.Date && first.Timestamp.Date <= until.Date)
+                if (include && IsInRange(first.Timestamp))
                 {
                     var lastInIndex = -1;
                     var lastOutIndex = -1;

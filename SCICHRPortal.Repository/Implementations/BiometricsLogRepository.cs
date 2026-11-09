@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.TimekeepingTables;
@@ -139,6 +140,22 @@ namespace SCICHRPortal.Repository.Implementations
 
         // ============ TIMELOGS FROM TIMEKEEPING CONTEXT - FIXED ============
 
+        private IQueryable<SGroups> ProjectDeviceGroups() =>
+            TimekeepingContext.SGroups.Where(group => group.Description != null && group.Name != null);
+
+        private IQueryable<SZKDevices> NamedTimekeepingDevices() =>
+            TimekeepingContext.ZKDevices.Where(device =>
+                device.Name != null && device.SerialNumber != null && device.SerialNumber.Trim() != "");
+
+        public Task<List<TimekeepingDeviceMapping>> GetTimekeepingMappingsAsync(CancellationToken cancellationToken)
+        {
+            var mappings = from projectGroup in ProjectDeviceGroups()
+                           join device in NamedTimekeepingDevices()
+                               on (projectGroup.Name ?? "").ToUpper() equals (device.Name ?? "").ToUpper()
+                           select new TimekeepingDeviceMapping(projectGroup.Description ?? "", projectGroup.Name ?? "", device.SerialNumber ?? "");
+            return mappings.ToListAsync(cancellationToken);
+        }
+
         public async Task<(List<STimeLogs> Logs, Dictionary<string, string> DeviceAliases)> GetTimeLogsFromTimekeepingAsync(
             DateTime? startDate,
             DateTime? endDate,
@@ -151,8 +168,8 @@ namespace SCICHRPortal.Repository.Implementations
             }
 
             var project = projectName.ToUpper();
-            var deviceNames = await TimekeepingContext.SGroups
-                .Where(e => e.Description != null && e.Description.ToUpper() == project && e.Name != null)
+            var deviceNames = await ProjectDeviceGroups()
+                .Where(e => (e.Description ?? "").ToUpper() == project)
                 .Select(e => e.Name ?? string.Empty)
                 .ToListAsync();
             var biometricsLogs = new List<STimeLogs>();
@@ -161,8 +178,8 @@ namespace SCICHRPortal.Repository.Implementations
             foreach (var deviceName in deviceNames)
             {
                 var name = deviceName.ToUpper();
-                var serialNumbers = await TimekeepingContext.ZKDevices
-                    .Where(e => e.Name != null && e.Name.ToUpper() == name)
+                var serialNumbers = await NamedTimekeepingDevices()
+                    .Where(e => (e.Name ?? "").ToUpper() == name)
                     .Select(e => e.SerialNumber)
                     .ToListAsync();
                 // Older imports stored a device name or project label instead of the serial number.

@@ -134,7 +134,7 @@ namespace SCICHRPortal.Repository.Implementations
             await transaction.CommitAsync();
         }
 
-        public async Task<(int Imported, int Skipped)> ImportAsync(IReadOnlyList<EmployeeTimeLog> rows)
+        public async Task<(int Imported, int Skipped)> ImportAsync(IReadOnlyList<EmployeeTimeLog> rows, ImportAudit? audit = null)
         {
             if (rows.Count == 0) return (0, 0);
 
@@ -176,7 +176,8 @@ namespace SCICHRPortal.Repository.Implementations
                     if (pending.Count == 0) return (0, rows.Count);
 
                     Context.EmployeeTimeLog.AddRange(pending);
-                    await Context.SaveChangesAsync();
+                    if (audit is null) await Context.SaveChangesAsync();
+                    else await Context.SaveChangesAsync(audit);
                     await transaction.CommitAsync();
                     return (pending.Count, rows.Count - pending.Count);
                 }

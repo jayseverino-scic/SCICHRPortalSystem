@@ -25,8 +25,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using SCICHRPortal.API.BackgroundJobs;
 using SCICHRPortal.API.Extensions;
 using SCICHRPortal.Repository;
+using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Cryptography;
 using SCICHRPortal.Utility.Cryptography.Interfaces;
 using SCICHRPortal.Utility.HttpContext.Implementations;
@@ -34,15 +36,12 @@ using SCICHRPortal.Utility.HttpContext.Interfaces;
 using SCICHRPortal.Utility.Settings;
 using System.Text;
 using System.Text.Json.Serialization;
-using SCICHRPortal.Repository.Implementations;
-using SCICHRPortal.Repository.Interfaces;
-using SCICHRPortal.Service.Implementations;
-using SCICHRPortal.Service.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("Manuel A. Rivas Jr.");
 // Add services to the container.
 builder.Services.AddDerivedClassesServices();
+builder.Services.AddAttendanceImports(builder.Configuration);
 builder.Services.AddSingleton<ITimeLogAttachmentStorage>(_ =>
     new SCICHRPortal.API.Storage.LocalTimeLogAttachmentStorage(Path.GetFullPath(
         builder.Configuration["TimeLogAttachments:LocalPath"] ?? "App_Data/TimeLogAttachments",
@@ -155,10 +154,12 @@ app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAttendanceDashboard();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
 });
 
+app.RegisterAttendanceImports();
 app.Run();
 

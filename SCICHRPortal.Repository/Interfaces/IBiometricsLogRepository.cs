@@ -31,6 +31,7 @@ namespace SCICHRPortal.Repository.Interfaces
 
         Task<(List<STimeLogs> Logs, Dictionary<string, string> DeviceAliases)> GetTimeLogsFromTimekeepingAsync(
             DateTime? startDate, DateTime? endDate, string? projectName);
+        Task<List<TimekeepingDeviceMapping>> GetTimekeepingMappingsAsync(CancellationToken cancellationToken);
 
         // Employees from XscribeContext
         //Task<Employee> GetEmployeeFromDBAsync(string personnelNo);

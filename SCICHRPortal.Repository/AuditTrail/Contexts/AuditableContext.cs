@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Enums;
 using SCICHRPortal.Utility.HttpContext.Interfaces;
@@ -21,12 +22,20 @@ namespace SCICHRPortal.Repository.AuditTrail.Contexts
 
         public DbSet<Audit>? AuditLogs { get; set; }
 
-        public virtual async Task<int> SaveChangesAsync()
+        public virtual Task<int> SaveChangesAsync()
         {
             var requestOrigin = _httpContextService!.GetReferrer();
             var userId = _httpContextService!.GetUser();
             var systemName = _httpContextService!.GetSystem();
-            var auditEntries = OnBeforeSaveChanges(userId, requestOrigin!, systemName);
+            return SaveAuditedChangesAsync(userId, requestOrigin, systemName);
+        }
+
+        public Task<int> SaveChangesAsync(ImportAudit audit) =>
+            SaveAuditedChangesAsync(audit.Actor, audit.Origin, audit.System);
+
+        private async Task<int> SaveAuditedChangesAsync(string? userId, string? requestOrigin, string? systemName)
+        {
+            var auditEntries = OnBeforeSaveChanges(userId, requestOrigin, systemName);
             var result = await base.SaveChangesAsync();
             await OnAfterSaveChanges(auditEntries);
 
@@ -149,7 +158,7 @@ namespace SCICHRPortal.Repository.AuditTrail.Contexts
                 }
                 AuditLogs!.Add(auditEntry.ToAudit());
             }
-            return SaveChangesAsync();
+            return base.SaveChangesAsync();
         }
     }
 }

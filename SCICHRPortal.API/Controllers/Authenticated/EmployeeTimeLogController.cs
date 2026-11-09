@@ -18,10 +18,9 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class EmployeeTimeLogController : ControllerBase
     {
         private IEmployeeTimeLogService EmployeeTimeLogService { get; }
-        private IBiometricsLogService BiometricsLogService { get; }
+        private IAttendanceImportService AttendanceImport { get; }
         private IEmployeeService EmployeeService { get; }
         private IEmployeeShiftService EmployeeShiftService { get; }
-        private IProjectService ProjectService { get; }
         private string Actor => User.Identity?.Name ?? User.FindFirstValue(ClaimTypes.Sid) ?? "Authenticated user";
 
         [HttpGet("{id:int}")]
@@ -44,13 +43,13 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             }
         };
 
-        public EmployeeTimeLogController(IEmployeeTimeLogService employeeTimeLogService, IBiometricsLogService biometricsLogService, IEmployeeService employeeService, IEmployeeShiftService employeeShiftService, IProjectService projectService)
+        public EmployeeTimeLogController(IEmployeeTimeLogService employeeTimeLogService, IAttendanceImportService attendanceImport,
+            IEmployeeService employeeService, IEmployeeShiftService employeeShiftService)
         {
             EmployeeTimeLogService = employeeTimeLogService;
-            BiometricsLogService = biometricsLogService;
+            AttendanceImport = attendanceImport;
             EmployeeService = employeeService;
             EmployeeShiftService = employeeShiftService;
-            ProjectService = projectService;
         }
 
         [HttpGet("EmployeeLookup")]
@@ -179,37 +178,10 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             if (startImportDate.Value.Date <= DateTime.MinValue.Date || endImportDate.Value.Year >= 9999)
                 return BadRequest("The import range is outside supported session dates.");
-            var from = startImportDate.Value.Date;
-            var until = endImportDate.Value.Date;
-            // Include surrounding punches so an overnight session can finish
-            // outside the requested start-date range without losing checkout.
-            var biometricsLogs = (await BiometricsLogService.FilterByProjectAndDateRange(from.AddDays(-1), until.AddDays(2).AddTicks(-1), projectName)).ToList();
-            var projects = await ProjectService.GetAllAsync();
-            var projectId = projects.Where(row => string.Equals(row.Name, projectName, StringComparison.OrdinalIgnoreCase)).Select(row => row.Id).FirstOrDefault();
-            if (projectId <= 0) return BadRequest("The selected project is unavailable.");
-            var employees = (await EmployeeService.GetEmployeeByProject(projectId)).ToList();
-            var employeeIds = employees.Select(row => row.EmployeeId).ToArray();
-            var periods = await EmployeeShiftService.GetPeriodsAsync(employeeIds, from.AddDays(-1), until.AddDays(2));
-            var timeLogs = new List<EmployeeTimeLog>();
-            var errors = new List<string>();
-            foreach (var employee in employees)
-            {
-                var employeePunches = biometricsLogs.Where(row => row.PersonnelId == employee.EmployeeNo).ToList();
-                if (employeePunches.Count == 0) continue;
-                try
-                {
-                    var result = EmployeeShiftSessions.Build(employee.EmployeeId, employeePunches,
-                        periods.Where(row => row.EmployeeId == employee.EmployeeId).ToList(), from, until);
-                    timeLogs.AddRange(result.Sessions);
-                    errors.AddRange(result.Errors);
-                }
-                catch (InvalidOperationException)
-                {
-                    errors.Add($"Employee {employee.EmployeeId}: overlapping assignment history; review before importing.");
-                }
-            }
-            if (errors.Count > 0) return BadRequest(new { Message = "Review missing or ambiguous sessions before importing. No records were imported.", Errors = errors });
-            var summary = await EmployeeTimeLogService.ImportAsync(timeLogs, Actor);
+            var summary = await AttendanceImport.ImportTimeLogsAsync(startImportDate.Value, endImportDate.Value, projectName, Actor);
+            if (summary.ProjectUnavailable) return BadRequest("The selected project is unavailable.");
+            if (summary.Errors.Count > 0)
+                return BadRequest(new { Message = "Review missing or ambiguous sessions before importing. No records were imported.", summary.Errors });
             return Ok(new { summary.Imported, summary.Skipped });
         }
 

@@ -15,10 +15,12 @@ namespace SCICHRPortal.API.Controllers.Authenticated
     public class BiometricsLogController : ControllerBase
     {
         private readonly IBiometricsLogService _biometricsLogService;
+        private readonly IAttendanceImportService _attendanceImport;
 
-        public BiometricsLogController(IBiometricsLogService biometricsLogService)
+        public BiometricsLogController(IBiometricsLogService biometricsLogService, IAttendanceImportService attendanceImport)
         {
             _biometricsLogService = biometricsLogService;
+            _attendanceImport = attendanceImport;
         }
 
         // ============ EXISTING GET METHODS ============
@@ -255,90 +257,31 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             if (startImport > endImport)
                 return BadRequest("From date must be on or before To date.");
 
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
             try
             {
-                var (timeLogs, deviceAliases) = await _biometricsLogService.ImportDbDateRange(startImport, endImport, projectName);
-
-                if (timeLogs.Count == 0)
-                {
+                var result = await _attendanceImport.ImportBiometricsAsync(startImport.Value, endImport.Value, projectName, "Manuel");
+                if (result.TotalFetched == 0)
+                    return Ok(new { Message = "No records found to import", Total = 0 });
+                if (result.ProcessedCount == 0)
                     return Ok(new
                     {
-                        Message = "No records found to import",
-                        Total = 0
+                        result.TotalFetched,
+                        result.ProcessedCount,
+                        result.SkippedCount,
+                        Message = "No valid records to import"
                     });
-                }
 
-                // Step 2: Get all unique employee numbers - FIXED: Properly extract AccessNumber as string
-                var employeeNumbers = timeLogs
-                    .Where(t => !string.IsNullOrEmpty(t.AccessNumber))
-                    .Select(t => t.AccessNumber)  // This is now a string
-                    .Distinct()
-                    .ToList();
-
-                // Step 3: Bulk fetch employees from XscribeContext
-                var employeeDict = await _biometricsLogService.GetEmployeesInBulkAsync(employeeNumbers);
-
-                // Step 4: Prepare biometrics logs
-                var biometricsLogs = new List<BiometricsLog>();
-                var skippedCount = 0;
-
-                foreach (var timeLog in timeLogs)
-                {
-                    if (timeLog.AccessNumber is not null && employeeDict.TryGetValue(timeLog.AccessNumber, out var employee))
-                    {
-                        biometricsLogs.Add(new BiometricsLog
-                        {
-                            PersonnelId = timeLog.AccessNumber,
-                            LastName = employee.LastName ?? string.Empty,
-                            FirstName = employee.FirstName ?? string.Empty,
-                            Date = timeLog.RecordDate,
-                            Time = Convert.ToDateTime(Convert.ToString(timeLog.TimeLogStamp)),
-                            LogType = timeLog.LogType?.ToString() ?? string.Empty,
-                            DeviceName = timeLog.DeviceSerialNumber ?? string.Empty,
-                            ProjectName = projectName ?? string.Empty,
-                            ImportSource = "Biometrics",
-                            CreatedAt = DateTime.Now,
-                            CreatedBy = "Manuel"
-                        });
-                    }
-                    else
-                    {
-                        skippedCount++;
-                    }
-                }
-
-                // Step 5: Insert punches that are not already in the portal.
-                if (biometricsLogs.Any())
-                {
-                    var result = await _biometricsLogService.BulkInsertWithResultAsync(
-                        biometricsLogs, skipExistingPunches: true, deviceAliases: deviceAliases);
-                    var duplicateCount = biometricsLogs.Count - result.Inserted - result.Failed;
-
-                    stopwatch.Stop();
-
-                    return Ok(new
-                    {
-                        TotalFetched = timeLogs.Count,  // FIXED: Now works with List<T>
-                        ProcessedCount = biometricsLogs.Count,
-                        SkippedCount = skippedCount + duplicateCount,
-                        DuplicateCount = duplicateCount,
-                        Inserted = result.Inserted,
-                        Failed = result.Failed,
-                        Errors = result.Errors,
-                        ImportTimeMs = stopwatch.ElapsedMilliseconds,
-                        RecordsPerSecond = biometricsLogs.Count / (stopwatch.ElapsedMilliseconds / 1000.0)
-                    });
-                }
-
-                stopwatch.Stop();
                 return Ok(new
                 {
-                    TotalFetched = timeLogs.Count,  // FIXED: Now works with List<T>
-                    ProcessedCount = 0,
-                    SkippedCount = skippedCount,
-                    Message = "No valid records to import"
+                    result.TotalFetched,
+                    result.ProcessedCount,
+                    result.SkippedCount,
+                    result.DuplicateCount,
+                    result.Inserted,
+                    result.Failed,
+                    result.Errors,
+                    result.ImportTimeMs,
+                    RecordsPerSecond = result.ProcessedCount / (Math.Max(1, result.ImportTimeMs) / 1000.0)
                 });
             }
             catch (Exception ex)
