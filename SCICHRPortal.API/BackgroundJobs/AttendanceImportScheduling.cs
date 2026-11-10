@@ -15,9 +15,9 @@ public static class AttendanceImportScheduling
         var dashboardEnabled = configuration.GetValue<bool>(DashboardEnabledKey);
         if (!workerEnabled && !dashboardEnabled) return;
 
-        var connection = configuration.GetConnectionString("HangfireConnection");
+        var connection = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrWhiteSpace(connection))
-            throw new InvalidOperationException("ConnectionStrings:HangfireConnection is required when the attendance worker or Hangfire dashboard is enabled.");
+            throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required when the attendance worker or Hangfire dashboard is enabled.");
 
         services.AddHangfire(options => options
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
