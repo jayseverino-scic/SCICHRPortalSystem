@@ -24,7 +24,11 @@ public static class AttendanceImportScheduling
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
             .UsePostgreSqlStorage(storage => storage.UseNpgsqlConnection(connection),
-                new PostgreSqlStorageOptions { SchemaName = "hangfire", PrepareSchemaIfNecessary = false }));
+                new PostgreSqlStorageOptions
+                {
+                    SchemaName = "hangfire",
+                    PrepareSchemaIfNecessary = configuration.GetValue<bool>("Hangfire:PrepareSchemaIfNecessary")
+                }));
 
         if (dashboardEnabled) services.AddAntiforgery();
         if (!workerEnabled) return;
