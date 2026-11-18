@@ -12,6 +12,8 @@ namespace SCICHRPortal.Service.Interfaces
         Task<Tuple<IEnumerable<EmployeeAttendance>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
         Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceFilter(int projectId, DateTime attendanceDate);
         Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int projectId, DateTime fromDate, DateTime toDate);
+        // Null indicates that the cutoff does not exist; an empty collection is a valid summary.
+        Task<IEnumerable<EmployeeAttendanceSummary>?> GetCutOffSummaryAsync(int projectId, int cutOffId);
         Task<EmployeeAttendance> GetAsync(int id);
         Task<IEnumerable<EmployeeAttendance>> GetAllAsync();
         Task RemoveRangeAsync(List<EmployeeAttendance> employeeAttendances);

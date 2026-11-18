@@ -1,43 +1,26 @@
-using Hangfire;
-using Hangfire.Server;
+using Microsoft.Extensions.Logging;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Helpers;
 
-namespace SCICHRPortal.API.BackgroundJobs;
+namespace SCICHRPortal.Service.BackgroundJobs;
 
-public sealed class NightlyAttendanceJobs(IAttendanceImportService attendance, IBackgroundJobClient jobs,
-    ILogger<NightlyAttendanceJobs> logger)
+public sealed class NightlyAttendanceImportService(IAttendanceImportService attendance,
+    ILogger<NightlyAttendanceImportService> logger) : INightlyAttendanceImportService
 {
-    public const string RecurringId = "scic-nightly-attendance-import";
-    public const string QueueName = "attendance-import";
     private static readonly ImportAudit ScheduledAudit = new("Scheduled Attendance Import", "Hangfire", "SCIC HR Portal");
 
-    [AutomaticRetry(Attempts = 3)]
-    public async Task DispatchAsync(PerformContext? context, CancellationToken cancellationToken)
+    public async Task<NightlyAttendancePlan> PlanDispatchAsync(DateTimeOffset occurrence, CancellationToken cancellationToken)
     {
-        // Hangfire records the scheduled occurrence even when strict catch-up enqueues it later.
-        var timestamp = context?.GetJobParameter<long>("Time") ?? 0;
-        if (timestamp <= 0) throw new InvalidOperationException("The scheduled attendance occurrence is missing.");
-
-        var date = TimeZoneInfo.ConvertTime(DateTimeOffset.FromUnixTimeSeconds(timestamp), PhilippineTime.Zone).Date.AddDays(-1);
-        var followUp = date.AddDays(2);
-        var followUpAt = new DateTimeOffset(followUp, PhilippineTime.Zone.GetUtcOffset(followUp));
+        var businessDate = TimeZoneInfo.ConvertTime(occurrence, PhilippineTime.Zone).Date.AddDays(-1);
+        var followUp = businessDate.AddDays(2);
+        var overnightDue = new DateTimeOffset(followUp, PhilippineTime.Zone.GetUtcOffset(followUp));
         var projects = await attendance.GetScheduledProjectsAsync(cancellationToken);
-        foreach (var project in projects)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            jobs.Enqueue<NightlyAttendanceJobs>(job => job.RunProjectAsync(project.Id, date, AttendanceSessionPhase.Daytime, CancellationToken.None));
-            jobs.Schedule<NightlyAttendanceJobs>(
-                job => job.RunProjectAsync(project.Id, date, AttendanceSessionPhase.Overnight, CancellationToken.None), followUpAt);
-        }
-        logger.LogInformation("Dispatched attendance imports for {BusinessDate} across {ProjectCount} projects; overnight jobs due {OvernightDue}",
-            date, projects.Count, followUpAt);
+
+        return new NightlyAttendancePlan(businessDate, overnightDue, projects.Select(project => project.Id).ToArray());
     }
 
-    [Queue(QueueName)]
-    [AutomaticRetry(Attempts = 3)]
     public async Task RunProjectAsync(int projectId, DateTime businessDate, AttendanceSessionPhase phase, CancellationToken cancellationToken)
     {
         if (phase is not (AttendanceSessionPhase.Daytime or AttendanceSessionPhase.Overnight))
@@ -50,9 +33,9 @@ public sealed class NightlyAttendanceJobs(IAttendanceImportService attendance, I
         var project = (await attendance.GetScheduledProjectsAsync(cancellationToken)).FirstOrDefault(row => row.Id == projectId);
         if (project?.Name is not { } name)
         {
-            logger.LogWarning("Scheduled attendance import skipped unavailable mapping for project {ProjectId}, {BusinessDate}, {Phase}",
+            logger.LogWarning("Scheduled attendance import found no eligible mapping for project {ProjectId}, {BusinessDate}, {Phase}",
                 projectId, businessDate, phase);
-            return;
+            throw new InvalidOperationException($"Scheduled attendance import could not find an eligible device mapping for project {projectId}.");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -72,6 +55,7 @@ public sealed class NightlyAttendanceJobs(IAttendanceImportService attendance, I
                 name, businessDate, phase, timeLogs.Errors.Count, timeLogs.ProjectUnavailable);
             throw new InvalidOperationException($"Scheduled time log import could not validate project {projectId}. Review the project and its scheduled sessions.");
         }
+
         logger.LogInformation("Scheduled time log import for {ProjectName}, {BusinessDate}, {Phase} imported {Imported} and skipped {Skipped}",
             name, businessDate, phase, timeLogs.Imported, timeLogs.Skipped);
     }

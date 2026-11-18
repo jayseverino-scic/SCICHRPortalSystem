@@ -63,22 +63,15 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int projectId, DateTime fromDate, DateTime toDate)
         {
-            IEnumerable<EmployeeAttendance> employeeAttendances;
+            var employeeAttendances = Context.EmployeeAttendance!
+                  .Include(t => t.Employee)
+                  .Include(t => t.EmployeeTimeLog)
+                  .Where(e => e.Deleted == false && e.TimeIn.Date >= fromDate.Date && e.TimeIn.Date <= toDate.Date);
+
             if (projectId != 0)
-            {
-                employeeAttendances = await Context.EmployeeAttendance!
-                  .Include(t => t.Employee)
-                  .Include(t => t.EmployeeTimeLog)
-                  .Where(e => e.Deleted == false && e.Employee!.ProjectId == projectId && e.TimeIn.Date >= fromDate.Date && e.TimeIn.Date <= toDate.Date).ToListAsync();
-            }
-            else
-            {
-                employeeAttendances = await Context.EmployeeAttendance!
-                  .Include(t => t.Employee)
-                  .Include(t => t.EmployeeTimeLog)
-                  .Where(e => e.Deleted == false && e.TimeIn.Date >= fromDate.Date && e.TimeIn.Date <= toDate.Date).ToListAsync();
-            }
-            return employeeAttendances;
+                employeeAttendances = employeeAttendances.Where(e => e.Employee!.ProjectId == projectId);
+    
+            return await employeeAttendances.ToListAsync();
         }
         public async Task<EmployeeAttendance> GetAsync(int id)
         {

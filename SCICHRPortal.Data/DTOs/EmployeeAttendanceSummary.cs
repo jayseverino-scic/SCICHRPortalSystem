@@ -1,8 +1,4 @@
-﻿
-using SCICHRPortal.Data.Entities;
-using SCICHRPortal.Data.Entities.Metadatas;
-
-namespace SCICHRPortal.API.Models.RequestModels.Authenticated.Administration
+namespace SCICHRPortal.Data.DTOs
 {
     public class EmployeeAttendanceSummary
     {

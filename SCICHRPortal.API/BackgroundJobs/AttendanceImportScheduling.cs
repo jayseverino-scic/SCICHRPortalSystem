@@ -1,6 +1,6 @@
 using Hangfire;
 using Hangfire.PostgreSql;
-using SCICHRPortal.Utility.Helpers;
+using SCICHRPortal.Service.BackgroundJobs;
 
 namespace SCICHRPortal.API.BackgroundJobs;
 
@@ -21,7 +21,7 @@ public static class AttendanceImportScheduling
 
         services.AddHangfire(options => options
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
+            .UseNightlyAttendanceJobType()
             .UseRecommendedSerializerSettings()
             .UsePostgreSqlStorage(storage => storage.UseNpgsqlConnection(connection),
                 new PostgreSqlStorageOptions
@@ -62,11 +62,6 @@ public static class AttendanceImportScheduling
     {
         if (!app.Configuration.GetValue<bool>(EnabledKey)) return;
 
-        app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<NightlyAttendanceJobs>(
-            NightlyAttendanceJobs.RecurringId,
-            NightlyAttendanceJobs.QueueName,
-            job => job.DispatchAsync(null, CancellationToken.None),
-            Cron.Daily(),
-            new RecurringJobOptions { TimeZone = PhilippineTime.Zone, MisfireHandling = MisfireHandlingMode.Strict });
+        NightlyAttendanceJobRegistration.Register(app.Services.GetRequiredService<IRecurringJobManager>());
     }
 }
