@@ -123,6 +123,17 @@
                             <i class="fas fa-chevron-down nav-arrow" aria-hidden="true"></i>
                         </a>
                         <ul class="sidebar-sub-menu user-sub-menu" style="display: none;" role="menu" aria-label="Attendance submenu">
+                            @if (User.IsInRole("Administrator"))
+                            {
+                                <li role="none">
+                                    <a class="sidebar-nav-link user" role="menuitem"
+                                       asp-controller="Administration" asp-action="OfficialBusiness"
+                                       data-label="Official Business" aria-label="Official Business">
+                                        <span class="nav-icon" aria-hidden="true"><i class="fas fa-briefcase"></i></span>
+                                        <span class="nav-text">Official Business</span>
+                                    </a>
+                                </li>
+                            }
                             <li role="none">
                                 <a class="sidebar-nav-link user"
                                    role="menuitem"

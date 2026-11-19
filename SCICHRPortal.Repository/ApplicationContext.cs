@@ -42,6 +42,7 @@ namespace SCICHRPortal.Repository
         public DbSet<CutOff> CutOff { get; set; }
         public DbSet<LeaveType> LeaveType { get; set; }
         public DbSet<LeaveRequest> LeaveRequest { get; set; }
+        public DbSet<OfficialBusiness> OfficialBusiness { get; set; }
         public DbSet<BiometricsLog> BiometricsLog { get; set; }
         public DbSet<Position> Position { get; set; }
         public DbSet<EmployeeShiftDevice> EmployeeShiftDevice { get; set; }
@@ -91,6 +92,17 @@ namespace SCICHRPortal.Repository
             new CutOffMap(modelBuilder.Entity<CutOff>());
             new LeaveTypeMap(modelBuilder.Entity<LeaveType>());
             new LeaveRequestMap(modelBuilder.Entity<LeaveRequest>());
+            var officialBusiness = modelBuilder.Entity<OfficialBusiness>();
+            new OfficialBusinessMap(officialBusiness);
+            // These are Manila business times, independent of the legacy timestamp switch.
+            officialBusiness.Property(row => row.From).HasColumnType("timestamp without time zone");
+            officialBusiness.Property(row => row.To).HasColumnType("timestamp without time zone");
+            officialBusiness.Property(row => row.CreatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.ToUniversalTime(), value => value.ToUniversalTime());
+            officialBusiness.Property(row => row.UpdatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null,
+                    value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null);
+            officialBusiness.ToTable("OfficialBusiness", table => table.HasCheckConstraint("CK_OfficialBusiness_Period", "\"To\" > \"From\""));
             new BiometricsLogMap(modelBuilder.Entity<BiometricsLog>());
             new PositionMap(modelBuilder.Entity<Position>());
             new EmployeeShiftDeviceMap(modelBuilder.Entity<EmployeeShiftDevice>());

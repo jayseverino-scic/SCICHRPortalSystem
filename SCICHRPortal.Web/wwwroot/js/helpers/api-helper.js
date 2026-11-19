@@ -78,12 +78,16 @@
 
     formRequest = async (method, params) => {
         let formData = this.toFormData(params.data);
+        const headers = {
+            'Authorization': `bearer ${this.cookieHelper.get('jsonWebToken')}`
+        };
+        for (const [option, header] of [['requesterName', 'RequesterName'], ['requestOrigin', 'RequestOrigin'], ['requestSystem', 'RequestSystem']]) {
+            if (params[option] !== undefined && params[option] !== null) headers[header] = params[option];
+        }
 
         let response = await fetch(`${this.baseApiUrl}/${params.url}`, {
             method: method,
-            headers: {
-                'Authorization': `bearer ${this.cookieHelper.get('jsonWebToken')}`
-            },
+            headers,
             body: formData
         });
         if (response.status === 401) {

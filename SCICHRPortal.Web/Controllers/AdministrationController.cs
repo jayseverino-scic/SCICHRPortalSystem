@@ -45,6 +45,12 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View();
         }
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+        public IActionResult OfficialBusiness()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View(new Models.ViewModels.Administration.OfficialBusinessViewModel());
+        }
         public IActionResult CutOff()
         {
             ViewBag.SystemSelected = "Administration";
