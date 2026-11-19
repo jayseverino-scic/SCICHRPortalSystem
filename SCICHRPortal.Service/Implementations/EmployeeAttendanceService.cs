@@ -1,4 +1,4 @@
-﻿using SCICHRPortal.Data.DTOs;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.Enums;
@@ -16,6 +16,8 @@ namespace SCICHRPortal.Service.Implementations
         private ICutOffRepository CutOffRepository { get; }
         private IHolidayRepository HolidayRepository { get; }
         private IProjectService ProjectService { get; }
+        private IEmployeeDailyAttendanceComputationService DailyAttendanceComputationService { get; }
+        private IEmployeeDailyAttendanceComputationRepository DailyAttendanceComputationRepository { get; }
 
         public EmployeeAttendanceService(
             IEmployeeAttendanceRepository employeeAttendanceRepository,
@@ -23,7 +25,9 @@ namespace SCICHRPortal.Service.Implementations
             IShiftRepository shiftRepository,
             ICutOffRepository cutOffRepository,
             IHolidayRepository holidayRepository,
-            IProjectService projectService)
+            IProjectService projectService,
+            IEmployeeDailyAttendanceComputationService dailyAttendanceComputationService,
+            IEmployeeDailyAttendanceComputationRepository dailyAttendanceComputationRepository)
         {
             EmployeeAttendanceRepository = employeeAttendanceRepository;
             EmployeeShiftRepository = employeeShiftRepository;
@@ -31,6 +35,8 @@ namespace SCICHRPortal.Service.Implementations
             CutOffRepository = cutOffRepository;
             HolidayRepository = holidayRepository;
             ProjectService = projectService;
+            DailyAttendanceComputationService = dailyAttendanceComputationService;
+            DailyAttendanceComputationRepository = dailyAttendanceComputationRepository;
         }
 
         public async Task<bool> UpdateAsync(EmployeeAttendance entity)
@@ -47,6 +53,14 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await EmployeeAttendanceRepository.EmployeeAttendanceFilter(projectId, attendanceDate);
         }
+
+        public Task<IReadOnlyList<EmployeeAttendanceDailyRow>> GetDailyAttendanceAsync(int projectId,
+            DateTime attendanceDate, CancellationToken cancellationToken = default)
+        {
+            return DailyAttendanceComputationService.GetComputeRowsAsync(projectId, DateOnly.FromDateTime(attendanceDate),
+                cancellationToken);
+        }
+
         public async Task<IEnumerable<EmployeeAttendance>> EmployeeAttendanceCutOffFilter(int projectId, DateTime fromDate, DateTime toDate)
         {
             return await EmployeeAttendanceRepository.EmployeeAttendanceCutOffFilter(projectId, fromDate, toDate);
@@ -59,7 +73,8 @@ namespace SCICHRPortal.Service.Implementations
             if (cutOff == null)
                 return null;
 
-            var attendances = await EmployeeAttendanceRepository.EmployeeAttendanceCutOffFilter(projectId, cutOff.StartDate, cutOff.EndDate);
+            var attendances = await DailyAttendanceComputationRepository.GetForCutOffAsync(projectId,
+                DateOnly.FromDateTime(cutOff.StartDate), DateOnly.FromDateTime(cutOff.EndDate));
             var summaries = new List<EmployeeAttendanceSummary>();
 
             foreach (var employeeAttendances in attendances.GroupBy(attendance => attendance.EmployeeId))
@@ -77,7 +92,7 @@ namespace SCICHRPortal.Service.Implementations
 
         private async Task<EmployeeAttendanceSummary> BuildEmployeeSummaryAsync(
             Employee employee,
-            IEnumerable<EmployeeAttendance> attendances,
+            IEnumerable<EmployeeDailyAttendanceComputation> attendances,
             IEnumerable<EmployeeShift> periods)
         {
             var summary = new EmployeeAttendanceSummary();
@@ -129,7 +144,7 @@ namespace SCICHRPortal.Service.Implementations
 
         private static void AddAttendanceTotals(
             EmployeeAttendanceSummary summary,
-            EmployeeAttendance attendance,
+            EmployeeDailyAttendanceComputation attendance,
             bool isHoliday,
             bool isRestDay)
         {

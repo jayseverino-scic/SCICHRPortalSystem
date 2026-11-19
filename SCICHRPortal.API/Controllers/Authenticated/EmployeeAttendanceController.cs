@@ -1,9 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
+using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
+using SCICHRPortal.Utility.Helpers;
+using System.Globalization;
+using System.Security.Claims;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -16,16 +21,17 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IEmployeeService EmployeeService { get; }
         private IShiftService ShiftService { get; }
         private IDepartmentService DepartmentService { get; }
-        private IEmployeeTimeLogService EmployeeTimeLogService { get; }
         private IEmployeeShiftService EmployeeShiftService { get; }
-        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IEmployeeTimeLogService employeeTimeLogService, IEmployeeShiftService employeeShiftService)
+        private IEmployeeDailyAttendanceComputationService DailyAttendanceComputationService { get; }
+
+        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IEmployeeShiftService employeeShiftService, IEmployeeDailyAttendanceComputationService dailyAttendanceComputationService)
         {
             EmployeeAttendanceService = employeeAttendanceService;
             EmployeeService = employeeService;
             ShiftService = shiftService;
             DepartmentService = departmentService;
-            EmployeeTimeLogService = employeeTimeLogService;
             EmployeeShiftService = employeeShiftService;
+            DailyAttendanceComputationService = dailyAttendanceComputationService;
         }
 
         [Authorize] 
@@ -111,137 +117,39 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
         [Authorize]
         [HttpGet("AttendanceFilter")]
-        public async Task<IActionResult> EmployeeAttendanceFilterAsync(int projectId, DateTime attendanceDate)
+        public async Task<IActionResult> EmployeeAttendanceFilterAsync(int projectId, DateTime attendanceDate,
+            CancellationToken cancellationToken)
         {
-            IEnumerable<EmployeeTimeLog> employeeTimeLogs = await EmployeeTimeLogService.GetDailyLogByProjectAsync(projectId, attendanceDate);
-            IEnumerable<EmployeeAttendance>? employeeAttendancesList = null;
-            List<EmployeeAttendanceUpdateRequestModel> listToDisplay = new List<EmployeeAttendanceUpdateRequestModel>();
-            employeeAttendancesList = await EmployeeAttendanceService.EmployeeAttendanceFilter(projectId, attendanceDate);
+            var attendance = await EmployeeAttendanceService.GetDailyAttendanceAsync(projectId, attendanceDate,
+                cancellationToken);
+            return Ok(attendance);
+        }
 
-            int[] assignedIds = employeeAttendancesList.Select(x => x.TimeLogId).ToArray();
+        [HttpGet("SavedAttendance")]
+        public async Task<IActionResult> GetSavedAttendanceAsync(string? attendanceDate, int projectId = 0,
+            int draw = 0, int start = 0, int length = 25, CancellationToken cancellationToken = default)
+        {
+            if (!DateOnly.TryParseExact(attendanceDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
+                date == default || projectId < 0 || draw < 0 || start < 0 || length is not (10 or 25 or 50 or 100))
+                return BadRequest(new { Message = "Enter a valid attendance date, project, and page." });
 
-            List<EmployeeAttendance> employeeAttendances = new List<EmployeeAttendance>();
-            IEnumerable<Department> departmentList = await DepartmentService.GetAllAsync();
-            List<Department> departments = departmentList.ToList();
-            employeeTimeLogs = employeeTimeLogs.Where(item => !assignedIds.Any(x => x == item.TimeLogId)).ToList();
-            if (projectId != 0)
-            {
-                employeeTimeLogs = employeeTimeLogs.Where(e => e.Employee?.ProjectId == projectId);
-            }
-            List<EmployeeTimeLog> mergedList = employeeTimeLogs
-            .GroupJoin(
-                employeeAttendances, left => left.EmployeeId, right => right.EmployeeId,
-                (x, y) => new { Left = x, Rights = y }
-            )
-            .SelectMany(
-                x => x.Rights.Where(right => x.Left.EmployeeId == right.EmployeeId && x.Left.DateIn != right.TimeIn.Date).DefaultIfEmpty(),
-                (x, y) => new EmployeeTimeLog
-                {
-                    EmployeeId = x.Left.EmployeeId,
-                    TimeLogId = x.Left.TimeLogId,
-                    TimeIn = x.Left.TimeIn,
-                    TimeOut = x.Left.TimeOut,
-                    ShiftStart = x.Left.ShiftStart,
-                    ShiftEnd = x.Left.ShiftEnd,
-                    IsFlexibleShift = x.Left.IsFlexibleShift,
-                    IsNoShift = x.Left.IsNoShift,
-                    IsNoBreak = x.Left.IsNoBreak,
-                    Employee = x.Left.Employee
-                }
-            ).ToList();
+            return Ok(await DailyAttendanceComputationService.GetPageAsync(date, projectId, draw, start, length, cancellationToken));
+        }
 
-            if (mergedList != null)
-            {
-                foreach (EmployeeTimeLog employee in mergedList)
-                {
-                    var duplicatedLog = employeeAttendancesList.Where(e => e.EmployeeId == employee.EmployeeId && e.TimeIn.Date.ToShortDateString() == employee.TimeIn!.Value.ToShortDateString()).SingleOrDefault();
-                    if (duplicatedLog == null)
-                    {
-                        EmployeeAttendance employeeAttendance = new EmployeeAttendance
-                        {
-                            EmployeeAttendanceId = 0,
-                            EmployeeId = employee.EmployeeId,
-                            TimeLogId = employee.TimeLogId,
-                            TimeIn = (DateTime)employee.TimeIn!.Value,
-                            TimeOut = (DateTime)employee.TimeOut!.Value,
-                            ShiftStart = employee.ShiftStart,
-                            ShiftEnd = employee.ShiftEnd,
-                            IsFlexibleShift = employee.IsFlexibleShift,
-                            IsNoShift = employee.IsNoShift,
-                            IsNoBreak = employee.IsNoBreak,
-                            Employee = employee.Employee,
-                        };
-                        employeeAttendances.Add(employeeAttendance);
-                    }
-                }
-            }
-            employeeAttendances.AddRange(employeeAttendancesList);
-            foreach (EmployeeAttendance employeeAttendance in employeeAttendances.ToList())
-            {
-                EmployeeAttendanceUpdateRequestModel employeeAttendanceUpdateRequestModel = new EmployeeAttendanceUpdateRequestModel
-                {
-                    EmployeeAttendanceId = employeeAttendance.EmployeeAttendanceId,
-                    TimeLogId = employeeAttendance.TimeLogId,
-                    EmployeeId = employeeAttendance.EmployeeId,
-                    EmployeeName = $"{employeeAttendance.Employee?.LastName}, {employeeAttendance.Employee?.FirstName}",
-                    TimeIn = employeeAttendance.TimeIn,
-                    TimeOut = employeeAttendance.TimeOut,
-                    ShiftStart = employeeAttendance.ShiftStart,
-                    ShiftEnd = employeeAttendance.ShiftEnd,
-                    IsFlexibleShift = employeeAttendance.IsFlexibleShift,
-                    IsNoShift = employeeAttendance.IsNoShift,
-                    IsNoBreak = employeeAttendance.IsNoBreak,
-                    ShiftHours = employeeAttendance.ShiftHours,
-                    RegularHour = employeeAttendance.RegularHour,
-                    TotalLoggedHours = employeeAttendance.TotalLoggedHours,
-                    ApprovedOT = employeeAttendance.ApprovedOT,
-                    OTHours = employeeAttendance.OTHours,
-                    NDHours = employeeAttendance.NDHours,
-                    ShiftUndertime = employeeAttendance.ShiftUndertime,
-                    ShiftLate = employeeAttendance.ShiftLate,
-                    ApprovedHoliday = employeeAttendance.ApprovedHoliday,
-                    ApprovedHolidayOT = employeeAttendance.ApprovedHolidayOT,
-                    ApprovedSPHoliday = employeeAttendance.ApprovedSPHoliday,
-                    ApprovedSPHolidayOT = employeeAttendance.ApprovedSPHolidayOT,
-                    ApprovedRestDay = employeeAttendance.ApprovedRestDay,
-                    ApprovedRestDayOT = employeeAttendance.ApprovedRestDayOT,
-                    Employee = employeeAttendance.Employee,
-                    Department = departmentList.Where(d => d.DepartmentId == employeeAttendance.Employee?.DepartmentId).Select(d => d.DepartmentName).FirstOrDefault(),
-                };
-                listToDisplay.Add(employeeAttendanceUpdateRequestModel);
-            }
-          
-            var data = listToDisplay.Select(d => new
-            {
-                d.EmployeeAttendanceId,
-                d.TimeLogId,
-                d.EmployeeId,
-                EmployeeName = $"{d.Employee?.LastName}, {d.Employee?.FirstName}",
-                d.TimeIn,
-                d.TimeOut,
-                d.ShiftStart,
-                d.ShiftEnd,
-                d.IsFlexibleShift,
-                d.IsNoShift,
-                d.IsNoBreak,
-                d.ShiftHours,
-                d.RegularHour,
-                d.TotalLoggedHours,
-                d.ApprovedOT,
-                d.OTHours,
-                d.NDHours,
-                d.ShiftUndertime,
-                d.ShiftLate,
-                d.ApprovedHoliday,
-                d.ApprovedHolidayOT,
-                d.ApprovedSPHoliday,
-                d.ApprovedSPHolidayOT,
-                d.ApprovedRestDay,
-                d.ApprovedRestDayOT,
-                d.Department,
-            });
+        [HttpPost("ReimportSavedAttendance")]
+        public async Task<IActionResult> ReimportSavedAttendanceAsync(ReimportSavedAttendanceRequestModel request, CancellationToken cancellationToken)
+        {
+            if (request.ProjectId <= 0 || request.AttendanceDate is not { } date || date == default ||
+                date > DateOnly.FromDateTime(PhilippineTime.Now))
+                return BadRequest(new { Message = "Select a project and a current or past attendance date." });
 
-            return Ok(data);
+            var actor = User.Identity?.Name ?? User.FindFirstValue(ClaimTypes.Sid) ?? "Authenticated user";
+            var audit = new ImportAudit(actor, "Saved Attendance Reimport", "SCIC HR Portal");
+            var result = await DailyAttendanceComputationService.ReimportAsync(request.ProjectId, date, audit, cancellationToken);
+            if (result is null)
+                return NotFound(new { Message = "The selected project was not found or is inactive." });
+
+            return Ok(result);
         }
 
         [Authorize]
@@ -255,49 +163,17 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             foreach (var item in employeeAttendance)
             {
-                DateTime ndStart = Convert.ToDateTime(item.TimeIn.Date.ToShortDateString() + " 10:00 PM");
-                DateTime ndEnd = Convert.ToDateTime(item.TimeIn.Date.AddDays(1).ToShortDateString() + " 06:00 AM");
-                DateTime ndLogStart = new DateTime();
-                DateTime ndLogEnd = new DateTime();
-                bool withND = false;
-                double shiftLateGracePeriod = 0;
-                EmployeeShift? employeeShift = await EmployeeShiftService.GetAtAsync(item.EmployeeId, DateTime.SpecifyKind(item.TimeIn, DateTimeKind.Unspecified));
+                double shiftLateGracePeriodMinutes = 0;
+                var employeeShift = await EmployeeShiftService.GetAtAsync(item.EmployeeId, DateTime.SpecifyKind(item.TimeIn, DateTimeKind.Unspecified));
                 if (employeeShift != null)
                 {
-                    Shift shift = await ShiftService.GetAsync(employeeShift.ShiftId);
+                    var shift = await ShiftService.GetAsync(employeeShift.ShiftId);
                     if (shift != null)
-                    {
-                        shiftLateGracePeriod = Convert.ToDouble(shift.ShiftLateMinuteGracePeriod) / 60;
-                    }
+                        shiftLateGracePeriodMinutes = Convert.ToDouble(shift.ShiftLateMinuteGracePeriod);
                 }
-                if (item.TimeIn >= ndStart && item.TimeIn <= ndEnd)
-                {
-                    ndLogStart = item.TimeIn;
-                    withND=true;
-                }
-                else if (item.TimeIn < ndStart && item.TimeOut >= ndStart || item.TimeIn < ndStart && item.TimeOut >= ndEnd)
-                {
-                    ndLogStart = ndStart;
-                    withND = true;
-                }
-                else
-                {
-                    withND = false;
-                }
-                if (withND == true && item.TimeOut >= ndStart && item.TimeOut <= ndEnd)
-                {
-                    ndLogEnd = item.TimeOut;
-                    withND = true;
-                }
-                else if (withND == true && item.TimeOut > ndEnd)
-                {
-                    ndLogEnd = ndEnd;
-                    withND = true;
-                }
-                else
-                { 
-                    withND = false; 
-                }
+
+                var metrics = EmployeeDailyAttendanceCalculator.Calculate(item.TimeIn, item.TimeOut, item.ShiftStart!.Value,
+                    item.ShiftEnd!.Value, shiftLateGracePeriodMinutes, item.ApprovedOT);
                 EmployeeAttendance attendance = new EmployeeAttendance
                 {
                     EmployeeAttendanceId = item.EmployeeAttendanceId,
@@ -310,14 +186,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                     IsFlexibleShift = item.IsFlexibleShift,
                     IsNoShift = item.IsNoShift,
                     IsNoBreak = item.IsNoBreak,
-                    ShiftHours = ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value),
-                    RegularHour = ComputeHours(item.TimeIn, item.TimeOut) > ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value) ? ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value) : ComputeHours(item.TimeIn, item.TimeOut),
-                    TotalLoggedHours = ComputeHours(item.TimeIn, item.TimeOut),
+                    ShiftHours = metrics.ShiftHours,
+                    RegularHour = metrics.RegularHour,
+                    TotalLoggedHours = metrics.TotalLoggedHours,
                     ApprovedOT = item.ApprovedOT,
-                    OTHours = item.ApprovedOT == true ? ComputeHours(item.TimeIn, item.TimeOut) - ComputeHours(item.ShiftStart!.Value, item.ShiftEnd!.Value) : 0,
-                    NDHours = withND == true ? ComputeHours(ndLogStart, ndLogEnd) : 0,
-                    ShiftUndertime = item.TimeOut < item.ShiftEnd ? ComputeHours(item.TimeOut, item.ShiftEnd.Value) * 60 : 0,
-                    ShiftLate = item.TimeIn > item.ShiftStart ? (ComputeHours(item.ShiftStart.Value, item.TimeIn) > shiftLateGracePeriod ? ComputeHours(item.ShiftStart.Value, item.TimeIn) * 60 : 0) : 0,
+                    OTHours = metrics.OTHours,
+                    NDHours = metrics.NDHours,
+                    ShiftUndertime = metrics.ShiftUndertime,
+                    ShiftLate = metrics.ShiftLate,
                     ApprovedHoliday = item.ApprovedHoliday,
                     ApprovedHolidayOT = item.ApprovedHolidayOT,
                     ApprovedSPHoliday = item.ApprovedSPHoliday,
@@ -362,10 +238,5 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
         //    return Ok();
         //}
-        private static double ComputeHours(DateTime start, DateTime end)
-        {
-            TimeSpan minutes = end - start;
-            return minutes.TotalMinutes / 60;
-        }
     }
 }

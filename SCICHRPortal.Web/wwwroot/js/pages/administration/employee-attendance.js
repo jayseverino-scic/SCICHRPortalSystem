@@ -1,56 +1,145 @@
-﻿(function ($) {
-    const CLICK_EVENT = 'click';
-
-    const _apiHelper = new ApiHelper();
-    const _formHelper = new FormHelper();
+(function ($) {
+    const apiHelper = new ApiHelper();
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
-    const _stringHelper = new StringHelper();
+    const $form = $('#attendance-filter');
+    const $project = $('#project');
+    const $date = $('#inputdate');
+    const $compute = $('#compute');
+    const $reimport = $('#attendance-reimport');
+    const $grid = $('#employee-attendance-grid');
+    const $gridStatus = $('#attendance-grid-status');
+    const $result = $('#attendance-result');
+    const manilaDate = new Intl.DateTimeFormat('en', {
+        timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit'
+    });
 
-    let _project = [];
-    let _currentProjectId = 0;
-    let _attendanceDate = new Date();
-    let dataTable = null;
+    let dataTable;
+    let loadedFilter = null;
+    let requestVersion = 0;
+    let loading = false;
+    let saving = false;
+    let hasApprovalEdits = false;
 
-    let attachEvents = () => {
-        $('#compute').off(CLICK_EVENT);
-        $('#filter').off(CLICK_EVENT);
-        $('#inputdate').attr('value', moment().format('yyyy-MM-DD'));
-        $('#compute').on(CLICK_EVENT, onEmployeeAttendanceSubmit);
-        $('#filter').on(CLICK_EVENT, loadEmployeeAttendanceData);
-    };
+    function todayInManila() {
+        const parts = Object.fromEntries(manilaDate.formatToParts().map(part => [part.type, part.value]));
+        return [parts.year, parts.month, parts.day].join('-');
+    }
 
-    let loadEmployeeAttendanceData = async () => {
-        _currentProjectId = $('#project').val() || 0;
-        _attendanceDate = $('#inputdate').val();
-        await getEmployeeAttendanceData(_currentProjectId, _attendanceDate);
-    };
+    function readFilter() {
+        return { projectId: Number($project.val()), attendanceDate: $date.val() };
+    }
 
-    let getEmployeeAttendanceData = async (projectId, attendanceDate) => {
-        var queryDate = _dateHelper.formatShortLocalDate(attendanceDate);
+    function filtersMatch(first, second) {
+        return first?.projectId === second.projectId && first?.attendanceDate === second.attendanceDate;
+    }
+
+    function canEditGrid() {
+        return !loading && !saving && filtersMatch(loadedFilter, readFilter());
+    }
+
+    function canReimport(filter) {
+        return canEditGrid() && !hasApprovalEdits && filter.projectId > 0 &&
+            filter.attendanceDate <= todayInManila();
+    }
+
+    function updateControls() {
+        const editable = canEditGrid();
+        const filter = readFilter();
+        const hasRows = dataTable.rows().count() > 0;
+        $compute.prop('disabled', !editable || !hasRows);
+        $reimport.prop('disabled', !canReimport(filter));
+        $form.find('input, select, button').prop('disabled', saving);
+        $(dataTable.table().container()).find('.select-all, .approval-check').prop('disabled', !editable || !hasRows);
+
+        const help = hasApprovalEdits ? 'Compute or discard your approval edits before reimporting.'
+            : filter.projectId <= 0 ? 'Select one project to Reimport.'
+            : filter.attendanceDate > todayInManila() ? 'Select today or a past date to Reimport.'
+            : 'Reimport refreshes the cutoff results for the selected project and date.';
+        $('#attendance-reimport-help').text(help);
+    }
+
+    function showGridStatus(message) {
+        $gridStatus.text(message).prop('hidden', !message);
+    }
+
+    function showResult(message, level) {
+        $result.removeClass('alert alert-info alert-success alert-warning alert-danger').text(message);
+        if (message) $result.addClass('alert alert-' + level);
+    }
+
+    async function loadProjects() {
         try {
-            let response = await _apiHelper.get({
-                url: `Authenticated/EmployeeAttendance/AttendanceFilter?projectId=${projectId}&attendanceDate=${queryDate}`,
-            });
-
-            if (response.ok) {
-                let data = await response.json();
-                renderEmployeeAttendanceGrid(data || []);
-            } else {
-                renderEmployeeAttendanceGrid([]);
+            const response = await apiHelper.get({ url: 'Authenticated/Project' });
+            if (!response.ok) throw new Error();
+            for (const project of await response.json()) {
+                $('<option>').val(project.id).text(project.name).appendTo($project);
             }
-        } catch (error) {
-            renderEmployeeAttendanceGrid([]);
+        } catch (_) {
+            $('#attendance-project-status')
+                .text('Could not load projects. You can still view All Projects.')
+                .prop('hidden', false);
         }
-    };
+    }
 
-    let getEmployeeAttendanceColumns = () => {
+    async function loadAttendance(filter) {
+        const version = ++requestVersion;
+        loading = true;
+        updateControls();
+        showGridStatus('Loading saved attendance…');
+
+        try {
+            const rows = [];
+            const length = 100;
+            let total;
+            do {
+                const query = new URLSearchParams({ ...filter, start: rows.length, length });
+                const response = await apiHelper.get({ url: 'Authenticated/EmployeeAttendance/SavedAttendance?' + query });
+                if (!response.ok) throw new Error();
+                const page = await response.json();
+                if (version !== requestVersion || !filtersMatch(filter, readFilter())) return;
+
+                rows.push(...page.data);
+                total = page.recordsFiltered;
+                if (page.data.length === 0) break;
+            } while (rows.length < total);
+
+            loadedFilter = filter;
+            hasApprovalEdits = false;
+            dataTable.clear().rows.add(rows).draw();
+            showGridStatus('');
+        } catch (_) {
+            if (version !== requestVersion) return;
+            showGridStatus('Could not load saved attendance. Click Get Attendance to try again.');
+        } finally {
+            if (version === requestVersion) {
+                loading = false;
+                updateControls();
+            }
+        }
+    }
+
+
+    function approvalColumn(title, field) {
+        return {
+            title: `<input type="checkbox" class="select-all" data-column="${field}" aria-label="Select all for ${title}"> ${title}`,
+            data: field,
+            width: '50px',
+            className: 'dt-center',
+            render: (checked, type) => type === 'display'
+                ? `<input type="checkbox" class="approval-check" data-column="${field}" aria-label="Approve ${title}"${checked ? ' checked' : ''}>`
+                : checked,
+            orderable: false
+        };
+    }
+
+    function getEmployeeAttendanceColumns() {
         return [
             {
                 title: "Employee",
                 data: "employeeName",
                 className: 'dt-center',
-                render: (data) => data ? _stringHelper.capitalize(data) : '-'
+                render: $.fn.dataTable.render.text()
             },
             {
                 title: "Time Log Id",
@@ -103,8 +192,8 @@
                 title: "Flexible Shift",
                 data: "isFlexibleShift",
                 className: 'noVis dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
+                render: function (data) {
+                    return `<input type="checkbox" class="row-check" data-column="isFlexibleShift" ${data ? 'checked' : ''} disabled>`;
                 },
                 orderable: false
             },
@@ -112,8 +201,8 @@
                 title: "No Shift",
                 data: "isNoShift",
                 className: 'noVis dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isNoShift" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
+                render: function (data) {
+                    return `<input type="checkbox" class="row-check" data-column="isNoShift" ${data ? 'checked' : ''} disabled>`;
                 },
                 orderable: false
             },
@@ -121,8 +210,8 @@
                 title: "No Break",
                 data: "isNoBreak",
                 className: 'noVis dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="isNoBreak" data-row="${meta.row}" ${data ? 'checked' : ''} disabled readonly>`;
+                render: function (data) {
+                    return `<input type="checkbox" class="row-check" data-column="isNoBreak" ${data ? 'checked' : ''} disabled>`;
                 },
                 orderable: false
             },
@@ -186,16 +275,7 @@
                     return _numberHelper.formatCommaSeperator(data);
                 }
             },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedOT" type="checkbox"> Overtime',
-                data: "approvedOT",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="approvedOT" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
+            approvalColumn("Overtime", "approvedOT"),
             {
                 title: "Overtime Hours",
                 data: "otHours",
@@ -220,71 +300,17 @@
                     return _numberHelper.formatCommaSeperator(data);
                 }
             },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedHoliday" type="checkbox"> Holiday',
-                data: "approvedHoliday",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="approvedHoliday" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedHolidayOT" type="checkbox"> Holiday Overtime',
-                data: "approvedHolidayOT",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="approvedHolidayOT" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedSPHoliday" type="checkbox"> Special Holiday',
-                data: "approvedSPHoliday",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="approvedSPHoliday" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedSPHolidayOT" type="checkbox"> Special Holiday Overtime',
-                data: "approvedSPHolidayOT",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="approvedSPHolidayOT" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedRestDay" type="checkbox"> Rest Day',
-                data: "approvedRestDay",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="approvedRestDay" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
-            {
-                title: '<input name="select_all" value="1" class="select-all" data-column="approvedRestDayOT" type="checkbox"> Rest Day Overtime',
-                data: "approvedRestDayOT",
-                width: "50px",
-                className: 'dt-center',
-                render: function (data, type, row, meta) {
-                    return `<input type="checkbox" class="row-check" data-column="approvedRestDayOT" data-row="${meta.row}" ${data ? 'checked' : ''}>`;
-                },
-                orderable: false
-            },
+            approvalColumn("Holiday", "approvedHoliday"),
+            approvalColumn("Holiday Overtime", "approvedHolidayOT"),
+            approvalColumn("Special Holiday", "approvedSPHoliday"),
+            approvalColumn("Special Holiday Overtime", "approvedSPHolidayOT"),
+            approvalColumn("Rest Day", "approvedRestDay"),
+            approvalColumn("Rest Day Overtime", "approvedRestDayOT"),
             {
                 title: "Project",
-                data: "project",
+                data: "projectName",
                 className: 'dt-center',
-                render: (data) => data ? _stringHelper.capitalize(data) : '-',
+                render: $.fn.dataTable.render.text(),
                 orderable: true
             },
             {
@@ -298,236 +324,164 @@
                 visible: false
             },
         ];
-    };
+    }
 
-    let onEmployeeAttendanceSubmit = async event => {
-        event.preventDefault();
+    async function readActionError(response, fallback) {
+        if (response.status === 403) return 'You do not have access to perform this action.';
+        if (![400, 404, 409].includes(response.status)) return fallback;
 
-        if (!dataTable) {
-            alert('Data table not initialized.');
-            return;
+        const body = await response.text();
+        try {
+            const error = JSON.parse(body);
+            return error.message || error.detail || Object.values(error.errors ?? {}).flat()[0] || fallback;
+        } catch (_) {
+            return response.status === 409 && body ? body : fallback;
         }
+    }
 
-        const data = dataTable.rows().data().toArray();
+    async function onCompute() {
+        if (!canEditGrid() || dataTable.rows().count() === 0) return;
 
-        if (data.length === 0) {
-            alert('No data to save.');
-            return;
-        }
+        const filter = loadedFilter;
+        saving = true;
+        updateControls();
+        showResult('Computing attendance…', 'info');
+        const failure = 'Could not compute attendance. Try again.';
 
         try {
-            const response = await _apiHelper.post({
-                url: `Authenticated/EmployeeAttendance/Compute`,
-                data: data
+            const response = await apiHelper.post({
+                url: 'Authenticated/EmployeeAttendance/Compute',
+                data: dataTable.rows().data().toArray()
             });
-
-            if (response.ok) {
-                await loadEmployeeAttendanceData();
-                alert('Employee attendance have been computed successfully!');
-            } else if (response.status === 403) {
-                alert('Access denied.');
-            } else if (response.status === 409) {
-                const errorText = await response.text();
-                alert('Conflict: ' + errorText);
-            } else {
-                alert('Failed to compute employee attendance.');
+            if (!response.ok) {
+                showResult(await readActionError(response, failure), 'danger');
+                return;
             }
-        } catch (error) {
-            alert('An error occurred while saving.');
+
+            hasApprovalEdits = false;
+            loadedFilter = null;
+            showResult('Attendance computed. Run Reimport for each applicable project to refresh cutoff results.', 'success');
+            await loadAttendance(filter);
+        } catch (_) {
+            showResult(failure, 'danger');
+        } finally {
+            saving = false;
+            updateControls();
         }
-    };
+    }
 
-    let renderEmployeeAttendanceGrid = (data) => {
-        const tableId = '#employee-attendance-grid';
-        const $table = $(tableId);
-        const pageLength = dataTable ? dataTable.page.len() : 10;
+    async function onReimport() {
+        const filter = readFilter();
+        if (!canReimport(filter)) return;
 
-        if ($.fn.DataTable.isDataTable(tableId)) {
-            dataTable.destroy();
-            $table.empty();
+        saving = true;
+        updateControls();
+        showResult('Reimporting attendance…', 'info');
+        const failure = 'Could not reimport attendance. Try again.';
+
+        try {
+            const response = await apiHelper.post({
+                url: 'Authenticated/EmployeeAttendance/ReimportSavedAttendance',
+                data: filter
+            });
+            if (!response.ok) {
+                showResult(await readActionError(response, failure), 'danger');
+                return;
+            }
+
+            const result = await response.json();
+            showResult('Saved ' + result.savedCount + ' attendance records. Skipped ' + result.skippedCount + ' time logs.',
+                result.skippedCount > 0 ? 'warning' : 'success');
+            loadedFilter = null;
+            await loadAttendance(filter);
+        } catch (_) {
+            showResult(failure, 'danger');
+        } finally {
+            saving = false;
+            updateControls();
         }
-        $table.html(`
-            <thead>
-                <tr>
-                    <th>Employee</th>
-                    <th>Timelog Id</th>
-                    <th>Time In</th>
-                    <th>Time Out</th>
-                    <th>Shift Start</th>
-                    <th>Shift End</th>
-                    <th>Flexible Shift</th>
-                    <th>No Shift</th>
-                    <th>No Break</th>
-                    <th>Shift Hours</th>
-                    <th>Regular Hours</th>
-                    <th>Total Logged Hours</th>
-                    <th>Shift Late</th>
-                    <th>Shift UT</th>
-                    <th>Break UT</th>
-                    <th>Break Late </th>
-                    <th>Approved OT</th>
-                    <th>OT Hours</th>
-                    <th>ND Hours</th>
-                    <th>Approved Holiday</th>
-                    <th>Approved Holiday OT</th>
-                    <th>Approved Special Holiday</th>
-                    <th>Approved Special Holiday OT</th>
-                    <th>Approved Rest Day</th>
-                    <th>Approved Rest Day OT</th>
-                    <th>Project</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `);
+    }
 
-        dataTable = $table.DataTable({
+    function initializeGrid() {
+        dataTable = $grid.DataTable({
             dom: '<"attendance-table-toolbar"lf>rtip',
-            paging: true,
-            pageLength,
+            pageLength: 10,
             lengthMenu: [[5, 10, 20, 40, 80, -1], [5, 10, 20, 40, 80, 'All']],
-            searching: true,
-            info: true,
             autoWidth: false,
-            lengthChange: true,
             scrollX: true,
-            ordering: true,
-            data: data,
+            data: [],
             columns: getEmployeeAttendanceColumns(),
-            drawCallback: function () {
-                attachSelectAllEvents();
-            },
-            initComplete: function () {
-                attachSelectAllEvents();
-            }
-        });
-    };
-
-    let renderDropDowns = () => {
-        const renderSimpleDropdown = (elementId, data, valueField, textField, placeholder) => {
-            const $select = $(elementId);
-            $select.empty();
-
-            if (placeholder) {
-                $select.append(`<option value="">${placeholder}</option>`);
-            }
-
-            if (data && data.length > 0) {
-                data.forEach(item => {
-                    $select.append(`<option value="${item[valueField]}">${item[textField]}</option>`);
-                });
-            } else {
-                $select.append('<option value="">No data available</option>');
-            }
-        };
-        renderSimpleDropdown('#project', _project, 'id', 'name', 'Select Project');
-    };
-
-    let getDropdownData = async () => {
-        try {
-            const projectResponse = await _apiHelper.get({ url: 'Authenticated/Project' });
-
-            if (projectResponse.ok) {
-                _project = await projectResponse.json();
-            } else {
-                _project = [];
-            }
-
-        } catch (error) {
-            _project = [];
-        }
-    };
-
-    let attachSelectAllEvents = () => {
-        // Remove existing event handlers
-        $('.select-all').off('change');
-        $('.row-check').off('change');
-
-        // Add event handler for each "select all" checkbox
-        $('.select-all').on('change', function () {
-            const isChecked = $(this).prop('checked');
-            const columnName = $(this).data('column');
-
-            // Only check checkboxes in the same column
-            $(`.row-check[data-column="${columnName}"]`).prop('checked', isChecked);
-
-            // Update the data in DataTable
-            if (dataTable) {
-                dataTable.rows().every(function (rowIdx) {
-                    const rowData = this.data();
-                    if (rowData) {
-                        rowData[columnName] = isChecked;
-                        this.data(rowData);
-                    }
-                });
-                dataTable.draw(false);
-            }
+            language: { emptyTable: 'No saved attendance to display. Select one project and run Reimport.' }
         });
 
-        // Add event handler for individual row checkboxes
-        $('.row-check').on('change', function () {
-            const rowIndex = $(this).data('row');
-            const columnName = $(this).data('column');
-            const isChecked = $(this).prop('checked');
+        const $container = $(dataTable.table().container());
+        const $headers = $container.find('.dataTables_scrollHead .select-all');
 
-            // Update the data in DataTable
-            if (dataTable && rowIndex !== undefined) {
-                const rowData = dataTable.row(rowIndex).data();
-                if (rowData) {
-                    rowData[columnName] = isChecked;
-                    dataTable.row(rowIndex).data(rowData);
-                }
-            }
+        function updateApprovalHeaders() {
+            $headers.each(function () {
+                const column = this.dataset.column;
+                const rows = dataTable.rows().data().toArray();
+                const checked = rows.filter(row => row[column]).length;
+                this.checked = rows.length > 0 && checked === rows.length;
+                this.indeterminate = checked > 0 && checked < rows.length;
+            });
+        }
 
-            // Update the "select all" checkbox for this column
-            updateSelectAllCheckbox(columnName);
+        $grid.on('draw.dt', () => {
+            updateApprovalHeaders();
+            updateControls();
         });
 
-        // Initialize all "select all" checkboxes
-        $('.select-all').each(function () {
-            const columnName = $(this).data('column');
-            updateSelectAllCheckbox(columnName);
+        $container.on('change', '.approval-check', function () {
+            if (!canEditGrid()) return;
+            const cell = this.closest('td');
+            const row = dataTable.row(this.closest('tr'));
+            row.data()[this.dataset.column] = this.checked;
+            row.invalidate();
+            cell.querySelector('.approval-check')?.focus();
+            hasApprovalEdits = true;
+            updateApprovalHeaders();
+            updateControls();
         });
-    };
 
-    let updateSelectAllCheckbox = (columnName) => {
-        const $selectAll = $(`.select-all[data-column="${columnName}"]`);
-        const $rowChecks = $(`.row-check[data-column="${columnName}"]`);
+        $container.on('change', '.dataTables_scrollHead .select-all', function () {
+            if (!canEditGrid()) return;
+            const column = this.dataset.column;
+            const checked = this.checked;
+            dataTable.rows().every(function () {
+                this.data()[column] = checked;
+                this.invalidate();
+            });
+            hasApprovalEdits = true;
+            dataTable.draw(false);
+        });
+    }
 
-        if ($rowChecks.length === 0) {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', false);
-            return;
-        }
+    function initialize() {
+        $date.val(todayInManila());
+        initializeGrid();
+        $form.on('submit', event => {
+            event.preventDefault();
+            if (saving || !$form[0].reportValidity()) return;
+            if (hasApprovalEdits && !window.confirm('Discard unsaved approval edits and get attendance?')) return;
 
-        const checkedCount = $rowChecks.filter(':checked').length;
+            showResult('');
+            loadAttendance(readFilter());
+        });
 
-        if (checkedCount === 0) {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', false);
-        } else if (checkedCount === $rowChecks.length) {
-            $selectAll.prop('checked', true);
-            $selectAll.prop('indeterminate', false);
-        } else {
-            $selectAll.prop('checked', false);
-            $selectAll.prop('indeterminate', true);
-        }
-    };
+        $project.add($date).on('change', () => {
+            ++requestVersion;
+            loading = false;
+            showResult('');
+            showGridStatus(filtersMatch(loadedFilter, readFilter()) ? '' : 'Click Get Attendance to load the selected filters.');
+            updateControls();
+        });
 
-    let initializeApplication = async () => {
-        try {
-            await getDropdownData();
-            renderDropDowns();
+        $compute.on('click', onCompute);
+        $reimport.on('click', onReimport);
+        loadProjects();
+        loadAttendance(readFilter());
+    }
 
-            attachEvents();
-            //await loadEmployeeAttendanceData();
-        } catch (error) {
-            $('#employee-attendance-grid').html('<div class="alert alert-danger">Failed to initialize application. Please refresh the page.</div>');
-        }
-    };
-
-    $(document).ready(function () {
-        initializeApplication();
-        loadEmployeeAttendanceData();
-    });
-
+    $(initialize);
 })(jQuery);
