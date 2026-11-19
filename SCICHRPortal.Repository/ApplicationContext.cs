@@ -43,6 +43,7 @@ namespace SCICHRPortal.Repository
         public DbSet<LeaveType> LeaveType { get; set; }
         public DbSet<LeaveRequest> LeaveRequest { get; set; }
         public DbSet<OfficialBusiness> OfficialBusiness { get; set; }
+        public DbSet<Leave> Leave { get; set; }
         public DbSet<BiometricsLog> BiometricsLog { get; set; }
         public DbSet<Position> Position { get; set; }
         public DbSet<EmployeeShiftDevice> EmployeeShiftDevice { get; set; }
@@ -103,6 +104,16 @@ namespace SCICHRPortal.Repository
                 .HasConversion(value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null,
                     value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null);
             officialBusiness.ToTable("OfficialBusiness", table => table.HasCheckConstraint("CK_OfficialBusiness_Period", "\"To\" > \"From\""));
+            var leave = modelBuilder.Entity<Leave>();
+            new LeaveMap(leave);
+            leave.Property(row => row.From).HasColumnType("timestamp without time zone");
+            leave.Property(row => row.To).HasColumnType("timestamp without time zone");
+            leave.Property(row => row.CreatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.ToUniversalTime(), value => value.ToUniversalTime());
+            leave.Property(row => row.UpdatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null,
+                    value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null);
+            leave.ToTable("Leave", table => table.HasCheckConstraint("CK_Leave_Period", "\"To\" > \"From\""));
             new BiometricsLogMap(modelBuilder.Entity<BiometricsLog>());
             new PositionMap(modelBuilder.Entity<Position>());
             new EmployeeShiftDeviceMap(modelBuilder.Entity<EmployeeShiftDevice>());

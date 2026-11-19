@@ -752,6 +752,58 @@ namespace SCICHRPortal.Repository.Migrations
                     b.ToTable("EmployeeTimeLog");
                 });
 
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.Leave", b =>
+                {
+                    b.Property<int>("LeaveId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LeaveId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<bool>("Deleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("From")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("LeaveTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("To")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("LeaveId");
+
+                    b.HasIndex("LeaveTypeId");
+
+                    b.HasIndex("EmployeeId", "From", "To");
+
+                    b.ToTable("Leave", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Leave_Period", "\"To\" > \"From\"");
+                        });
+                });
+
             modelBuilder.Entity("SCICHRPortal.Data.Entities.LeaveRequest", b =>
                 {
                     b.Property<int>("LeaveRequestId")
@@ -2250,6 +2302,25 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Navigation("Employee");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.Leave", b =>
+                {
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.LeaveType", "LeaveType")
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LeaveType");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.LeaveRequest", b =>
