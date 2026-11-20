@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Administration System";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -27,65 +27,37 @@
             <h1 class="title">Employee Daily Attendance Computation</h1>
         </div>
 
-        <fieldset class="attendance-section attendance-filters" aria-labelledby="attendance-filters-title">
-            <legend id="attendance-filters-title" class="attendance-section-title">Filters</legend>
-            <div class="form-group">
-                <label for="project" class="form-label">Project</label>
-                <select id="project" class="form-control select"></select>
-            </div>
-            <div class="form-group">
-                <label for="inputdate" class="form-label">Date</label>
-                <input id="inputdate" type="date" class="form-control" />
-            </div>
-            <div>
-                <button type="button" id="filter" class="btn btn-primary">Get Attendance</button>
-            </div>
-        </fieldset>
-        <fieldset class="attendance-section attendance-actions" aria-labelledby="attendance-actions-title">
-            <legend id="attendance-actions-title" class="attendance-section-title">Attendance actions</legend>
-            <button type="button" class="btn btn-primary add-new-btn" id="compute">Compute</button>
-        </fieldset>
+        <form id="attendance-filter">
+            <fieldset class="attendance-section attendance-filters">
+                <legend class="attendance-section-title">Filters</legend>
+                <div class="form-group">
+                    <label for="project" class="form-label">Project</label>
+                    <select id="project" class="form-control">
+                        <option value="0">All Projects</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inputdate" class="form-label">Date</label>
+                    <input id="inputdate" type="date" class="form-control" required />
+                </div>
+                <div>
+                    <button type="submit" id="filter" class="btn btn-primary">Get Attendance</button>
+                </div>
+            </fieldset>
+        </form>
+        <p id="attendance-project-status" role="status" hidden></p>
 
+        <fieldset class="attendance-section attendance-actions">
+            <legend class="attendance-section-title">Attendance actions</legend>
+            <button type="button" class="btn btn-primary add-new-btn" id="compute" disabled>Compute</button>
+            <button type="button" class="btn btn-primary" id="attendance-reimport" aria-describedby="attendance-reimport-help" disabled>Reimport</button>
+            <span id="attendance-reimport-help"></span>
+        </fieldset>
+        <div id="attendance-result" role="status" aria-atomic="true"></div>
+
+        <p id="attendance-grid-status" role="status" hidden></p>
         <div class="table-responsive-container">
-            <table id="employee-attendance-grid" class="display" cellspacing="0" width="100%" height="100%">
-                <tfoot>
-                    <tr>
-                        <th id="1" style="text-align:right"></th>
-                        <th id="2" style="text-align:right"></th>
-                        <th id="3" style="text-align:right"></th>
-                        <th id="4" style="text-align:right"></th>
-                        <th id="5" style="text-align:right"></th>
-                        <th id="6" style="text-align:right"></th>
-                        <th id="7" style="text-align:right"></th>
-                        <th id="8" style="text-align:right"></th>
-                        <th id="9" style="text-align:right"></th>
-                        <th id="10" style="text-align:right"></th>
-                        <th id="11" style="text-align:right"></th>
-                        <th id="12" style="text-align:right"></th>
-                        <th id="13" style="text-align:right"></th>
-                        <th id="14" style="text-align:right"></th>
-                        <th id="15" style="text-align:right"></th>
-                        <th id="16" style="text-align:right"></th>
-                        <th id="17" style="text-align:right"></th>
-                        <th id="18" style="text-align:right"></th>
-                        <th id="19" style="text-align:right"></th>
-                        <th id="20" style="text-align:right"></th>
-                        <th id="21" style="text-align:right"></th>
-                        <th id="22" style="text-align:right"></th>
-                        <th id="23" style="text-align:right"></th>
-                        <th id="24" style="text-align:right"></th>
-                        <th id="25" style="text-align:right"></th>
-                        <th id="26" style="text-align:right"></th>
-                        <th id="27" style="text-align:right"></th>
-                        <th id="28" style="text-align:right"></th>
-                        <th id="29" style="text-align:right"></th>
-                        <th id="30" style="text-align:right"></th>
-                        <th id="31" style="text-align:right"></th>
-                        <th id="32" style="text-align:right"></th>
-                        <th id="33" style="text-align:right"></th>
-                    </tr>
-                </tfoot>
-            </table>
+            <table id="employee-attendance-grid" class="display" aria-label="Daily attendance" aria-describedby="attendance-grid-status" style="width: 100%"></table>
         </div>
     </div>
 </div>

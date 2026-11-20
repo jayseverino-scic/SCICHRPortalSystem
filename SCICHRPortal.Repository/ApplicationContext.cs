@@ -37,9 +37,13 @@ namespace SCICHRPortal.Repository
         public DbSet<EmployeeTimeLog> EmployeeTimeLog { get; set; }
         public DbSet<TimeLogAttachment> TimeLogAttachment { get; set; }
         public DbSet<EmployeeAttendance> EmployeeAttendance { get; set; }
+        public DbSet<EmployeeDailyAttendanceComputation> EmployeeDailyAttendanceComputation { get; set; }
+        public DbSet<EmployeeDailyAttendanceImportCheckpoint> EmployeeDailyAttendanceImportCheckpoint { get; set; }
         public DbSet<CutOff> CutOff { get; set; }
         public DbSet<LeaveType> LeaveType { get; set; }
         public DbSet<LeaveRequest> LeaveRequest { get; set; }
+        public DbSet<OfficialBusiness> OfficialBusiness { get; set; }
+        public DbSet<Leave> Leave { get; set; }
         public DbSet<BiometricsLog> BiometricsLog { get; set; }
         public DbSet<Position> Position { get; set; }
         public DbSet<EmployeeShiftDevice> EmployeeShiftDevice { get; set; }
@@ -75,9 +79,41 @@ namespace SCICHRPortal.Repository
             modelBuilder.Entity<TimeLogAttachment>().HasKey(e => e.TimeLogAttachmentId);
             modelBuilder.Entity<TimeLogAttachment>().HasIndex(e => e.TimeLogId).IsUnique();
             new EmployeeAttendanceMap(modelBuilder.Entity<EmployeeAttendance>());
+            var dailyComputation = modelBuilder.Entity<EmployeeDailyAttendanceComputation>();
+            new EmployeeDailyAttendanceComputationMap(dailyComputation);
+            dailyComputation.HasIndex(row => new { row.AttendanceDate, row.ProjectId, row.TimeIn, row.TimeLogId })
+                .HasFilter("\"Deleted\" = false");
+            dailyComputation.Property(row => row.TimeIn).HasColumnType("timestamp without time zone");
+            dailyComputation.Property(row => row.TimeOut).HasColumnType("timestamp without time zone");
+            dailyComputation.Property(row => row.ShiftStart).HasColumnType("timestamp without time zone");
+            dailyComputation.Property(row => row.ShiftEnd).HasColumnType("timestamp without time zone");
+            dailyComputation.Property(row => row.CreatedAt).HasColumnType("timestamp with time zone");
+            dailyComputation.Property(row => row.UpdatedAt).HasColumnType("timestamp with time zone");
+            new EmployeeDailyAttendanceImportCheckpointMap(modelBuilder.Entity<EmployeeDailyAttendanceImportCheckpoint>());
             new CutOffMap(modelBuilder.Entity<CutOff>());
             new LeaveTypeMap(modelBuilder.Entity<LeaveType>());
             new LeaveRequestMap(modelBuilder.Entity<LeaveRequest>());
+            var officialBusiness = modelBuilder.Entity<OfficialBusiness>();
+            new OfficialBusinessMap(officialBusiness);
+            // These are Manila business times, independent of the legacy timestamp switch.
+            officialBusiness.Property(row => row.From).HasColumnType("timestamp without time zone");
+            officialBusiness.Property(row => row.To).HasColumnType("timestamp without time zone");
+            officialBusiness.Property(row => row.CreatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.ToUniversalTime(), value => value.ToUniversalTime());
+            officialBusiness.Property(row => row.UpdatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null,
+                    value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null);
+            officialBusiness.ToTable("OfficialBusiness", table => table.HasCheckConstraint("CK_OfficialBusiness_Period", "\"To\" > \"From\""));
+            var leave = modelBuilder.Entity<Leave>();
+            new LeaveMap(leave);
+            leave.Property(row => row.From).HasColumnType("timestamp without time zone");
+            leave.Property(row => row.To).HasColumnType("timestamp without time zone");
+            leave.Property(row => row.CreatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.ToUniversalTime(), value => value.ToUniversalTime());
+            leave.Property(row => row.UpdatedAt).HasColumnType("timestamp with time zone")
+                .HasConversion(value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null,
+                    value => value.HasValue ? value.Value.ToUniversalTime() : (DateTime?)null);
+            leave.ToTable("Leave", table => table.HasCheckConstraint("CK_Leave_Period", "\"To\" > \"From\""));
             new BiometricsLogMap(modelBuilder.Entity<BiometricsLog>());
             new PositionMap(modelBuilder.Entity<Position>());
             new EmployeeShiftDeviceMap(modelBuilder.Entity<EmployeeShiftDevice>());

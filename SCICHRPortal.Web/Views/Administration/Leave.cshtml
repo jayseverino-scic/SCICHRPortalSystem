@@ -1,0 +1,149 @@
+@model SCICHRPortal.Web.Models.ViewModels.Administration.LeaveViewModel
+@{
+    ViewData["Title"] = "Leave";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/side-bar.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/leave.css" rel="stylesheet" asp-append-version="true" />
+}
+
+<section class="leave-page" aria-labelledby="leave-heading">
+    <div class="leave-header">
+        <img class="icon" src="~/images/administration/attendancebig.png" alt="" />
+        <h1 id="leave-heading">Leave</h1>
+    </div>
+    <fieldset class="leave-section leave-page-actions" aria-labelledby="leave-actions-title">
+        <legend id="leave-actions-title" class="leave-section-title">Leave actions</legend>
+        <button type="button" class="btn btn-primary" id="leave-add">New Leave</button>
+        <button type="button" class="btn btn-primary" id="leave-import">Upload Excel</button>
+        <button type="button" class="btn btn-primary" id="leave-template">Download Template</button>
+    </fieldset>
+    <div id="leave-page-status" role="status" aria-live="polite"></div>
+    <button type="button" class="btn btn-default" id="leave-retry" hidden>Retry loading records</button>
+    <div class="leave-table-wrapper">
+        <table id="leave-grid" class="display stripe" width="100%">
+            <thead>
+                <tr>
+                    <th>Employee No.</th><th>Employee Name</th>
+                    <th>From Date</th><th>From Time</th><th>To Date</th><th>To Time</th>
+                    <th>Type of Leave</th><th>Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</section>
+
+<div class="modal fade leave-modal" id="leave-modal" tabindex="-1" role="dialog"
+     aria-labelledby="leave-modal-title" aria-modal="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <form id="leave-form" novalidate>
+                <div class="form-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="leave-modal-title">Add Leave</h2>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" asp-for="LeaveId" />
+                        <input type="hidden" asp-for="EmployeeId" />
+                        <div id="leave-form-status" class="text-danger" role="alert" aria-live="assertive"></div>
+                        <div id="leave-lookup-status" role="status" aria-live="polite"></div>
+                        <div id="leave-types-status" role="status" aria-live="polite"></div>
+                        <button type="button" class="btn btn-default" id="leave-types-retry" hidden>Retry loading leave types</button>
+                        <div class="leave-fields">
+                            <div class="form-group leave-employee-field">
+                                <label asp-for="EmployeeNo"></label>
+                                <select asp-for="EmployeeNo" class="form-control" required aria-required="true"><option value=""></option></select>
+                                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group leave-employee-field">
+                                <label asp-for="EmployeeName"></label>
+                                <select asp-for="EmployeeName" class="form-control" required aria-required="true"><option value=""></option></select>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="FromDate"></label>
+                                <input asp-for="FromDate" type="date" class="form-control" required />
+                                <span asp-validation-for="FromDate" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="FromTime"></label>
+                                @* Time inputs default to minute steps; explicit step breaks the installed jQuery Validate time rule. *@
+                                <input asp-for="FromTime" type="time" class="form-control" required />
+                                <span asp-validation-for="FromTime" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ToDate"></label>
+                                <input asp-for="ToDate" type="date" class="form-control" required />
+                                <span asp-validation-for="ToDate" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ToTime"></label>
+                                <input asp-for="ToTime" type="time" class="form-control" required />
+                                <span asp-validation-for="ToTime" class="text-danger"></span>
+                            </div>
+                            <div class="form-group leave-type-field">
+                                <label asp-for="LeaveTypeId"></label>
+                                <select asp-for="LeaveTypeId" class="form-control" required aria-required="true"><option value=""></option></select>
+                                <span asp-validation-for="LeaveTypeId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <p class="leave-help">From Date and From Time mark the start; To Date and To Time mark the end of one continuous period. All dates and times are in Manila time.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default cancel-button" id="leave-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="leave-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade leave-modal" id="leave-import-modal" tabindex="-1" role="dialog"
+     aria-labelledby="leave-import-title" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <form id="leave-import-form" novalidate>
+                <div class="form-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="leave-import-title">Import Leave from Excel</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p class="leave-help">Use the downloaded template and fill rows 2–1001 on the first worksheet. Employee No. identifies the employee; Employee Name is optional and informational.</p>
+                        <p class="leave-help">Columns: Employee No., Employee Name, From Date, From Time, To Date, To Time, Type of Leave. Select an active leave description. Use Excel date/time cells or yyyy-MM-dd dates and HH:mm times. Valid rows are saved; rejected rows are listed below.</p>
+                        <div class="form-group leave-import-file-field">
+                            <label for="leave-import-file">Excel workbook (.xlsx)</label>
+                            <input id="leave-import-file" name="file" type="file" accept=".xlsx" class="form-control" required
+                                   aria-describedby="leave-import-help" />
+                            <span id="leave-import-help" class="leave-help">Maximum 10 MiB. Existing records are never overwritten.</span>
+                        </div>
+                        <div id="leave-import-status" role="status" aria-live="polite"></div>
+                        <div id="leave-import-errors" hidden>
+                            <table>
+                                <thead><tr><th scope="col">Excel row</th><th scope="col">Employee No.</th><th scope="col">Reason</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default cancel-button" id="leave-import-cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="leave-import-submit" disabled>Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/toastr.js/toastr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/select2/js/select2.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/leave.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/leave-import.js" asp-append-version="true"></script>
+}

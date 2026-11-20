@@ -7,6 +7,7 @@ using SCICHRPortal.Utility.Helpers;
 namespace SCICHRPortal.Service.BackgroundJobs;
 
 public sealed class NightlyAttendanceImportService(IAttendanceImportService attendance,
+    IEmployeeDailyAttendanceComputationService dailyAttendance,
     ILogger<NightlyAttendanceImportService> logger) : INightlyAttendanceImportService
 {
     private static readonly ImportAudit ScheduledAudit = new("Scheduled Attendance Import", "Hangfire", "SCIC HR Portal");
@@ -58,5 +59,16 @@ public sealed class NightlyAttendanceImportService(IAttendanceImportService atte
 
         logger.LogInformation("Scheduled time log import for {ProjectName}, {BusinessDate}, {Phase} imported {Imported} and skipped {Skipped}",
             name, businessDate, phase, timeLogs.Imported, timeLogs.Skipped);
+
+        var computation = await dailyAttendance.CompleteImportPhaseAsync(projectId, DateOnly.FromDateTime(businessDate),
+            phase, ScheduledAudit, cancellationToken);
+        if (computation is null)
+            return;
+
+        logger.LogInformation("Saved daily attendance for project {ProjectId}, {BusinessDate}: {SavedCount} saved, {SkippedCount} skipped",
+            projectId, businessDate, computation.SavedCount, computation.SkippedCount);
+        foreach (var skipped in computation.SkippedLogs)
+            logger.LogWarning("Skipped daily attendance time log {TimeLogId} for project {ProjectId}, {BusinessDate}: {Reason}",
+                skipped.TimeLogId, projectId, businessDate, skipped.Reason);
     }
 }

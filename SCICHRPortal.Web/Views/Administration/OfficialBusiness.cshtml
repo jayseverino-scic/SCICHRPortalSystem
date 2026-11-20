@@ -1,0 +1,142 @@
+@model SCICHRPortal.Web.Models.ViewModels.Administration.OfficialBusinessViewModel
+@{
+    ViewData["Title"] = "Official Business";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/side-bar.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/official-business.css" rel="stylesheet" asp-append-version="true" />
+}
+
+<section class="official-business-page" aria-labelledby="official-business-heading">
+    <div class="official-business-header">
+        <img class="icon" src="~/images/administration/attendancebig.png" alt="" />
+        <h1 id="official-business-heading">Official Business</h1>
+    </div>
+    <fieldset class="official-business-section official-business-page-actions" aria-labelledby="official-business-actions-title">
+        <legend id="official-business-actions-title" class="official-business-section-title">Official Business actions</legend>
+        <button type="button" class="btn btn-primary" id="official-business-add">New Official Business</button>
+        <button type="button" class="btn btn-primary" id="official-business-import">Upload Excel</button>
+        <button type="button" class="btn btn-primary" id="official-business-template">Download Template</button>
+    </fieldset>
+    <div id="official-business-page-status" role="status" aria-live="polite"></div>
+    <button type="button" class="btn btn-default" id="official-business-retry" hidden>Retry loading records</button>
+    <div class="official-business-table-wrapper">
+        <table id="official-business-grid" class="display stripe" width="100%">
+            <thead>
+                <tr>
+                    <th>Employee No.</th><th>Employee Name</th>
+                    <th>From Date OB</th><th>From Time OB</th><th>To Date OB</th><th>To Time OB</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</section>
+
+<div class="modal fade official-business-modal" id="official-business-modal" tabindex="-1" role="dialog"
+     aria-labelledby="official-business-modal-title" aria-modal="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <form id="official-business-form" novalidate>
+                <div class="form-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="official-business-modal-title">Add Official Business</h2>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" asp-for="OfficialBusinessId" />
+                        <input type="hidden" asp-for="EmployeeId" />
+                        <div id="official-business-form-status" class="text-danger" role="alert" aria-live="assertive"></div>
+                        <div id="official-business-lookup-status" role="status" aria-live="polite"></div>
+                        <div class="official-business-fields">
+                            <div class="form-group official-business-employee-field">
+                                <label asp-for="EmployeeNo"></label>
+                                <select asp-for="EmployeeNo" class="form-control" required aria-required="true"><option value=""></option></select>
+                                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group official-business-employee-field">
+                                <label asp-for="EmployeeName"></label>
+                                <select asp-for="EmployeeName" class="form-control" required aria-required="true"><option value=""></option></select>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="FromDate"></label>
+                                <input asp-for="FromDate" type="date" class="form-control" required />
+                                <span asp-validation-for="FromDate" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="FromTime"></label>
+                                @* Time inputs default to minute steps; explicit step breaks the installed jQuery Validate time rule. *@
+                                <input asp-for="FromTime" type="time" class="form-control" required />
+                                <span asp-validation-for="FromTime" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ToDate"></label>
+                                <input asp-for="ToDate" type="date" class="form-control" required />
+                                <span asp-validation-for="ToDate" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ToTime"></label>
+                                <input asp-for="ToTime" type="time" class="form-control" required />
+                                <span asp-validation-for="ToTime" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <p class="official-business-help">From Date OB and From Time OB mark the start; To Date OB and To Time OB mark the end of one continuous period. All dates and times are in Manila time.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default cancel-button" id="official-business-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="official-business-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade official-business-modal" id="official-business-import-modal" tabindex="-1" role="dialog"
+     aria-labelledby="official-business-import-title" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <form id="official-business-import-form" novalidate>
+                <div class="form-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="official-business-import-title">Import Official Business from Excel</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p class="official-business-help">Use the downloaded template and fill rows 2–1001 on the first worksheet. Employee No. identifies the employee; Employee Name is optional and informational.</p>
+                        <p class="official-business-help">Columns: Employee No., Employee Name, From Date OB, From Time OB, To Date OB, To Time OB. Use Excel date/time cells or yyyy-MM-dd dates and HH:mm times. Valid rows are saved; rejected rows are listed below.</p>
+                        <div class="form-group official-business-import-file-field">
+                            <label for="official-business-import-file">Excel workbook (.xlsx)</label>
+                            <input id="official-business-import-file" name="file" type="file" accept=".xlsx" class="form-control" required
+                                   aria-describedby="official-business-import-help" />
+                            <span id="official-business-import-help" class="official-business-help">Maximum 10 MiB. Existing records are never overwritten.</span>
+                        </div>
+                        <div id="official-business-import-status" role="status" aria-live="polite"></div>
+                        <div id="official-business-import-errors" hidden>
+                            <table>
+                                <thead><tr><th scope="col">Excel row</th><th scope="col">Employee No.</th><th scope="col">Reason</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default cancel-button" id="official-business-import-cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="official-business-import-submit" disabled>Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/toastr.js/toastr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/select2/js/select2.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/official-business.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/official-business-import.js" asp-append-version="true"></script>
+}

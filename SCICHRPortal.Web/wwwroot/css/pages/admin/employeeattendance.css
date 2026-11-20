@@ -1,4 +1,4 @@
-﻿
+
 #content-container .container {
     background: rgba(255, 255, 255, 0.75) !important;
     backdrop-filter: blur(20px) saturate(140%) !important;
@@ -91,6 +91,11 @@
     border: 1px solid #c8e6c9;
     border-radius: 8px;
     background: #f5faf5;
+}
+
+#attendance-reimport-help {
+    align-self: center;
+    color: #465947;
 }
 
 #content-container .attendance-page .attendance-section-title {

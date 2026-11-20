@@ -1,0 +1,611 @@
+/* Match the Employee Time Logs presentation, scoped to Official Business. */
+.official-business-page {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 40px;
+    padding: 28px 32px 32px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid rgba(200, 230, 200, 0.6);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(40, 100, 40, 0.10), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    font-family: 'Inter', sans-serif;
+    color: #2d3a2d;
+    transition: box-shadow 0.2s ease;
+}
+
+.official-business-page:hover {
+    box-shadow: 0 6px 32px rgba(40, 100, 40, 0.13), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.official-business-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    padding-bottom: 20px;
+    border-bottom: 1.5px solid rgba(200, 230, 200, 0.55);
+}
+
+.official-business-header .icon {
+    width: 46px;
+    height: 46px;
+    filter: drop-shadow(0 2px 6px rgba(46, 125, 50, 0.18));
+}
+
+.official-business-header h1 {
+    margin: 0;
+    color: #1b5e20;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.official-business-section {
+    min-width: 0;
+    margin: 0 0 18px;
+    padding: 16px;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    background: #f5faf5;
+}
+
+.official-business-section-title {
+    float: none;
+    width: auto;
+    max-width: 100%;
+    margin: 0 0 0 -8px;
+    padding: 0 8px;
+    border: 0;
+    color: #1b5e20;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.official-business-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.official-business-page .btn-primary {
+    min-height: 38px;
+    margin: 0;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2e7d32, #388e3c);
+    box-shadow: 0 2px 10px rgba(46, 125, 50, 0.25);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    transition: all 0.2s ease;
+}
+
+.official-business-page .btn-primary:hover {
+    background: linear-gradient(135deg, #1b5e20, #2e7d32);
+    box-shadow: 0 4px 16px rgba(46, 125, 50, 0.35);
+    transform: translateY(-1px);
+}
+
+.official-business-table-wrapper {
+    min-width: 0;
+    width: 100%;
+}
+
+.official-business-page .dataTables_wrapper {
+    margin-top: 20px;
+    border-top: 1px solid rgba(200, 230, 200, 0.4);
+}
+
+.official-business-table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    padding: 16px 0;
+}
+
+.official-business-table-toolbar .dataTables_length,
+.official-business-table-toolbar .dataTables_filter {
+    float: none;
+    margin: 0;
+}
+
+.official-business-table-toolbar .dataTables_filter {
+    margin-left: auto;
+}
+
+.official-business-table-toolbar label {
+    margin-bottom: 0;
+    color: #555;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+#official-business-grid_length select {
+    margin: 0 5px;
+    padding: 5px 8px;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    background: #fff;
+    color: #333;
+}
+
+#official-business-grid_filter label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+#official-business-grid_filter input[type=search] {
+    width: 250px;
+    height: 36px;
+    padding: 4px 8px;
+    border: 1.5px solid #c8e6c9;
+    border-radius: 8px;
+    color: #333;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+#official-business-grid_filter input[type=search]:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+}
+
+.official-business-table-wrapper table.dataTable {
+    min-width: 960px;
+}
+
+.official-business-table-wrapper table.dataTable thead th {
+    padding: 12px 16px;
+    border: none;
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.official-business-table-wrapper table.dataTable thead th:first-child {
+    border-radius: 8px 0 0 0;
+}
+
+.official-business-table-wrapper table.dataTable thead th:last-child {
+    border-radius: 0 8px 0 0;
+}
+
+#official-business-grid tbody tr {
+    transition: background 0.15s ease;
+}
+
+#official-business-grid tbody tr:hover {
+    background: rgba(232, 245, 233, 0.7);
+}
+
+#official-business-grid tbody tr:nth-child(even) {
+    background: rgba(248, 253, 248, 0.5);
+}
+
+#official-business-grid tbody td {
+    max-width: 260px;
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(200, 230, 200, 0.4);
+    color: #2d3a2d;
+    font-size: 13px;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+#official-business-grid .official-business-actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.official-business-actions button {
+    min-width: 28px;
+    margin: 0 4px;
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    font-size: 16px;
+    line-height: 1;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.official-business-edit {
+    color: #0070c0;
+}
+
+.official-business-delete {
+    color: #f35353;
+}
+
+.official-business-actions button:hover {
+    color: #1b5e20;
+    transform: scale(1.15);
+}
+
+.official-business-page .dataTables_paginate .paginate_button {
+    border: 1px solid #c8e6c9 !important;
+    border-radius: 7px !important;
+    color: #2e7d32 !important;
+    font-size: 12px;
+    transition: all 0.15s ease;
+}
+
+.official-business-page .dataTables_paginate .paginate_button.current,
+.official-business-page .dataTables_paginate .paginate_button:hover {
+    border-color: #2e7d32 !important;
+    background: linear-gradient(135deg, #2e7d32, #1b5e20) !important;
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.25);
+    color: #fff !important;
+}
+
+#official-business-grid_info {
+    color: #555;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.official-business-modal,
+.official-business-confirmation {
+    z-index: 1200;
+}
+
+.official-business-backdrop {
+    z-index: 1190;
+    background-color: rgba(15, 50, 15, 0.50);
+    backdrop-filter: blur(3px);
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-dialog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 500px;
+    max-width: calc(100% - 24px);
+    min-height: calc(100% - 60px);
+    height: auto;
+    margin: 30px auto;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 60px);
+    max-height: calc(100dvh - 60px);
+    overflow: visible;
+    border: 1px solid rgba(255, 255, 255, 0.60);
+    border-radius: 20px;
+    background: rgba(245, 252, 245, 0.55);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: 0 12px 48px rgba(30, 100, 30, 0.18), 0 2px 0 rgba(255, 255, 255, 0.7) inset;
+    font-family: 'Inter', sans-serif;
+}
+
+:is(#official-business-form, #official-business-import-form),
+:is(#official-business-form, #official-business-import-form) .form-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:is(#official-business-form, #official-business-import-form) {
+    max-height: inherit;
+}
+
+:is(#official-business-form, #official-business-import-form) .form-content {
+    flex: 1 1 auto;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-header {
+    flex-shrink: 0;
+    padding: 18px 26px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px 20px 0 0;
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.85), rgba(27, 94, 32, 0.90));
+    backdrop-filter: blur(10px);
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-title {
+    margin: 0;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 24px 26px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(20px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(46, 125, 50, 0.30) transparent;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-body::-webkit-scrollbar-thumb {
+    background: rgba(46, 125, 50, 0.30);
+    border-radius: 4px;
+}
+
+.official-business-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 16px;
+    width: 100%;
+}
+
+.official-business-employee-field {
+    grid-column: 1 / -1;
+}
+
+#official-business-modal .official-business-fields > .form-group {
+    margin: 0;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .form-group {
+    min-width: 0;
+    margin: 0 0 18px;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .form-group:last-child {
+    margin-bottom: 0;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .form-group > label {
+    display: block;
+    float: none;
+    margin-bottom: 6px;
+    padding: 0;
+    color: rgba(27, 70, 27, 0.88);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .form-control:not(.select2-hidden-accessible),
+:is(#official-business-modal, #official-business-import-modal) .select2-container--bootstrap .select2-selection--single {
+    min-height: 40px;
+    height: 40px;
+    padding: 7px 13px;
+    border: 1.5px solid #4caf50;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.58);
+    box-shadow: 0 1px 3px rgba(46, 125, 50, 0.06) inset;
+    color: #2d4a2d;
+    font-size: 13.5px;
+    transition: all 0.2s ease;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .form-control:focus,
+:is(#official-business-modal, #official-business-import-modal) .select2-container--focus .select2-selection--single,
+:is(#official-business-modal, #official-business-import-modal) .select2-container--open .select2-selection--single {
+    border-color: #43a047;
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 0 0 3.5px rgba(46, 125, 50, 0.16), 0 1px 3px rgba(46, 125, 50, 0.08) inset;
+    outline: none;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .form-control:disabled,
+:is(#official-business-modal, #official-business-import-modal) .select2-container--disabled .select2-selection--single {
+    border-color: rgba(165, 214, 167, 0.5);
+    background: rgba(255, 255, 255, 0.20);
+    color: #35383d;
+    opacity: 1;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .select2-container {
+    width: 100% !important;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .select2-selection--single {
+    padding-right: 32px;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .select2-selection__rendered {
+    padding: 0;
+    color: #2d4a2d;
+    line-height: 23px;
+    overflow-wrap: anywhere;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .select2-selection__arrow {
+    right: 15px;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 26px;
+    border-top: 1px solid rgba(200, 230, 200, 0.30);
+    border-radius: 0 0 20px 20px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+:is(#official-business-modal, #official-business-import-modal) .cancel-button {
+    padding: 8px 22px;
+    border: 1.5px solid rgba(76, 175, 80, 0.6);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.25);
+    color: #2d4a2d;
+    font-size: 13px;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+}
+
+:is(#official-business-modal, #official-business-import-modal) .cancel-button:hover {
+    border-color: #4caf50;
+    background: rgba(255, 255, 255, 0.45);
+}
+
+:is(#official-business-modal, #official-business-import-modal) .btn-primary {
+    padding: 8px 26px;
+    border: 1px solid rgba(46, 125, 50, 0.5);
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.92), rgba(27, 94, 32, 0.96));
+    box-shadow: 0 3px 10px rgba(46, 125, 50, 0.30);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    transition: all 0.2s ease;
+}
+
+:is(#official-business-modal, #official-business-import-modal) .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.98), rgba(21, 72, 25, 1));
+    box-shadow: 0 5px 18px rgba(46, 125, 50, 0.42);
+    transform: translateY(-1px);
+}
+
+:is(#official-business-modal, #official-business-import-modal) .text-danger {
+    display: block;
+    float: none;
+    margin-top: 4px;
+    color: #e53935;
+    font-size: 11.5px;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+/* Keep the footer stationary when validation messages clear on blur. */
+:is(#official-business-modal, #official-business-import-modal) [data-valmsg-for] {
+    display: block;
+    min-height: 18px;
+}
+
+#official-business-form-status:not(:empty) {
+    width: 100%;
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border: 1px solid #efb7b3;
+    border-radius: 10px;
+    background: #fff3f2;
+    color: #9f1c14;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#official-business-form-status:empty,
+#official-business-lookup-status:empty,
+#official-business-page-status:empty {
+    display: none;
+}
+
+#official-business-lookup-status,
+#official-business-page-status {
+    margin-bottom: 8px;
+}
+
+.official-business-help {
+    margin: 14px 0 0;
+    color: #526452;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .official-business-page {
+        padding: 20px;
+    }
+
+    .official-business-table-toolbar .dataTables_filter {
+        margin-left: 0;
+        max-width: 100%;
+    }
+
+    #official-business-grid_filter input[type=search] {
+        min-width: 0;
+        max-width: 100%;
+        width: 180px;
+    }
+}
+
+@media (max-width: 520px) {
+    :is(#official-business-modal, #official-business-import-modal) .modal-dialog {
+        min-height: calc(100% - 24px);
+        margin: 12px auto;
+    }
+
+    :is(#official-business-modal, #official-business-import-modal) .modal-content {
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px);
+    }
+
+    :is(#official-business-modal, #official-business-import-modal) .modal-body {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 380px) {
+    .official-business-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+
+.official-business-import-file-field {
+    margin-top: 20px !important;
+}
+
+#official-business-import-status:not(:empty) {
+    margin: 16px 0;
+    padding: 12px;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #2d4a2d;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+#official-business-import-status.is-error {
+    border-color: #efb7b3;
+    background: #fff3f2;
+    color: #9f1c14;
+}
+
+#official-business-import-errors table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+#official-business-import-errors th,
+#official-business-import-errors td {
+    padding: 8px;
+    border: 1px solid #c8e6c9;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+#official-business-import-errors th {
+    background: #e8f5e9;
+    color: #1b5e20;
+}

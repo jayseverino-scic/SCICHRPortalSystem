@@ -17,7 +17,7 @@ namespace SCICHRPortal.Repository.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -287,6 +287,132 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasIndex("TimeLogId");
 
                     b.ToTable("EmployeeAttendance");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeDailyAttendanceComputation", b =>
+                {
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("AttendanceDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("TimeLogId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ApprovedHoliday")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ApprovedHolidayOT")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ApprovedOT")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ApprovedRestDay")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ApprovedRestDayOT")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ApprovedSPHoliday")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ApprovedSPHolidayOT")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Deleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsFlexibleShift")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsNoBreak")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsNoShift")
+                        .HasColumnType("boolean");
+
+                    b.Property<double>("NDHours")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("OTHours")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("RegularHour")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("ShiftEnd")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<double>("ShiftHours")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("ShiftLate")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("ShiftStart")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<double>("ShiftUndertime")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("TimeIn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("TimeOut")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<double>("TotalLoggedHours")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("ProjectId", "AttendanceDate", "TimeLogId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("TimeLogId");
+
+                    b.HasIndex("AttendanceDate", "ProjectId", "TimeIn", "TimeLogId")
+                        .HasFilter("\"Deleted\" = false");
+
+                    b.ToTable("EmployeeDailyAttendanceComputation");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeDailyAttendanceImportCheckpoint", b =>
+                {
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("AttendanceDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("DaytimeCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("OvernightCompleted")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("ProjectId", "AttendanceDate");
+
+                    b.ToTable("EmployeeDailyAttendanceImportCheckpoint");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeShift", b =>
@@ -624,6 +750,58 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasIndex("ProjectId");
 
                     b.ToTable("EmployeeTimeLog");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.Leave", b =>
+                {
+                    b.Property<int>("LeaveId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LeaveId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<bool>("Deleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("From")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("LeaveTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("To")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("LeaveId");
+
+                    b.HasIndex("LeaveTypeId");
+
+                    b.HasIndex("EmployeeId", "From", "To");
+
+                    b.ToTable("Leave", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Leave_Period", "\"To\" > \"From\"");
+                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.LeaveRequest", b =>
@@ -1208,6 +1386,53 @@ namespace SCICHRPortal.Repository.Migrations
                     b.HasKey("ShiftId");
 
                     b.ToTable("Shift");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.OfficialBusiness", b =>
+                {
+                    b.Property<int>("OfficialBusinessId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("OfficialBusinessId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<bool>("Deleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("From")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("To")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("OfficialBusinessId");
+
+                    b.HasIndex("EmployeeId", "From", "To");
+
+                    b.ToTable("OfficialBusiness", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OfficialBusiness_Period", "\"To\" > \"From\"");
+                        });
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.Role", b =>
@@ -1948,6 +2173,44 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeDailyAttendanceComputation", b =>
+                {
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SCICHRPortal.Data.Entities.EmployeeTimeLog", "TimeLog")
+                        .WithMany()
+                        .HasForeignKey("TimeLogId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("TimeLog");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeDailyAttendanceImportCheckpoint", b =>
+                {
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("SCICHRPortal.Data.Entities.EmployeeShift", b =>
                 {
                     b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Department", "Department")
@@ -2041,6 +2304,25 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.Leave", b =>
+                {
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.LeaveType", "LeaveType")
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LeaveType");
+                });
+
             modelBuilder.Entity("SCICHRPortal.Data.Entities.LeaveRequest", b =>
                 {
                     b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
@@ -2100,6 +2382,17 @@ namespace SCICHRPortal.Repository.Migrations
                     b.Navigation("Holiday");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("SCICHRPortal.Data.Entities.OfficialBusiness", b =>
+                {
+                    b.HasOne("SCICHRPortal.Data.Entities.Metadatas.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("SCICHRPortal.Data.Entities.TimeLogAttachment", b =>
