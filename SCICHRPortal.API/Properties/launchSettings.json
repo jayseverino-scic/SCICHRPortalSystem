@@ -5,9 +5,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "AttendanceImport__Enabled": "false",
-        "HangfireDashboard__Enabled": "false"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "https://localhost:7266;http://localhost:5266",
       "dotnetRunMessages": true,
@@ -18,9 +16,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "AttendanceImport__Enabled": "false",
-        "HangfireDashboard__Enabled": "false"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   },

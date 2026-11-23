@@ -17,7 +17,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(LeaveWorkbook.MaximumFileBytes + 65536)]
         [RequestFormLimits(MultipartBodyLengthLimit = LeaveWorkbook.MaximumFileBytes + 65536)]
-        public async Task<IActionResult> ImportAsync([FromForm] IFormFile? file, CancellationToken cancellationToken)
+        public async Task<IActionResult> ImportAsync(IFormFile? file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0 || !string.Equals(Path.GetExtension(file.FileName), ".xlsx", StringComparison.OrdinalIgnoreCase))
                 return BadRequest(new { Message = "Select a non-empty .xlsx workbook using the Leave template." });
