@@ -1,0 +1,61 @@
+@model SCICHRPortal.Web.Models.ViewModels.Administration.UserViewModel
+@{
+    ViewData["Title"] = "Users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/side-bar.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/users.css" rel="stylesheet" asp-append-version="true" />
+}
+<section class="users-page" aria-labelledby="users-heading">
+    <div class="users-header">
+        <img class="icon" src="~/images/common/userrolebig.png" alt="" />
+        <h1 id="users-heading">User Accounts</h1>
+        <button type="button" class="users-menu-toggle" aria-label="Toggle navigation" aria-controls="admin-sidebar" aria-expanded="false"><i class="fas fa-bars" aria-hidden="true"></i></button>
+    </div>
+    <fieldset class="users-section users-page-actions" aria-labelledby="users-actions-title">
+        <legend id="users-actions-title" class="users-section-title">User actions</legend>
+        <button type="button" class="btn btn-primary" id="users-add">New User</button>
+        <p class="users-help">Create accounts and manage portal access. New passwords are delivered by email.</p>
+    </fieldset>
+    <fieldset class="users-section users-filters" aria-labelledby="users-filters-title">
+        <legend id="users-filters-title" class="users-section-title">Filter users</legend>
+        <div><label for="users-approval">Approval</label><select id="users-approval" class="form-control"><option value="">All users</option><option value="approved">Approved</option><option value="pending">Pending</option></select></div>
+        <div><label for="users-state">Status</label><select id="users-state" class="form-control"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+        <button type="button" class="btn btn-default" id="users-reset-filters">Reset filters</button>
+    </fieldset>
+    <div id="users-status" role="status" aria-live="polite"></div>
+    <button type="button" id="users-retry" class="btn btn-default" hidden>Retry loading users</button>
+    <div class="users-table-wrapper"><table id="users-grid" class="display stripe" width="100%">
+        <thead><tr><th>Name</th><th>Email</th><th>Contact number</th><th>Roles</th><th>Approval</th><th>Status</th><th>Actions</th></tr></thead>
+    </table></div>
+</section>
+<div class="modal fade users-modal" id="user-modal" tabindex="-1" role="dialog" aria-labelledby="user-modal-title" aria-modal="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document"><div class="modal-content">
+        <form id="user-form" novalidate>
+            <div class="modal-header"><h2 class="modal-title" id="user-modal-title">New user</h2></div>
+            <div class="modal-body">
+                <div id="user-form-status" role="alert" class="text-danger"></div>
+                <input asp-for="UserId" type="hidden" />
+                <div class="users-fields">
+                    <div class="form-group"><label asp-for="FirstName">First name</label><input asp-for="FirstName" class="form-control" autocomplete="given-name" /><span asp-validation-for="FirstName" class="text-danger"></span></div>
+                    <div class="form-group"><label asp-for="MiddleName">Middle name</label><input asp-for="MiddleName" class="form-control" autocomplete="additional-name" /><span asp-validation-for="MiddleName" class="text-danger"></span></div>
+                    <div class="form-group"><label asp-for="LastName">Last name</label><input asp-for="LastName" class="form-control" autocomplete="family-name" /><span asp-validation-for="LastName" class="text-danger"></span></div>
+                    <div class="form-group"><label asp-for="Email">Email address</label><input asp-for="Email" type="email" class="form-control" autocomplete="email" /><span asp-validation-for="Email" class="text-danger"></span></div>
+                    <div class="form-group"><label asp-for="ContactNumber">Contact number</label><input asp-for="ContactNumber" type="tel" class="form-control" autocomplete="tel" /><span asp-validation-for="ContactNumber" class="text-danger"></span></div>
+                    <div class="form-group"><label asp-for="RoleIds"></label><select asp-for="RoleIds" multiple class="form-control" size="5" aria-describedby="users-roles-help"></select><span asp-validation-for="RoleIds" class="text-danger"></span><small id="users-roles-help">Select one or more roles. Administrator grants access to user management.</small></div>
+                </div>
+                <p id="users-create-help" class="users-help">The account will be approved and active. A generated password will be emailed to the user.</p>
+            </div>
+            <div class="modal-footer"><button type="button" id="user-cancel" class="btn btn-default cancel-button" data-bs-dismiss="modal">Cancel</button><button type="submit" id="user-save" class="btn btn-primary">Create user</button></div>
+        </form>
+    </div></div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/toastr.js/toastr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/users.js" asp-append-version="true"></script>
+}

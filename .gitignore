@@ -368,4 +368,5 @@ FodyWeavers.xsd
 /tests/README.md
 /AGENTS.md
 /docs
-/SCICHRPortal.API/README.AttendanceImport.md
+# Local agent and development documentation.
+/agent-docs/

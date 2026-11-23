@@ -1604,6 +1604,11 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");
 
+                    b.Property<string>("NormalizedEmail")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasComputedColumnSql("lower(btrim(\"Email\"))", true);
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1625,6 +1630,10 @@ namespace SCICHRPortal.Repository.Migrations
                         .HasColumnType("character varying(60)");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasFilter("\"Deleted\" = false");
 
                     b.ToTable("User");
 

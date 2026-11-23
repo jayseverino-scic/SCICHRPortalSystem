@@ -1,4 +1,4 @@
-﻿using EFCore.BulkExtensions;
+using EFCore.BulkExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -113,70 +113,22 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         }
 
         [HttpPost()]
-        public async Task<IActionResult> InsertAsync(Employee employee)
+        [Authorize(Roles = "Administrator")]
+        [SCICHRPortal.API.Authorization.CurrentAdministrator]
+        public async Task<IActionResult> InsertAsync(Employee employee, [FromServices] IUserManagementService management, CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-
-            var hasDuplicate = await EmployeeService.HasDuplicateName(employee);
-            if (hasDuplicate.IsDuplicated)
-                return Conflict(hasDuplicate);
-
-            var salt = Salt.Create();
-
-            string randomPassword = Guid.NewGuid().ToString("N").ToLower()
-                      .Replace("1", "").Replace("o", "").Replace("0", "")
-            .Substring(0, 10);
-
-            User user = new()
+            var actorId = int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value, out var id) ? id : 0;
+            var actor = User.Identity?.Name is { Length: > 0 and <= 120 } name ? name : actorId.ToString();
+            var result = await management.CreateEmployeeAsync(employee, actorId, actor, cancellationToken);
+            return result.Status switch
             {
-                FirstName = employee.FirstName,
-                LastName = employee.LastName,
-                MiddleName = employee.MiddleName,
-                Email = employee.Email,
-                Salt = salt,
-                Password = Hash.Create(randomPassword, salt),
-                ContactNumber = employee.ContactNumber,
-                IsPasswordChanged = false,
-                IsApproved = true,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = employee.CreatedBy,
+                SCICHRPortal.Data.DTOs.UserWriteStatus.Invalid => BadRequest(new { result.Message }),
+                SCICHRPortal.Data.DTOs.UserWriteStatus.Conflict => Conflict(new { result.Message }),
+                SCICHRPortal.Data.DTOs.UserWriteStatus.Forbidden => Forbid(),
+                SCICHRPortal.Data.DTOs.UserWriteStatus.NotFound => NotFound(new { result.Message }),
+                _ => StatusCode(201, result.EmployeeId)
             };
-
-
-            var duplicateEmail = await UserService.GetDuplicateEmailAsync(user);
-
-            if (duplicateEmail is not null)
-                return Conflict(new { Message = "Email Duplicated" });
-
-            await UserService.InsertAsync(user);
-
-            employee.UserId = user.UserId;
-            employee.CreatedAt = DateTime.UtcNow;
-            employee.CreatedBy = "manuel";
-            await EmployeeService.InsertAsync(employee);
-            UserRole userRole = new()
-            {
-                UserId = user.UserId,
-                RoleId = 1,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = "manuel"
-            };
-
-            await UserRoleService.InsertAsync(userRole);
-            //try
-            //{
-            //    var emailTemplate = await GetEmailTemplate(AppSettings.WebUrl + "html/templates/NewUserTemplate.html");
-            //    await MailService.SendForgotPasswordEmailAsync(user.Email!, $"{user.LastName}, {user.FirstName}", randomPassword, emailTemplate);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(ex.Message);
-            //}
-
-            return StatusCode(201, employee.EmployeeId);
         }
-
         [HttpPut()]
         public async Task<IActionResult> UpdateAsync(Employee employee)
         {

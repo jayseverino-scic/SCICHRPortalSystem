@@ -127,8 +127,8 @@ var customizePdf = (doc, tableSelector) => {
         if (response.ok) {
             _currentUser = await response.json();
 
-            $('#current-user').html(_currentUser.username);
-            $('#user-role').html(_currentUser.roleName);
+            $('#current-user').text(_currentUser.name || _currentUser.username || _currentUser.email || 'User');
+            $('#user-role').text(_currentUser.roleName || '');
             $('#userId').val(_currentUser.userId);
 
 

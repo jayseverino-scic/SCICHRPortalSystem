@@ -1,107 +1,47 @@
-﻿(function ($) {
-    //Events
-    const CLICK_EVENT = 'click';
-    const LOAD_EVENT = 'load'
-
-    //Helpers
-    const _apiHelper = new ApiHelper();
-    const _formHelper = new FormHelper();
-    const _dateHelper = new DateHelper();
-    const _numberHelper = new NumberHelper();
-    const _cookieHelper = new CookieHelper();
-    const SYSTEM = 'enrolment';
-    let _userId = 0;
-    let attachEvents = () => {
-        $('#change-password-form').on('submit', onResetPasswordSubmitted);
-    };
-
-    let onResetPasswordSubmitted = async event => {
-        event.preventDefault();
-        $('.unmatched-password-validation').addClass('d-none');
-
-        if ($('#new-password').val().toLowerCase() !== $('#confirm-password').val().toLowerCase()) {
-            $('.unmatched-password-validation').removeClass('d-none');
-        }
-        else {
-            let data = _formHelper.toJsonString(event.target);
-            data.userId = _userId;
-            let response;
-            let _form = document.getElementById('change-password-form');
-
-            if ($(_form).valid()) {
-                response = await _apiHelper.put({
-                    url: 'Authenticated/User/Reset',
-                    data: data
-                });
-
-                if (response.ok) {
-                    Swal.fire({
-                        title: 'Updated',
-                        text: "Do you want to logout, to verify your password?",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Logout'
-                    }).then(async (result) => {
-                        _cookieHelper.delete('jsonWebToken');
-                        _cookieHelper.delete('refreshToken');
-                        window.location = '/Login/Index';
-
-                    });
-                } else {
-
-                    toastr.options = {
-                        "preventDuplicates": true,
-                        "preventOpenDuplicates": true
-                    };
-
-                    if (response.status === 409) {
-                        toastr.error('Wrong Password');
-                    }
-
-                    if (response.status === 400) {
-                        toastr.error('Password must contain at least 8 characters , one letter and one number.');
-                    }
-
-                }
+(function ($) {
+    'use strict';
+    const api = new ApiHelper();
+    const cookies = new CookieHelper();
+    let submitting = false;
+    $(document).ready(() => {
+        $('#change-password-form').on('submit.password', async event => {
+            event.preventDefault();
+            const form = $(event.target);
+            if (submitting) return;
+            $('#password-form-status').text('');
+            $('.unmatched-password-validation').addClass('d-none');
+            if ($('#new-password').val() !== $('#confirm-password').val()) {
+                $('.unmatched-password-validation').removeClass('d-none');
+                return;
             }
-
-        }
-    };
-
-    let initializeModals = e => {
-        $('.nav-link').removeClass('d-none');
-        $('.nav-link.change-password').addClass('active');
-    }
-
-    let getCurrentLogIn = async () => {
-
-        $('#busy-indicator-container').removeClass('d-none');
-        let api = document.getElementById('base-api-url').value;
-
-        let response = await fetch(`${api}/${`Authenticated/User/GetAuthenticatedAsync`}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `bearer ${_cookieHelper.get('jsonWebToken')}`
-            },
-            body: JSON.stringify()
+            if (submitting || !form.valid()) return;
+            submitting = true;
+            const button = form.find(':submit');
+            const buttonText = button.text();
+            form.find('input, button').prop('disabled', true);
+            button.text('Changing password...');
+            try {
+                const response = await api.put({ url: 'Authenticated/User/Reset', data: {
+                    currentPassword: form.find('[name="CurrentPassword"]').val(), password: $('#new-password').val()
+                }, requesterName: $('#current-user').text(), requestOrigin: 'My password', requestSystem: 'HR Portal' });
+                if (!response.ok) {
+                    const body = await response.text();
+                    let message = 'Password could not be changed. Please try again.';
+                    try { const error = JSON.parse(body); message = error.message || (error.errors && Object.values(error.errors).flat().join(' ')) || message; } catch (_) { }
+                    throw new Error(response.status >= 500 ? 'The server could not change your password. Please try again.' : message);
+                }
+                cookies.delete('jsonWebToken');
+                cookies.delete('refreshToken');
+                window.location = '/Login/Index';
+            } catch (error) {
+                const message = error.message || 'Could not connect to the server. Please try again.';
+                $('#password-form-status').text(message);
+                toastr.error(message);
+            } finally {
+                submitting = false;
+                form.find('input, button').prop('disabled', false);
+                button.text(buttonText);
+            }
         });
-
-        if (response.ok) {
-            let user = await response.json();
-            _userId = user.userId;
-        }
-
-        $('#busy-indicator-container').addClass('d-none');
-    };
-
-
-    $(document).ready(function () {
-        getCurrentLogIn();
-        initializeModals();
-        attachEvents();
     });
-
 })(jQuery);

@@ -40,28 +40,34 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Enrolment";
             return View();
         }
+        [Authorize(Roles = "Administrator")]
+        public IActionResult RegisterUser() => RedirectToAction("Users", "Administration");
+
+        [Authorize(Roles = "Administrator")]
         public IActionResult UserRole()
         {
-            ViewBag.SystemSelected = "Enrolment";
+            ViewBag.SystemSelected = "Administration";
             return View();
         }
 
+        [Authorize(Roles = "Administrator")]
         public IActionResult PendingUser()
         {
-            ViewBag.SystemSelected = "Enrolment";
-            return View();
+            return RedirectToAction("Users", "Administration", new { approval = "pending" });
         }
 
+        [Authorize]
         public IActionResult UserDetail()
         {
-            ViewBag.SystemSelected = "Enrolment";
-            return View();
+            ViewBag.SystemSelected = "Administration";
+            return View(new Models.ViewModels.Administration.UserProfileViewModel());
         }
 
+        [Authorize]
         public IActionResult Password()
         {
-            ViewBag.SystemSelected = "Enrolment";
-            return View();
+            ViewBag.SystemSelected = "Administration";
+            return View(new Models.ViewModels.Administration.UserPasswordViewModel());
         }
 
         public IActionResult Holiday()

@@ -5,6 +5,7 @@ using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.XscribeTables;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
+using SCICHRPortal.Utility.Extensions;
 namespace SCICHRPortal.Service.Implementations
 {
     public class EmployeeService : IEmployeeService
@@ -35,6 +36,8 @@ namespace SCICHRPortal.Service.Implementations
         {
             await EmployeeRepository.InsertAsync(entity);
         }
+        public Task InsertWithAuditAsync(Employee employee, string actor, CancellationToken cancellationToken) =>
+            EmployeeRepository.InsertWithAuditAsync(employee, actor, cancellationToken);
 
         public async Task<bool> UpdateAsync(Employee entity)
         {
@@ -65,9 +68,15 @@ namespace SCICHRPortal.Service.Implementations
         {
             return await EmployeeRepository.GetEmployeeByDepartment(departmentId);
         }
-        public async Task<DuplicateMessage> HasDuplicateName(Employee Employee)
+        public async Task<DuplicateMessage> HasDuplicateName(Employee employee)
         {
-            return await EmployeeRepository.HasDuplicateName(Employee);
+            var facts = await EmployeeRepository.GetDuplicateFactsAsync();
+            var name = (employee.LastName ?? "").ToLower().StringSplitThenJoin();
+            // Preserve the existing employee duplicate policy while relocating its decision to the service.
+            var sameName = facts.Any(item => (item.LastName ?? "").ToLower().StringSplitThenJoin() == name);
+            var createdToday = facts.Any(item => item.CreatedAt.Date == DateTime.Now.Date);
+            return new DuplicateMessage { IsDuplicated = sameName && createdToday,
+                Message = sameName && createdToday ? "Employee Last Name Duplicated" : null };
         }
 
         public async Task<Employee> GetByUserId(int userId)

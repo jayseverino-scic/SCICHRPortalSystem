@@ -1,99 +1,53 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SCICHRPortal.Data.Entities;
+using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Service.Interfaces;
-using SCICHRPortal.Utility.Constants;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
+    [Authorize(Roles = "Administrator")]
+    [SCICHRPortal.API.Authorization.CurrentAdministrator]
     [Route("api/Authenticated/[controller]")]
     [ApiController]
     public class RoleController : ControllerBase
     {
         private IRoleService RoleService { get; }
-        public RoleController(IRoleService roleService)
-        {
-            RoleService = roleService;
-        }
+        private int ActorId => int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value, out var id) ? id : 0;
+        private string Actor => User.Identity?.Name is { Length: > 0 and <= 120 } name ? name : ActorId.ToString();
+        public RoleController(IRoleService roleService) { RoleService = roleService; }
 
-        [Authorize]
-        [HttpGet()]
-        public async Task<IActionResult> GetAsync()
-        {
-            var roles = await RoleService.GetAllAsync();
+        [HttpGet]
+        public async Task<IActionResult> GetAsync() => Ok(await RoleService.GetAllAsync());
 
-            return Ok(roles);
-        }
-
-        [Authorize]
         [HttpGet("Filter")]
         public async Task<IActionResult> FilterAsync(int pageNumber, int pageSize, string? searchKeyword)
         {
+            if (pageNumber is < 1 or > 100000 || pageSize is not (5 or 10 or 20 or 40 or 80) || (searchKeyword?.Length ?? 0) > 100)
+                return BadRequest(new { Message = "Enter valid role paging options." });
             var tuple = await RoleService.FilterAsync(pageNumber, pageSize, searchKeyword!);
-            var maxOrderNumber = pageNumber * pageSize;
-            var orderNumber = maxOrderNumber - pageSize + 1;
-
-            var data = tuple.Item1.Select(d => new
-            {
-                d.RoleId,
-                d.Description,
-                d.Name,
-                OrderNumber = orderNumber++
-            });
-
-            var dto = new
-            {
-                Data = data,
-                Total = tuple.Item2
-            };
-
-            return Ok(dto);
+            var orderNumber = (pageNumber - 1) * pageSize + 1;
+            return Ok(new { Data = tuple.Item1.Select(role => new { role.RoleId, role.Description, role.Name, OrderNumber = orderNumber++ }), Total = tuple.Item2 });
         }
 
-        [Authorize]
-        [HttpPost()]
-        public async Task<IActionResult> InsertAsync(Role role)
+        [HttpPost]
+        public async Task<IActionResult> InsertAsync(RoleWriteRequest request, CancellationToken cancellationToken) =>
+            WriteResponse(await RoleService.WriteAsync(UserOperation.Create, 0, request, ActorId, Actor, cancellationToken), true);
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateAsync(RoleWriteRequest request, CancellationToken cancellationToken) =>
+            WriteResponse(await RoleService.WriteAsync(UserOperation.Update, request.RoleId, request, ActorId, Actor, cancellationToken));
+
+        [HttpDelete("{roleId:int}")]
+        public async Task<IActionResult> DeleteAsync(int roleId, CancellationToken cancellationToken) =>
+            WriteResponse(await RoleService.WriteAsync(UserOperation.Delete, roleId, null, ActorId, Actor, cancellationToken));
+
+        private IActionResult WriteResponse(RoleWriteResult result, bool created = false) => result.Status switch
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-
-            var hasDuplicate = await RoleService.HasDuplicateName(role);
-            if (hasDuplicate.IsDuplicated)
-                return Conflict(hasDuplicate);
-            role.CreatedAt = DateTime.Now;
-            role.CreatedBy = "manuel";
-            await RoleService.InsertAsync(role);
-
-            return StatusCode(201, role.RoleId);
-        }
-
-        [Authorize]
-        [HttpPut()]
-        public async Task<IActionResult> UpdateAsync(Role role)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-            role.UpdatedAt = DateTime.Now;
-            role.UpdatedBy = "manuel";
-            var updated = await RoleService.UpdateAsync(role);
-            if(!updated)
-                return NotFound(ResponseMessage.NotFound);
-
-            return Ok();
-        }
-
-        [Authorize]
-        [HttpDelete("{roleId}")]
-        public async Task<IActionResult> DeleteAsync(int roleId)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest("Bad Request.");
-
-            var deleted = await RoleService.DeleteAsync(roleId);
-            if (!deleted)
-                return NotFound(ResponseMessage.NotFound);
-
-            return Ok();
-        }
+            UserWriteStatus.Invalid => BadRequest(new { result.Message }),
+            UserWriteStatus.Conflict => Conflict(new { result.Message }),
+            UserWriteStatus.NotFound => NotFound(new { result.Message }),
+            UserWriteStatus.Forbidden => Forbid(),
+            _ => created ? StatusCode(201, result.RoleId) : Ok()
+        };
     }
 }

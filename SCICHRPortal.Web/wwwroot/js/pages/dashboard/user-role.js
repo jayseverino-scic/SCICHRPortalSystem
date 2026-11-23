@@ -9,7 +9,9 @@
     const _dateHelper = new DateHelper();
     const _numberHelper = new NumberHelper();
     const _cookieHelper = new CookieHelper();
-    const SYSTEM = 'enrolment';
+    const SYSTEM = 'HR Portal';
+    let submitting = false;
+    const roleModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('user-role-modal'), { backdrop: 'static', keyboard: false });
     let attachEvents = () => {
         $('#user-role-form').on('submit', onFormSubmit);
         $('#add-button').on(CLICK_EVENT, onClickAddModal);
@@ -17,63 +19,61 @@
     };
 
     let onClickAddModal = function () {
+        if (submitting) return;
         $('#user-role-form')[0].reset();
+        $('#user-role-form-status').text('');
+        if ($('#user-role-form').data('validator')) $('#user-role-form').validate().resetForm();
+        $('#RoleId').val('0');
+        $('#user-role-modal-title').text('New Role');
         $('#user-role-form').find(':submit').text('Add');
-        $('#user-role-modal').modal('show');
+        roleModal.show();
     }
     let onFormSubmit = async event => {
         event.preventDefault();
 
-        let form = $(event.target);
-        $(event.target).validate();
-        let button = $(event.target).find(':submit').text().toLowerCase();
-        if ($(event.target).valid()) {
-            $('#busy-indicator-container').removeClass('d-none');
-            let response = '';
-
-            let data = _formHelper.toJsonString(event.target);
-            let currentTabTitle = 'User Role';
-            data.isApproved = true;
-            if (button == 'add') {
-                response = await _apiHelper.post({
-                    url: 'Authenticated/Role',
-                    data: data,
-                    requestOrigin: `${currentTabTitle} Tab`,
-                    requesterName: $('#current-user').text(),
-                    requestSystem: SYSTEM
-                });
-                status = 'Created!';
-            } else {
-                response = await _apiHelper.put({
-                    url: 'Authenticated/Role',
-                    data: data,
-                    requestOrigin: `${currentTabTitle} Tab`,
-                    requesterName: $('#current-user').text(),
-                    requestSystem: SYSTEM
-                });
-                status = 'Created!';
-            }
-
+        const form = $(event.target);
+        form.validate();
+        if (submitting || !form.valid()) return;
+        const button = form.find(':submit');
+        const buttonText = button.text();
+        const roleId = Number($('#RoleId').val());
+        submitting = true;
+        form.find('input, button').prop('disabled', true);
+        button.text('Saving...');
+        $('#user-role-form-status').text('');
+        $('#busy-indicator-container').removeClass('d-none');
+        try {
+            const options = {
+                url: 'Authenticated/Role',
+                data: { roleId: roleId, name: $('#Name').val().trim() },
+                requestOrigin: 'User Roles',
+                requesterName: $('#current-user').text(),
+                requestSystem: SYSTEM
+            };
+            const response = roleId === 0 ? await _apiHelper.post(options) : await _apiHelper.put(options);
             if (response.ok) {
                 $('#user-role-grid').DataTable().ajax.reload(null, false);
-                toastr.success('Success');
-                $(event.target)[0].reset();
-                $(event.target)[0].elements[1].focus();
-                $(event.target).find(':submit').prop("disabled", false).text('Add');
-                $('#user-role-modal').modal('hide');
+                toastr.success('Role saved.');
+                roleModal.hide();
+            } else if (response.status === 403 || response.status === 401) {
+                $('#user-role-form-status').text(response.status === 403
+                    ? 'Administrator access is required. Your account may no longer have access.'
+                    : 'Your session has expired. Sign in again.');
+            } else {
+                const body = await response.text();
+                let message = 'The role could not be saved. Please try again.';
+                try {
+                    const error = JSON.parse(body);
+                    message = error.message || error.Message || (error.errors && Object.values(error.errors).flat().join(' ')) || message;
+                } catch (_) { /* Keep the safe fallback for non-JSON responses. */ }
+                $('#user-role-form-status').text(message);
             }
-            else if (response.status == 403) {
-                noAccessAlert();
-            }
-            else if (response.status === 409) {
-                let json = await response.json();
-                Swal.fire(
-                    'Error!',
-                    json.message,
-                    'error'
-                );
-            }
-
+        } catch (_) {
+            $('#user-role-form-status').text('The role could not be saved. Check your connection and try again.');
+        } finally {
+            submitting = false;
+            form.find('input, button').prop('disabled', false);
+            button.text(buttonText);
             $('#busy-indicator-container').addClass('d-none');
         }
     };
@@ -88,7 +88,6 @@
             serverSide: true,
             targets: 'no-sort',
             bSort: false,
-            scrollY: "350px",
             scrollX: true,
             order: [1, 'asc'],
             "createdRow": function (row, data, dataIndex) {
@@ -101,7 +100,7 @@
                 let searchKeyword = params.search.value;
                 let pageSize = params.length;
                 let response = await _apiHelper.get({
-                    url: `Authenticated/Role/Filter?pageNumber=${gridInfo.page + 1}&pageSize=${pageSize}&searchKeyword=${searchKeyword}`,
+                    url: `Authenticated/Role/Filter?pageNumber=${gridInfo.page + 1}&pageSize=${pageSize}&searchKeyword=${encodeURIComponent(searchKeyword)}`,
                 });
 
                 if (response.ok) {
@@ -113,29 +112,29 @@
                         data: json.data
                     });
 
-                    $('.icon-delete').on('click', function (e) {
-                        var data = table.row($(this).closest('tr')).data();
-                        _formHelper.deleteRecord(e, data.title, SYSTEM);
-                    });
-
-                    $('#user-role-grid tbody').on('click', '.icon-edit', function () {
-                        var data = table.row($(this).closest('tr')).data();
-                        let form = $('#user-role-form');
-                        populateForm(form, data);
-                        $('#user-role-modal').modal('show');
-                    });
-
                 } else {
                     success(null);
                 }
             },
             columns: columns,
             pageLength: 5,
-            dom: '<"pull-left">lBf<"pull-right">tipr',
+            dom: '<"users-table-toolbar"lf>rtip',
+        });
+        $('#user-role-grid').on('click.userRoles', '.icon-delete', function (event) {
+            const data = table.row($(this).closest('tr')).data();
+            _formHelper.deleteRecord(event, data.name, SYSTEM);
+        });
+        $('#user-role-grid').on('click.userRoles', '.icon-edit', function () {
+            const data = table.row($(this).closest('tr')).data();
+            populateForm($('#user-role-form'), data);
+            roleModal.show();
         });
     }
 
     let populateForm = (form, data) => {
+        $('#user-role-form-status').text('');
+        if (form.data('validator')) form.validate().resetForm();
+        $('#user-role-modal-title').text('Edit Role');
         $(form).find(':submit').text('Update');
         _formHelper.populateForm(form, data);   
     }
@@ -154,7 +153,7 @@
                 },
             },
             {
-                title: 'No.',
+                title: 'Role ID',
                 data: "roleId",
                 width: "1.5em",
                 className: 'noVis dt-center',
@@ -166,42 +165,39 @@
                 title: "Name",
                 data: "name",
                 render: (data, type, row) => {
-                    return data
+                    return $.fn.dataTable.render.text().display(data ?? '')
                 },
             },
             {
                 title: "Description",
                 data: "description",
                 render: (data, type, row) => {
-                    return data
+                    return $.fn.dataTable.render.text().display(data ?? '')
                 },
             },
 
         ];
         let lastColumn = {
+            title: 'Actions',
             data: "userRoleId",
-            width: "3em",
+            width: "96px",
             render: function (data, type, full) {
-                let buttons = '<a href="#" class="m-1 icon-edit" data-id="' + full.roleId + '" data-endpoint="Authenticated/Role" data-table="user-role-grid"><i class="fas fa-eye"></i></a>';
-                buttons += '<a href="#" class="m-1 icon-delete" data-id="' + full.roleId + '" data-endpoint="Authenticated/Role" data-table="user-role-grid"><i class="fas fa-trash border-icon"></i></a>';
+                let buttons = '<button type="button" class="users-action users-edit icon-edit" title="Edit role" aria-label="Edit role" data-id="' + Number(full.roleId) + '" data-endpoint="Authenticated/Role" data-table="user-role-grid"><i class="fas fa-edit" aria-hidden="true"></i></button>';
+                buttons += '<button type="button" class="users-action users-delete icon-delete" title="Delete role" aria-label="Delete role" data-id="' + Number(full.roleId) + '" data-endpoint="Authenticated/Role" data-table="user-role-grid"><i class="fas fa-trash" aria-hidden="true"></i></button>';
 
                 return type === 'display' ?
                     buttons
                     :
                     "";
             },
-            className: 'noVis dt-center'
+            className: 'noVis dt-center user-role-actions'
         };
         columns.push(lastColumn);
         return columns;
     };
 
     let initializeModals = e => {
-        $('#user-role-modal').modal({ backdrop: 'static', keyboard: false });
-        $('#master-data-menu').removeClass('d-none');
-        $('#master-data-menu .announcement').addClass('active');
-
-        $('#announcement-form #createdAt').attr('value', moment().format('yyyy-MM-DD'));
+        $('#user-role-modal-title').text('User Role');
     }
 
 

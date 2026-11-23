@@ -19,6 +19,7 @@ namespace SCICHRPortal.Service.Interfaces
         Task<Tuple<IEnumerable<Employee>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword, int projectId = 0);
         Task<IEnumerable<Employee>> GetEmployeeByDepartment(int departmentId);
         Task<DuplicateMessage> HasDuplicateName(Employee employee);
+        Task InsertWithAuditAsync(Employee employee, string actor, CancellationToken cancellationToken);
         Task<Employee> GetByUserId(int userId);
         Task<Employee> GetByEmployeeNoAsync(string employeeNo);
         Task<IEnumerable<Employee>> GetEmployeeByProject(int projectId);

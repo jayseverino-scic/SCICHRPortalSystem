@@ -70,6 +70,9 @@ namespace SCICHRPortal.Repository.AuditTrail.Contexts
                     }
 
                     string propertyName = property.Metadata.Name;
+                    // Credential rotation is audited through account metadata, never recoverable hashes/salts.
+                    if (entry.Entity is User && propertyName is nameof(User.Password) or nameof(User.Salt))
+                        continue;
                     if (property.Metadata.IsPrimaryKey())
                     {
                         auditEntry.KeyValues[propertyName] = property.CurrentValue!;

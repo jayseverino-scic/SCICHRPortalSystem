@@ -54,6 +54,11 @@ namespace SCICHRPortal.Repository
             base.OnModelCreating(modelBuilder);
             new AnnouncementMap(modelBuilder.Entity<Announcement>());
             new UserMap(modelBuilder.Entity<User>());
+            // The generated value also covers legacy/employee writers that do not normalize email.
+            modelBuilder.Entity<User>().Property<string>("NormalizedEmail")
+                .HasComputedColumnSql("lower(btrim(\"Email\"))", stored: true);
+            modelBuilder.Entity<User>().HasIndex("NormalizedEmail").IsUnique()
+                .HasFilter("\"Deleted\" = false");
             new RoleMap(modelBuilder.Entity<Role>());
             new UserRoleMap(modelBuilder.Entity<UserRole>());
             new ModuleMap(modelBuilder.Entity<Module>());

@@ -17,6 +17,8 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<bool> UpdateAsync(Role role);
         Task<bool> DeleteAsync(int roleId);
         Task<Tuple<IEnumerable<Role>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
-        Task<DuplicateMessage> HasDuplicateName(Role role);
+        Task<bool> HasAssignmentsAsync(int roleId, CancellationToken cancellationToken);
+        Task ExecuteWriteAsync(Func<Task> operation, CancellationToken cancellationToken);
+        Task SaveRoleAsync(Role role, string actor, CancellationToken cancellationToken);
     }
 }

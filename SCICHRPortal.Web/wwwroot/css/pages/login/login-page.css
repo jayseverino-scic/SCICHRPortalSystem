@@ -115,6 +115,15 @@ body {
     margin-bottom: 20px;
 }
 
+.sign-border h1 {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+}
+
 .tab-indicator {
     position: absolute;
     left: 4px;

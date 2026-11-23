@@ -91,8 +91,7 @@ namespace SCICHRPortal.Service.Implementations
             string MailText = str.ReadToEnd();
             str.Close();
 
-            MailText = MailText.Replace("[username]", name)
-                .Replace("[newPassword]", newPassword);
+            MailText = RenderPasswordEmail(MailText, name, newPassword);
 
             var smtpClient = ConfigureMailClient();
 
@@ -110,6 +109,10 @@ namespace SCICHRPortal.Service.Implementations
 
             await smtpClient.SendMailAsync(message);
         }
+
+        public static string RenderPasswordEmail(string template, string name, string password) =>
+            System.Text.RegularExpressions.Regex.Replace(template, @"\[(username|newPassword)\]", match =>
+                WebUtility.HtmlEncode(match.Groups[1].Value == "username" ? name : password));
 
         public async Task SendNewUserEmailAsync(string email, string name, string newPassword, FileStreamResult file)
         {

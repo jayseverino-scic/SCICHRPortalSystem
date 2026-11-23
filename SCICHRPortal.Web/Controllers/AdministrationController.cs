@@ -5,6 +5,13 @@ namespace SCICHRPortal.Web.Controllers
 {
     public class AdministrationController : Controller
     {
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+        public IActionResult Users()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View(new Models.ViewModels.Administration.UserViewModel());
+        }
+
         public IActionResult Index()
         {
             ViewBag.SystemSelected = "Administration";

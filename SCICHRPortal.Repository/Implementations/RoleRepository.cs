@@ -1,36 +1,71 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Repository.Interfaces;
-using SCICHRPortal.Utility.Extensions;
-using static System.Collections.Specialized.BitVector32;
+using SCICHRPortal.Utility.HttpContext.Interfaces;
+using System.Data;
+using Npgsql;
 
 namespace SCICHRPortal.Repository.Implementations
 {
     public class RoleRepository : Repository, IRoleRepository
     {
-        public RoleRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext) : base(context, xscribeContext, timekeepingContext)
+        private IHttpContextService? RequestMetadata { get; }
+        public RoleRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext,
+            IHttpContextService? requestMetadata = null) : base(context, xscribeContext, timekeepingContext)
         {
+            RequestMetadata = requestMetadata;
         }
 
         public async Task<bool> DeleteAsync(int roleId)
         {
-
-            var role = await Context.Role!
-              .SingleOrDefaultAsync(c => c.RoleId == roleId && !c.Deleted);
-
-            if (role == null)
-                return false;
-
-            var isInUsed = await Context.UserRole!.AnyAsync(c => c.RoleId == role.RoleId && c.Deleted == false);
-            if (isInUsed)
-                return false;
-
+            var role = await Context.Role!.SingleOrDefaultAsync(row => row.RoleId == roleId && !row.Deleted);
+            if (role == null) return false;
             role.Deleted = true;
             await Context.SaveChangesAsync();
             return true;
         }
 
+        public Task<bool> HasAssignmentsAsync(int roleId, CancellationToken cancellationToken) =>
+            Context.UserRole!.AsNoTracking().AnyAsync(link => link.RoleId == roleId && !link.Deleted, cancellationToken);
+
+        public async Task ExecuteWriteAsync(Func<Task> operation, CancellationToken cancellationToken)
+        {
+            await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+            try
+            {
+                await operation();
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch (Exception exception) when (IsConflict(exception))
+            {
+                Context.ChangeTracker.Clear();
+                throw new UserPersistenceConflictException(exception);
+            }
+        }
+
+        public async Task SaveRoleAsync(Role role, string actor, CancellationToken cancellationToken)
+        {
+            if (role.RoleId == 0) Context.Role!.Add(role);
+            else
+            {
+                var record = await Context.Role!.SingleAsync(row => row.RoleId == role.RoleId, cancellationToken);
+                await Context.Entry(record).ReloadAsync(cancellationToken);
+                record.Name = role.Name; record.Description = role.Description; record.Deleted = role.Deleted;
+                record.UpdatedAt = role.UpdatedAt; record.UpdatedBy = role.UpdatedBy;
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            await Context.SaveChangesAsync(new ImportAudit(actor,
+                string.IsNullOrWhiteSpace(RequestMetadata?.GetReferrer()) ? "Role management" : RequestMetadata!.GetReferrer()!,
+                string.IsNullOrWhiteSpace(RequestMetadata?.GetSystem()) ? "HR Portal" : RequestMetadata!.GetSystem()!));
+        }
+
+        private static bool IsConflict(Exception exception)
+        {
+            for (Exception? current = exception; current != null; current = current.InnerException)
+                if (current is PostgresException { SqlState: "23505" or "23503" or "40001" or "40P01" } || current is DbUpdateConcurrencyException) return true;
+            return false;
+        }
         public Task<IEnumerable<Role>> FilterAsync(string filter)
         {
             throw new NotImplementedException();
@@ -62,13 +97,13 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<IEnumerable<Role>> GetAllAsync()
         {
-            var roles = await Context.Role!.Where(r => !r.Deleted).ToListAsync();
+            var roles = await Context.Role!.AsNoTracking().Where(r => !r.Deleted).ToListAsync();
             return roles!;
         }
 
         public async Task<Role> GetAsync(int id)
         {
-            var role = await Context.Role!
+            var role = await Context.Role!.AsNoTracking()
                  .SingleOrDefaultAsync(r =>
                      r.RoleId == id &&
                      r.Deleted == false);
@@ -78,28 +113,6 @@ namespace SCICHRPortal.Repository.Implementations
         public Task<Role> GetDuplicateAsync(Role role)
         {
             throw new NotImplementedException();
-        }
-
-        public async Task<DuplicateMessage> HasDuplicateName(Role role)
-        {
-            DuplicateMessage message = new();
-            var description = role.Description!.ToLower().StringSplitThenJoin();
-            var roles = await Context.Role!
-              .Where(r => r.Deleted == false).ToListAsync();
-
-            var duplicatedName = roles.Any(t =>  t.Name!.ToLower() == role.Name!.ToLower());
-            var duplicatedDesc = roles.Any(t => t.Description!.ToLower().StringSplitThenJoin() == description);
-
-            if (duplicatedName)
-            {
-                message.Message = "Name Duplicated";
-            } else if (duplicatedDesc)
-            {
-                message.Message = "Description Duplicated";
-            }
-
-            message.IsDuplicated = duplicatedName || duplicatedDesc;
-            return message;
         }
 
         public Task<bool> HasDuplicateNameAsync(string name)

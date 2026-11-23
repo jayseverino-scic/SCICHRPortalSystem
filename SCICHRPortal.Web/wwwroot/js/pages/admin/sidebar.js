@@ -68,6 +68,7 @@
                 $body.addClass('sidebar-collapsed');
                 // Close all submenus when collapsing
                 $('.sidebar-has-sub').removeClass('sub-open');
+                $('.sidebar-has-sub > .sidebar-nav-link').attr('aria-expanded', 'false');
                 $('.sidebar-sub-menu').hide();
                 log('Sidebar collapsed');
             } else {
@@ -129,15 +130,18 @@
 
             // Close all other submenus
             $('.sidebar-has-sub').not($parentLi).removeClass('sub-open');
+            $('.sidebar-has-sub').not($parentLi).children('.sidebar-nav-link').attr('aria-expanded', 'false');
             $('.sidebar-sub-menu').not($menu).slideUp(ANIMATION_DURATION);
 
             // Toggle current submenu
             if (isCurrentlyOpen) {
                 $parentLi.removeClass('sub-open');
+                $trigger.attr('aria-expanded', 'false');
                 $menu.slideUp(ANIMATION_DURATION);
                 log('Submenu closed');
             } else {
                 $parentLi.addClass('sub-open');
+                $trigger.attr('aria-expanded', 'true');
                 $menu.slideDown(ANIMATION_DURATION);
                 log('Submenu opened');
             }
@@ -207,6 +211,7 @@
                     if ($link.closest('.sidebar-sub-menu').length) {
                         const $parent = $link.closest('.sidebar-has-sub');
                         $parent.addClass('sub-open');
+                        $parent.children('.sidebar-nav-link').attr('aria-expanded', 'true');
                         $parent.find('.sidebar-sub-menu').show();
                         log('Parent submenu opened for active item');
                     }
@@ -253,9 +258,11 @@
         if ($sb.hasClass('sidebar-expanded')) {
             $sb.removeClass('sidebar-expanded');
             $body.removeClass('sidebar-mobile-open');
+            $('.users-menu-toggle').attr('aria-expanded', 'false');
         } else {
             $sb.addClass('sidebar-expanded');
             $body.addClass('sidebar-mobile-open');
+            $('.users-menu-toggle').attr('aria-expanded', 'true');
         }
     };
 
@@ -274,6 +281,8 @@
             if (!isMobile) {
                 isCollapsed = loadState();
                 applyState(isCollapsed);
+            } else if ($('.users-page').length) {
+                $('#admin-sidebar').removeClass('sidebar-expanded');
             }
 
 
@@ -295,7 +304,7 @@
 
     const attachEventHandlers = () => {
 
-        $('#sidebar-toggle-btn').on(CLICK_EVENT, function (e) {
+        $('#sidebar-toggle-btn, .users-menu-toggle').on(CLICK_EVENT, function (e) {
             e.preventDefault();
             e.stopPropagation();
             log('Toggle button clicked');
@@ -316,10 +325,10 @@
         });
 
 
-        $('#v-pills-master-data-tab').on(CLICK_EVENT, function (e) {
+        $('#v-pills-master-data-tab, #v-pills-users-tab').on(CLICK_EVENT, function (e) {
             e.preventDefault();
             e.stopPropagation();
-            log('Master Data menu clicked');
+            log('Navigation submenu clicked');
             toggleSubMenu($(this));
         });
 
@@ -337,6 +346,7 @@
                     setTimeout(() => {
                         $('#admin-sidebar').removeClass('sidebar-expanded');
                         $('body').removeClass('sidebar-mobile-open');
+                        $('.users-menu-toggle').attr('aria-expanded', 'false');
                     }, 100);
                 }
             }
@@ -380,6 +390,7 @@
                     !$(e.target).closest('#sidebar-toggle-btn').length) {
                     $('#admin-sidebar').removeClass('sidebar-expanded');
                     $('body').removeClass('sidebar-mobile-open');
+                    $('.users-menu-toggle').attr('aria-expanded', 'false');
                 }
             });
         }

@@ -1,90 +1,68 @@
-﻿@model SCICHRPortal.Web.Models.ViewModels.Admin.LookupsViewModel
+@model SCICHRPortal.Web.Models.ViewModels.Administration.UserProfileViewModel
 @{
-    ViewData["Title"] = "Enrollment System";
+    ViewData["Title"] = "User Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section Styles {
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link href="~/lib/toastr.js/toastr.min.css" rel="stylesheet" asp-append-version="true" />
-    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true" />
-    <link href="~/lib/select2-bootstrap-theme/select2-bootstrap.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
-    <link href="~/lib/datatables.net-select-dt/select.dataTables.css" rel="stylesheet" />
-    <link href="~/lib/datatables-buttons/buttons.dataTables.min.css" rel="stylesheet" />
-    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/pages/admin/side-bar.css" asp-append-version="true" />
-    <link href="~/css/pages/grading/grading.css" rel="stylesheet" />
-
+    <link href="~/css/pages/admin/side-bar.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/users.css" rel="stylesheet" asp-append-version="true" />
 }
 
-<div id="content-container" class="row">
-    <div class="container col-md-12">
-        <div class="left-header-container">
-            <img class="icon" src="/images/common/announcementbig.png">
-                    <h1 class="title">User Detail</h1>
-        </div>
-            <div class="col-md-12 row">
-                <form class="col-md-8 m-auto my-3 p-2" id="user-detail-form" data-form-endpoint="Authenticated/User/Register" data-grid-id="register-user-grid">
-                    <div>
-                        <button type="button" id="edit-user-detail" class="float-right btn btn-primary">Edit Details <i class="fas fa-edit edit-icon"></i></button>
-                    </div>
-                    <div class="row user-details-form-container" align="center">
-                        <input name="userId" id="UserId" type="number" hidden value=0 class="form-control">
-                        <div class="form-group col-md-6">
-                            <label asp-for="LastName" class="col-form-label">Last Name</label>
-                            <input type="text" asp-for="LastName" class="form-control" disabled>
-                            <span asp-validation-for="LastName" class="text-danger"></span>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label asp-for="FirstName" class="col-form-label">First Name</label>
-                            <input type="text" asp-for="FirstName" class="form-control" disabled>
-                            <span asp-validation-for="FirstName" class="text-danger"></span>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label asp-for="MiddleName" class="col-form-label">Middle Name</label>
-                            <input type="text" asp-for="MiddleName" class="form-control" disabled>
-                            <span asp-validation-for="MiddleName" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group col-md-6">
-                            <label asp-for="Email" class="col-form-label">Email</label>
-                            <input type="text" asp-for="Email" class="form-control lowercase" disabled>
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label asp-for="ContactNumber" class="col-form-label">Contact Number</label>
-                            <input type="text" asp-for="ContactNumber" class="form-control" disabled>
-                            <span asp-validation-for="ContactNumber" class="text-danger"></span>
-                        </div>
-
-                        <div id="button-container" class="form-group col-md-12 mt-2 d-none" align="center">
-                            <button type="submit" class="btn btn-primary add-button save-button">Save</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+<section class="users-page users-self-service" aria-labelledby="user-details-heading">
+    <div class="users-header">
+        <img class="icon" src="~/images/common/userrolebig.png" alt="" />
+        <h1 id="user-details-heading">User Details</h1>
+        <button type="button" class="users-menu-toggle" aria-label="Toggle navigation" aria-controls="admin-sidebar" aria-expanded="false"><i class="fas fa-bars" aria-hidden="true"></i></button>
     </div>
-</div>
-
+    <fieldset class="users-section users-page-actions" aria-labelledby="profile-actions-title">
+        <legend id="profile-actions-title" class="users-section-title">Profile actions</legend>
+        <button type="button" id="edit-user-detail" class="btn btn-primary" disabled>Edit Details</button>
+        <p class="users-help">Keep your personal details and contact information up to date.</p>
+    </fieldset>
+    <div id="profile-status" class="users-page-status" role="status" aria-live="polite"></div>
+    <button type="button" id="profile-retry" class="btn btn-default" hidden>Retry loading profile</button>
+    <form id="user-detail-form" class="users-form" novalidate>
+        <fieldset class="users-section users-form-section" aria-labelledby="profile-details-title">
+            <legend id="profile-details-title" class="users-section-title">Personal information</legend>
+            <div id="profile-form-status" class="users-form-status" role="alert" aria-live="assertive"></div>
+            <div class="users-form-fields">
+                <div class="form-group">
+                    <label asp-for="FirstName">First Name</label>
+                    <input asp-for="FirstName" class="form-control" autocomplete="given-name" disabled />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="MiddleName">Middle Name</label>
+                    <input asp-for="MiddleName" class="form-control" autocomplete="additional-name" disabled />
+                    <span asp-validation-for="MiddleName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LastName">Last Name</label>
+                    <input asp-for="LastName" class="form-control" autocomplete="family-name" disabled />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Email">Email Address</label>
+                    <input asp-for="Email" type="email" class="form-control" autocomplete="email" disabled />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ContactNumber">Contact Number</label>
+                    <input asp-for="ContactNumber" type="tel" class="form-control" autocomplete="tel" disabled />
+                    <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                </div>
+            </div>
+            <div id="button-container" class="users-form-actions d-none">
+                <button type="button" id="profile-cancel" class="btn btn-default">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </fieldset>
+    </form>
+</section>
 
 @section Scripts {
-@{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
-}
-    <script src="~/lib/toastr.js/toastr.min.js"></script>
-    <script src="~/lib/moment.js/moment.min.js"></script>
-    <script src="~/lib/select2/js/select2.min.js"></script>
-    <script src="~/lib/printThis/printThis.min.js"></script>
-    <script src="~/lib/handlebars.js/handlebars.min.js"></script>
-    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
-    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
-    <script src="~/lib/datatables.net-select-dt/select.dataTables.js"></script>
-    <script src="~/lib/datatables.net-select-dt/dataTables.buttons.min.js"></script>
-    <script src="~/lib/datatables-buttons/dataTables.buttons.min.js"></script>
-    <script src="~/lib/datatables-colvis/js/dataTables.colVis.min.js"></script>
-    <script src="~/lib/datatables-buttons/js/buttons.colVis.min.js"></script>
-    <script src="~/js/helpers/token-helper.js"></script>
-    <script src="~/js/pages/dashboard/user-detail.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/toastr.js/toastr.min.js" asp-append-version="true"></script>
+    <script src="~/js/pages/dashboard/user-detail.js" asp-append-version="true"></script>
 }

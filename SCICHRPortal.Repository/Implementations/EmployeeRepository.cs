@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Data.XscribeTables;
@@ -6,15 +6,19 @@ using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Utility.Extensions;
 using System.Data;
 using EFCore.BulkExtensions;
+using SCICHRPortal.Utility.HttpContext.Interfaces;
 
 namespace SCICHRPortal.Repository.Implementations
 {
     public class EmployeeRepository
 : Repository, IEmployeeRepository
     {
-        public EmployeeRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
+        private IHttpContextService? RequestMetadata { get; }
+        public EmployeeRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext,
+            IHttpContextService? requestMetadata = null)
    : base(context, xscribeContext, timekeepingContext)
         {
+            RequestMetadata = requestMetadata;
         }
         public async Task<bool> DeleteAsync(int EmployeeId)
         {
@@ -88,35 +92,21 @@ namespace SCICHRPortal.Repository.Implementations
             return employees;
         }
 
-        public async Task<DuplicateMessage> HasDuplicateName(Employee employee)
-        {
-            DuplicateMessage message = new();
-            var title = employee.LastName!.ToLower().StringSplitThenJoin();
-            var announcementMessage = employee.LastName!.ToLower().StringSplitThenJoin();
-            var employees = await Context.Employee!
-               .Where(r => r.Deleted == false).ToListAsync();
-
-            var duplicatedTitle = employees.Any(t => t.LastName!.ToLower().StringSplitThenJoin() == title);
-            var duplicatedMessage = employees.Any(t => announcementMessage.ToLower() == t.LastName!.ToLower().StringSplitThenJoin());
-            var duplicatedDate = employees.Any(t => t.CreatedAt.Date == DateTime.Now.Date);
-
-            if (duplicatedDate && duplicatedTitle)
-            {
-                message.Message = "Employee Last Name Duplicated";
-            }
-            else if (duplicatedDate && duplicatedMessage)
-            {
-                message.Message = "Employee Last Name Duplicated";
-            }
-
-            message.IsDuplicated = (duplicatedTitle || duplicatedMessage) && duplicatedDate;
-            return message;
-        }
-
+        public async Task<IReadOnlyList<EmployeeDuplicateFacts>> GetDuplicateFactsAsync() =>
+            await Context.Employee!.AsNoTracking().Where(employee => !employee.Deleted)
+                .Select(employee => new EmployeeDuplicateFacts(employee.LastName, employee.CreatedAt)).ToListAsync();
         public async Task InsertAsync(Employee entity)
         {
             await Context.Employee!.AddAsync(entity);
             await Context.SaveChangesAsync();
+        }
+
+        public async Task InsertWithAuditAsync(Employee employee, string actor, CancellationToken cancellationToken)
+        {
+            await Context.Employee!.AddAsync(employee, cancellationToken);
+            await Context.SaveChangesAsync(new ImportAudit(actor,
+                string.IsNullOrWhiteSpace(RequestMetadata?.GetReferrer()) ? "Employee management" : RequestMetadata!.GetReferrer()!,
+                string.IsNullOrWhiteSpace(RequestMetadata?.GetSystem()) ? "HR Portal" : RequestMetadata!.GetSystem()!));
         }
 
         public async Task<bool> UpdateAsync(Employee employee)

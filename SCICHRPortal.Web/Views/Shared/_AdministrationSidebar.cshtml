@@ -71,36 +71,49 @@
                     </li>
                 }
 
-                @if (!hasAdminPermission && !isParent)
+                @if (isAuthorize)
                 {
-                    <!-- User Details -->
-                    <li role="none">
-                        <a class="sidebar-nav-link user-detail"
-                           role="menuitem"
-                           asp-controller="Library"
-                           asp-action="UserDetail"
-                           data-label="User Details"
-                           aria-label="User Details">
-                            <span class="nav-icon" aria-hidden="true">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <span class="nav-text">User Details</span>
+                    <li class="sidebar-has-sub" role="none">
+                        <a class="sidebar-nav-link users" role="menuitem" id="v-pills-users-tab"
+                           href="javascript:void(0)" data-label="User" aria-label="User menu"
+                           aria-haspopup="true" aria-expanded="false" aria-controls="users-sub-menu">
+                            <span class="nav-icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                            <span class="nav-text">User</span>
+                            <i class="fas fa-chevron-down nav-arrow" aria-hidden="true"></i>
                         </a>
-                    </li>
-
-                    <!-- Change Password -->
-                    <li role="none">
-                        <a class="sidebar-nav-link change-password"
-                           role="menuitem"
-                           asp-controller="Library"
-                           asp-action="Password"
-                           data-label="Change Password"
-                           aria-label="Change Password">
-                            <span class="nav-icon" aria-hidden="true">
-                                <i class="fas fa-key"></i>
-                            </span>
-                            <span class="nav-text">Change Password</span>
-                        </a>
+                        <ul id="users-sub-menu" class="sidebar-sub-menu users-sub-menu" style="display: none;" role="menu" aria-label="User submenu">
+                            @if (User.IsInRole("Administrator"))
+                            {
+                                <li role="none">
+                                    <a class="sidebar-nav-link users" role="menuitem" asp-controller="Administration" asp-action="Users"
+                                       data-label="Users" aria-label="Users">
+                                        <span class="nav-icon" aria-hidden="true"><i class="fas fa-users"></i></span>
+                                        <span class="nav-text">Users</span>
+                                    </a>
+                                </li>
+                                <li role="none">
+                                    <a class="sidebar-nav-link user-roles" role="menuitem" asp-controller="Dashboard" asp-action="UserRole"
+                                       data-label="User Roles" aria-label="User Roles">
+                                        <span class="nav-icon" aria-hidden="true"><i class="fas fa-user-tag"></i></span>
+                                        <span class="nav-text">User Roles</span>
+                                    </a>
+                                </li>
+                            }
+                            <li role="none">
+                                <a class="sidebar-nav-link user-detail" role="menuitem" asp-controller="Dashboard" asp-action="UserDetail"
+                                   data-label="User Details" aria-label="User Details">
+                                    <span class="nav-icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                    <span class="nav-text">User Details</span>
+                                </a>
+                            </li>
+                            <li role="none">
+                                <a class="sidebar-nav-link change-password" role="menuitem" asp-controller="Dashboard" asp-action="Password"
+                                   data-label="Change Password" aria-label="Change Password">
+                                    <span class="nav-icon" aria-hidden="true"><i class="fas fa-key"></i></span>
+                                    <span class="nav-text">Change Password</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 }
 

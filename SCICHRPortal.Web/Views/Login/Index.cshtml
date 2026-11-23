@@ -1,4 +1,4 @@
-﻿@model SCICHRPortal.Web.Models.ViewModels.Login.LoginViewModel
+@model SCICHRPortal.Web.Models.ViewModels.Login.LoginViewModel
 
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
@@ -38,11 +38,7 @@
 
         <div class="login-border" id="login-border">
 
-            <div class="sign-border">
-                <div class="tab-indicator" id="tabIndicator"></div>
-                <div class="tab-btn sign-in-text active" id="tabSignIn">Sign In</div>
-                <div class="tab-btn sign-up-text" id="tabSignUp">Sign Up</div>
-            </div>
+            <div class="sign-border"><h1 class="sign-in-text active">Sign In</h1></div>
 
             <div id="formSignIn" class="tab-form">
                 <form id="log-in-form" novalidate>
@@ -75,110 +71,12 @@
                     </button>
                 </form>
 
-                <p class="account-text">
-                    Don't have an account yet?
-                    <a href="javascript:void(0)" class="sign-up-link" id="goToSignUp" onclick="switchTab('signup'); return false;">Sign up here</a>
-                </p>
-            </div>
-
-            <div id="formSignUp" class="tab-form hidden">
-                <form id="register-form" novalidate>
-                    @Html.AntiForgeryToken()
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="UserName" class="sr-only"></label>
-                        <input type="text" asp-for="UserName" class="input-field-control" placeholder="Username" />
-                        <span asp-validation-for="UserName" class="text-danger"></span>
-                    </div>
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="LastName" class="sr-only"></label>
-                        <input type="text" asp-for="LastName" class="input-field-control" placeholder="Last Name" />
-                        <span asp-validation-for="LastName" class="text-danger"></span>
-                    </div>
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="FirstName" class="sr-only"></label>
-                        <input type="text" asp-for="FirstName" class="input-field-control" placeholder="First Name" />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="MiddleName" class="sr-only"></label>
-                        <input type="text" asp-for="MiddleName" class="input-field-control" placeholder="Middle Name" />
-                        <span asp-validation-for="MiddleName" class="text-danger"></span>
-                    </div>
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="Email" class="sr-only"></label>
-                        <input type="text" asp-for="Email" class="input-field-control lowercase" placeholder="Email Address" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="ContactNumber" class="sr-only"></label>
-                        <input type="text" asp-for="ContactNumber" class="input-field-control" placeholder="Contact Number" />
-                        <span asp-validation-for="ContactNumber" class="text-danger"></span>
-                    </div>
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="Password" class="sr-only"></label>
-                        <input type="password" asp-for="Password" id="signupPassword" class="input-field-control" placeholder="Password" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                        <button type="button" class="eye-icon" aria-label="Toggle password visibility" data-target="signupPassword">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-
-                    <div class="input-field-wrapper">
-                        <label asp-for="ConfirmPassword" class="sr-only"></label>
-                        <input type="password" asp-for="ConfirmPassword" id="confirmPassword" class="input-field-control" placeholder="Confirm Password" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                        <button type="button" class="eye-icon" aria-label="Toggle password visibility" data-target="confirmPassword">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-
-                    <button type="submit" class="shape-login">
-                        <span class="login-text">Create an Account</span>
-                    </button>
-                </form>
-
-                <p class="account-text">
-                    Already have an account?
-                    <a href="javascript:void(0)" class="sign-in-link" id="goToSignIn" onclick="switchTab('signin'); return false;">Sign In</a>
-                </p>
+                <p class="account-text">Contact your Administrator to request an account.</p>
             </div>
 
         </div>
-
     </div>
-    <script>
-            function switchTab(tab) {
-                var signInForm  = document.getElementById('formSignIn');
-                var signUpForm  = document.getElementById('formSignUp');
-                var tabSignIn   = document.getElementById('tabSignIn');
-                var tabSignUp   = document.getElementById('tabSignUp');
-                var loginBorder = document.getElementById('login-border');
-                var indicator   = document.getElementById('tabIndicator');
 
-                if (tab === 'signin') {
-                    signInForm.classList.remove('hidden');
-                    signUpForm.classList.add('hidden');
-                    tabSignIn.classList.add('active');
-                    tabSignUp.classList.remove('active');
-                    loginBorder.classList.remove('signup-active');
-                    indicator.style.left = '4px';
-                } else {
-                    signInForm.classList.add('hidden');
-                    signUpForm.classList.remove('hidden');
-                    tabSignIn.classList.remove('active');
-                    tabSignUp.classList.add('active');
-                    loginBorder.classList.add('signup-active');
-                    indicator.style.left = 'calc(50% + 2px)';
-                }
-            }
-    </script>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>

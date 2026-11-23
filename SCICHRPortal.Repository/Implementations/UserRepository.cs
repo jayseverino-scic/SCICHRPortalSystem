@@ -116,9 +116,10 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<User> GetByEmailAsync(string email)
         {
+            var normalizedEmail = email.Trim().ToLowerInvariant();
             var user = await Context.User!
               .FirstOrDefaultAsync(u =>
-                  u.Email!.ToLower() == email.ToLower() &&
+                  EF.Property<string>(u, "NormalizedEmail") == normalizedEmail &&
                   u.Deleted == false);
 
             return user!;
@@ -129,7 +130,7 @@ namespace SCICHRPortal.Repository.Implementations
             var users = await Context.UserRole!
               .Include(c => c.Role)
               .Include(c => c.User)
-              .Where(e => e.RoleId == roleId && e.User!.IsApproved && !e.Deleted)
+              .Where(e => e.RoleId == roleId && e.User!.IsApproved && !e.User.Deleted && !e.Role!.Deleted && !e.Deleted)
               .ToListAsync();
 
             return users!;
@@ -147,17 +148,19 @@ namespace SCICHRPortal.Repository.Implementations
 
         public async Task<User> GetDuplicateAsync(User user)
         {
+            var normalizedEmail = user.Email!.Trim().ToLowerInvariant();
             var u = await Context.User!
                 .SingleOrDefaultAsync(r =>
-                    r.Email!.ToLower() == user.Email!.ToLower() &&
+                    EF.Property<string>(r, "NormalizedEmail") == normalizedEmail &&
                     r.Deleted! == false);
             return u!;
         }   
         public async Task<User> GetDuplicateEmailAsync(User user)
         {
+            var normalizedEmail = user.Email!.Trim().ToLowerInvariant();
             var u = await Context.User!
                 .FirstOrDefaultAsync(r =>
-                    r.Email!.ToLower() == user.Email!.ToLower() &&
+                    EF.Property<string>(r, "NormalizedEmail") == normalizedEmail &&
                     r.Deleted! == false);
             return u!;
         }
@@ -175,7 +178,7 @@ namespace SCICHRPortal.Repository.Implementations
                 .Include(ur => ur.Role)
                 .Where(ur =>
                     ur.UserId == id &&
-                    ur.Deleted == false)
+                    ur.Deleted == false && !ur.Role!.Deleted)
                 .ToListAsync()!;
         }
 
