@@ -13,11 +13,13 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<List<LeaveTypeLookupItem>> GetLeaveTypesAsync(CancellationToken cancellationToken);
         Task<List<LeaveTypeLookupItem>> GetImportLeaveTypesAsync(IReadOnlyCollection<string> normalizedDescriptions, CancellationToken cancellationToken);
         Task<bool> LeaveTypeExistsAsync(int id, CancellationToken cancellationToken);
-        Task<LeaveWriteResult> ExecuteWriteAsync(Func<Task<LeaveWriteResult>> operation, CancellationToken cancellationToken);
+        Task<TResult> ExecuteWriteAsync<TResult>(
+            Func<Task<(TResult Result, bool Commit)>> operation, CancellationToken cancellationToken);
         Task<Leave?> GetAsync(int id, CancellationToken cancellationToken);
         Task<bool> EmployeeExistsAsync(int id, CancellationToken cancellationToken);
         Task<bool> HasOverlapAsync(int employeeId, DateTime from, DateTime to, int? excludingId, CancellationToken cancellationToken);
         Task InsertAsync(Leave record, CancellationToken cancellationToken);
-        Task SaveAsync(CancellationToken cancellationToken);
+        Task UpdateAsync(Leave record, Leave changes, CancellationToken cancellationToken);
+        Task DeleteAsync(Leave record, Leave changes, CancellationToken cancellationToken);
     }
 }

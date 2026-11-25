@@ -111,6 +111,20 @@
 
     putForm = async params => await this.formRequest('PUT', params);
 
+    readErrorMessage = async (response, { fallback, forbidden, serverError }) => {
+        if (response.status >= 500 && serverError) return serverError;
+        if (response.status === 403 && forbidden) return forbidden;
+
+        const body = await response.text();
+        try {
+            const parsed = JSON.parse(body);
+            const validationMessage = parsed?.errors && Object.values(parsed.errors).flat().join(' ');
+            return parsed?.message || parsed?.Message || validationMessage || fallback;
+        } catch (_) {
+            return body || fallback;
+        }
+    };
+
     toFormData = data => {
         var formData = new FormData();
 

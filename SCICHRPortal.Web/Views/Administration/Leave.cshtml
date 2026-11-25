@@ -48,8 +48,6 @@
                         <h2 class="modal-title" id="leave-modal-title">Add Leave</h2>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" asp-for="LeaveId" />
-                        <input type="hidden" asp-for="EmployeeId" />
                         <div id="leave-form-status" class="text-danger" role="alert" aria-live="assertive"></div>
                         <div id="leave-lookup-status" role="status" aria-live="polite"></div>
                         <div id="leave-types-status" role="status" aria-live="polite"></div>
@@ -58,7 +56,6 @@
                             <div class="form-group leave-employee-field">
                                 <label asp-for="EmployeeNo"></label>
                                 <select asp-for="EmployeeNo" class="form-control" required aria-required="true"><option value=""></option></select>
-                                <span asp-validation-for="EmployeeId" class="text-danger"></span>
                             </div>
                             <div class="form-group leave-employee-field">
                                 <label asp-for="EmployeeName"></label>

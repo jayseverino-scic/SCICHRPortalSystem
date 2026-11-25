@@ -10,6 +10,16 @@
     const status = $('#leave-import-status');
     let importing = false;
 
+    const attachEvents = () => {
+        $('#leave-import').on('click', onImportButtonClicked);
+        $('#leave-template').on('click', downloadTemplate);
+        fileInput.on('change', onFileChanged);
+        form.on('submit', onImport);
+        element.addEventListener('hide.bs.modal', onImportModalHiding);
+        element.addEventListener('shown.bs.modal', onImportModalShown);
+        element.addEventListener('hidden.bs.modal', onImportModalHidden);
+    };
+
     const setStatus = (message, error = false) => status.text(message).toggleClass('is-error', error);
     const updateControls = () => {
         form.find('input, button').prop('disabled', importing);
@@ -20,15 +30,11 @@
         else form.removeAttr('aria-busy');
     };
 
-    const errorMessage = async response => {
-        if (response.status >= 500) return 'The server could not complete the import.';
-        if (response.status === 403) return 'Administrator access is required.';
-        const body = await response.text();
-        try {
-            const parsed = JSON.parse(body);
-            return parsed.message || parsed.Message || (parsed.errors && Object.values(parsed.errors).flat().join(' ')) || 'The request failed.';
-        } catch (_) { return body || 'The request failed.'; }
-    };
+    const errorMessage = response => api.readErrorMessage(response, {
+        fallback: 'The request failed.',
+        forbidden: 'Administrator access is required.',
+        serverError: 'The server could not complete the import.'
+    });
 
     const clearResults = () => {
         setStatus('');
@@ -100,27 +106,37 @@
             window.setTimeout(() => URL.revokeObjectURL(url), 0);
         } catch (error) {
             $('#leave-page-status').text(error.message || 'The template could not be downloaded.');
-        } finally { button.prop('disabled', false); }
+        } finally {
+            button.prop('disabled', false);
+        }
     };
 
-    const initialize = () => {
-        $('#leave-import').on('click', () => {
-            if (importing) return;
-            fileInput.val('');
-            clearResults();
-            updateControls();
-            modal.show();
-        });
-        $('#leave-template').on('click', downloadTemplate);
-        fileInput.on('change', () => { clearResults(); updateControls(); });
-        form.on('submit', onImport);
-        element.addEventListener('hide.bs.modal', event => { if (importing) event.preventDefault(); });
-        element.addEventListener('shown.bs.modal', () => {
-            $('.modal-backdrop').last().addClass('leave-backdrop');
-            fileInput.trigger('focus');
-        });
-        element.addEventListener('hidden.bs.modal', () => $('#leave-import').trigger('focus'));
+    const onImportButtonClicked = () => {
+        if (importing) return;
+
+        fileInput.val('');
+        clearResults();
+        updateControls();
+        modal.show();
     };
 
-    $(initialize);
+    const onFileChanged = () => {
+        clearResults();
+        updateControls();
+    };
+
+    const onImportModalHiding = event => {
+        if (importing) {
+            event.preventDefault();
+        }
+    };
+
+    const onImportModalShown = () => {
+        $('.modal-backdrop').last().addClass('leave-backdrop');
+        fileInput.trigger('focus');
+    };
+
+    const onImportModalHidden = () => $('#leave-import').trigger('focus');
+
+    $(attachEvents);
 })(jQuery);

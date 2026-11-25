@@ -97,7 +97,27 @@ namespace SCICHRPortal.Repository.Implementations
             await SaveAsync(cancellationToken);
         }
 
-        public async Task SaveAsync(CancellationToken cancellationToken)
+        public async Task UpdateAsync(OfficialBusiness record, OfficialBusiness changes, CancellationToken cancellationToken)
+        {
+            record.EmployeeId = changes.EmployeeId;
+            record.From = changes.From;
+            record.To = changes.To;
+            record.UpdatedAt = changes.UpdatedAt;
+            record.UpdatedBy = changes.UpdatedBy;
+
+            await SaveAsync(cancellationToken);
+        }
+
+        public async Task DeleteAsync(OfficialBusiness record, OfficialBusiness changes, CancellationToken cancellationToken)
+        {
+            record.Deleted = changes.Deleted;
+            record.UpdatedAt = changes.UpdatedAt;
+            record.UpdatedBy = changes.UpdatedBy;
+
+            await SaveAsync(cancellationToken);
+        }
+
+        private async Task SaveAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             // The parameterless overload includes SCIC's audit entries (including generated keys).

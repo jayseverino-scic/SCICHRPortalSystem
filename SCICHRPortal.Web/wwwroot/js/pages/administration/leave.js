@@ -22,6 +22,22 @@
     let submitting = false;
     const deleting = new Set();
 
+    const attachEvents = () => {
+        $(document).on('leave:imported', reloadGrid);
+        $('#leave-add').on('click', onAddButtonClicked);
+        $('#leave-types-retry').on('click', onLeaveTypesRetryClicked);
+        $('#leave-retry').on('click', reloadGrid);
+        $('#leave-grid').on('click', '.leave-edit', onEditButtonClicked);
+        $('#leave-grid').on('click', '.leave-delete', onDeleteButtonClicked);
+
+        form.on('submit', onFormSubmit);
+        modal.on('hide.bs.modal', onFormModalHiding);
+        modal.on('shown.bs.modal', onFormModalShown);
+        modal.on('hidden.bs.modal', onFormModalHidden);
+
+        $(document).on('input.leave', '.select2-search__field', onEmployeeSearchInput);
+    };
+
     const setFormStatus = message => $('#leave-form-status').text(message || '');
     const setPageStatus = message => $('#leave-page-status').text(message || '');
     const updateControls = () => {
@@ -33,18 +49,11 @@
         $('#leave-types-retry').prop('disabled', loading || submitting || loadingTypes);
     };
 
-    const responseError = async response => {
-        if (response.status >= 500) return 'The server could not complete the request. Please try again.';
-        if (response.status === 403) return 'Administrator access is required.';
-        const body = await response.text();
-        try {
-            const parsed = JSON.parse(body);
-            return parsed.message || parsed.Message || (parsed.errors && Object.values(parsed.errors).flat().join(' ')) ||
-                'The request could not be completed.';
-        } catch (_) {
-            return body || 'The request could not be completed.';
-        }
-    };
+    const responseError = response => api.readErrorMessage(response, {
+        fallback: 'The request could not be completed.',
+        forbidden: 'Administrator access is required.',
+        serverError: 'The server could not complete the request. Please try again.'
+    });
 
     const getJson = async url => {
         const response = await api.get({ url });
@@ -93,7 +102,6 @@
         selectedEmployee = employee;
         searchVersions.EmployeeNo++;
         searchVersions.EmployeeName++;
-        $('#EmployeeId').val(employee ? employee.employeeId : '');
         for (const [id, label] of [['EmployeeNo', employee && employee.employeeNo], ['EmployeeName', employee && employee.employeeName]]) {
             const select = $(`#${id}`).empty().append(new Option('', ''));
             if (employee) select.append(new Option(label || '(Not provided)', String(employee.employeeId), true, true));
@@ -154,7 +162,6 @@
         if (form.data('validator')) form.validate().resetForm();
         setEmployee(null);
         renderLeaveTypes(null);
-        $('#LeaveId').val(editingId);
         setFormStatus('');
         $('#leave-lookup-status').text(id ? 'Loading form...' : '');
         $('#leave-modal-title').text(id ? 'Edit Leave' : 'Add Leave');
@@ -190,37 +197,67 @@
         }
     };
 
+    const getFormValues = () => {
+        return {
+            employeeId: selectedEmployee ? selectedEmployee.employeeId : null,
+            leaveTypeId: Number($('#LeaveTypeId').val()) || null,
+            fromDate: $('#FromDate').val(),
+            fromTime: $('#FromTime').val(),
+            toDate: $('#ToDate').val(),
+            toTime: $('#ToTime').val()
+        };
+    };
+
+    const validateForm = values => {
+        const hasRequiredValues = values.employeeId && values.leaveTypeId &&
+            values.fromDate && values.fromTime && values.toDate && values.toTime;
+        if (!hasRequiredValues || !form.valid()) {
+            setFormStatus('Select an employee and Type of Leave, and enter all From and To dates and times.');
+            return false;
+        }
+
+        const from = `${values.fromDate}T${values.fromTime}`;
+        const to = `${values.toDate}T${values.toTime}`;
+        if (to <= from) {
+            setFormStatus('The end date and time must be later than the start date and time.');
+            return false;
+        }
+
+        return true;
+    };
+
+    const saveLeave = async (id, data) => {
+        const options = {
+            url: id ? `${endpoint}/${encodeURIComponent(id)}` : endpoint,
+            data,
+            requesterName: $('#current-user').text(),
+            requestOrigin: 'Leave',
+            requestSystem: 'SCIC HR Portal'
+        };
+        const response = await (id ? api.put(options) : api.post(options));
+        if (!response.ok) {
+            throw new Error(await responseError(response));
+        }
+    };
+
     const onFormSubmit = async event => {
         event.preventDefault();
         if (submitting || loading || !detailsReady || !typesReady) return;
+
         setFormStatus('');
-        const data = {
-            employeeId: selectedEmployee ? selectedEmployee.employeeId : null,
-            leaveTypeId: Number($('#LeaveTypeId').val()) || null,
-            fromDate: $('#FromDate').val(), toDate: $('#ToDate').val(),
-            fromTime: $('#FromTime').val(), toTime: $('#ToTime').val()
-        };
-        if (!data.employeeId || !data.leaveTypeId || !data.fromDate || !data.toDate || !data.fromTime || !data.toTime || !form.valid()) {
-            setFormStatus('Select an employee and Type of Leave, and enter all From and To dates and times.');
-            return;
-        }
-        if (`${data.toDate}T${data.toTime}` <= `${data.fromDate}T${data.fromTime}`) {
-            setFormStatus('The end date and time must be later than the start date and time.');
-            return;
-        }
+        const values = getFormValues();
+        if (!validateForm(values)) return;
+
+        const id = editingId;
         submitting = true;
         updateControls();
+
         try {
-            const options = {
-                url: editingId ? `${endpoint}/${encodeURIComponent(editingId)}` : endpoint, data,
-                requesterName: $('#current-user').text(), requestOrigin: 'Leave', requestSystem: 'SCIC HR Portal'
-            };
-            const response = await (editingId ? api.put(options) : api.post(options));
-            if (!response.ok) throw new Error(await responseError(response));
-            toastr.success(editingId ? 'Leave updated.' : 'Leave created.');
+            await saveLeave(id, values);
+            toastr.success(id ? 'Leave updated.' : 'Leave created.');
             submitting = false;
             modalDialog.hide();
-            table.ajax.reload(null, false);
+            reloadGrid();
         } catch (error) {
             setFormStatus(error.message || 'Leave could not be saved. Please try again.');
         } finally {
@@ -253,90 +290,141 @@
         }
     };
 
+    const requestGridPage = async (request, callback) => {
+        const version = ++pageVersion;
+        const order = request.order[0] || { column: 2, dir: 'desc' };
+        const sortColumns = ['employeeNo', 'employeeName', 'from', 'from', 'to', 'to', 'leaveType'];
+        const query = new URLSearchParams({
+            draw: request.draw,
+            start: request.start,
+            length: request.length,
+            search: request.search.value,
+            sortColumn: sortColumns[order.column] || 'from',
+            sortDirection: order.dir
+        });
+
+        setPageStatus('Loading records...');
+        $('#leave-retry').prop('hidden', true);
+
+        try {
+            const result = await getJson(`${endpoint}/Page?${query}`);
+            if (version !== pageVersion) return;
+
+            setPageStatus('');
+            callback(result);
+        } catch (error) {
+            if (version !== pageVersion) return;
+
+            callback({ draw: request.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
+            setPageStatus(error.message || 'Records could not be loaded. Please retry.');
+            $('#leave-retry').prop('hidden', false);
+        }
+    };
+
+    function onGridDraw() {
+        const grid = this.api();
+        const info = grid.page.info();
+        if (info.recordsDisplay > 0 && info.start >= info.recordsDisplay && info.page > 0) {
+            grid.page('previous').draw('page');
+        }
+    }
+
     const initializeGrid = () => {
         const text = $.fn.dataTable.render.text();
         // Interpret offset-free Manila wall times without applying the browser's DST rules.
         const date = (value, type) => type === 'display' ? moment.utc(value).format('MMM DD, YYYY') : value;
         const time = (value, type) => type === 'display' ? moment.utc(value).format('h:mm A') : value;
         table = $('#leave-grid').DataTable({
-            serverSide: true, processing: true, searching: true, searchDelay: 300,
+            serverSide: true,
+            processing: true,
+            searching: true,
+            searchDelay: 300,
             scrollX: true,
             dom: '<"leave-table-toolbar"lf>rtip',
-            pageLength: 10, lengthMenu: [10, 20, 40, 80], order: [[2, 'desc']],
-            language: { emptyTable: 'No Leave records.', zeroRecords: 'No matching Leave records.' },
-            ajax: async (request, callback) => {
-                const version = ++pageVersion;
-                const order = request.order[0] || { column: 2, dir: 'desc' };
-                const columns = ['employeeNo', 'employeeName', 'from', 'from', 'to', 'to', 'leaveType'];
-                const query = new URLSearchParams({
-                    draw: request.draw, start: request.start, length: request.length,
-                    search: request.search.value, sortColumn: columns[order.column] || 'from', sortDirection: order.dir
-                });
-                setPageStatus('Loading records...');
-                $('#leave-retry').prop('hidden', true);
-                try {
-                    const result = await getJson(`${endpoint}/Page?${query}`);
-                    if (version !== pageVersion) return;
-                    setPageStatus('');
-                    callback(result);
-                } catch (error) {
-                    if (version !== pageVersion) return;
-                    callback({ draw: request.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                    setPageStatus(error.message || 'Records could not be loaded. Please retry.');
-                    $('#leave-retry').prop('hidden', false);
-                }
+            pageLength: 10,
+            lengthMenu: [10, 20, 40, 80],
+            order: [[2, 'desc']],
+            language: {
+                emptyTable: 'No Leave records.',
+                zeroRecords: 'No matching Leave records.'
             },
+            ajax: requestGridPage,
             columns: [
                 { data: 'employeeNo', render: text, defaultContent: '' },
                 { data: 'employeeName', render: text, defaultContent: '' },
-                { data: 'from', render: date }, { data: 'from', render: time },
-                { data: 'to', render: date }, { data: 'to', render: time },
+                { data: 'from', render: date },
+                { data: 'from', render: time },
+                { data: 'to', render: date },
+                { data: 'to', render: time },
                 { data: 'leaveType', render: text, defaultContent: '' },
-                { data: null, orderable: false, searchable: false, className: 'leave-actions',
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'leave-actions',
                     defaultContent: '<button type="button" class="leave-edit" title="Edit" aria-label="Edit Leave"><i class="fas fa-edit" aria-hidden="true"></i></button>' +
-                        '<button type="button" class="leave-delete" title="Delete" aria-label="Delete Leave"><i class="fas fa-trash border-icon" aria-hidden="true"></i></button>' }
+                        '<button type="button" class="leave-delete" title="Delete" aria-label="Delete Leave"><i class="fas fa-trash border-icon" aria-hidden="true"></i></button>'
+                }
             ],
-            drawCallback: function () {
-                const grid = this.api();
-                const info = grid.page.info();
-                if (info.recordsDisplay > 0 && info.start >= info.recordsDisplay && info.page > 0) grid.page('previous').draw('page');
-            }
+            drawCallback: onGridDraw
         });
         $('#leave-grid_filter input').attr('maxlength', 200);
     };
 
-    const attachEvents = () => {
-        $(document).on('leave:imported', () => table.ajax.reload(null, false));
-        $('#leave-add').on('click', () => openForm(0));
-        form.on('submit', onFormSubmit);
-        $('#leave-types-retry').on('click', () => loadLeaveTypes(modalVersion));
-        $('#leave-retry').on('click', () => table.ajax.reload(null, false));
-        $('#leave-grid').on('click', '.leave-edit, .leave-delete', function () {
-            const record = table.row($(this).closest('tr')).data();
-            if (!record || deleting.has(record.leaveId)) return;
-            if ($(this).hasClass('leave-edit')) openForm(record.leaveId);
-            else onDelete(record);
-        });
-        modal.on('hide.bs.modal', event => {
-            if (submitting) { event.preventDefault(); return; }
-            modalVersion++;
-            searchVersions.EmployeeNo++;
-            searchVersions.EmployeeName++;
-        }).on('shown.bs.modal', () => {
-            $('.modal-backdrop').last().addClass('leave-backdrop');
-            $('#EmployeeNo').next('.select2').find('.select2-selection').trigger('focus');
-        })
-            .on('hidden.bs.modal', () => $('#leave-add').trigger('focus'));
-        $(document).on('input.leave', '.select2-search__field', () => {
-            if (activeSearch) searchVersions[activeSearch]++;
-        });
+    const reloadGrid = () => table.ajax.reload(null, false);
+
+    const onAddButtonClicked = () => openForm(0);
+
+    const onEditButtonClicked = event => {
+        const record = table.row($(event.currentTarget).closest('tr')).data();
+        if (record && !deleting.has(record.leaveId)) {
+            openForm(record.leaveId);
+        }
+    };
+
+    const onDeleteButtonClicked = event => {
+        const record = table.row($(event.currentTarget).closest('tr')).data();
+        if (record) {
+            onDelete(record);
+        }
+    };
+
+    const onLeaveTypesRetryClicked = () => loadLeaveTypes(modalVersion);
+
+    const onFormModalHiding = event => {
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+
+        modalVersion++;
+        searchVersions.EmployeeNo++;
+        searchVersions.EmployeeName++;
+    };
+
+    const onFormModalShown = () => {
+        $('.modal-backdrop').last().addClass('leave-backdrop');
+        $('#EmployeeNo').next('.select2').find('.select2-selection').trigger('focus');
+    };
+
+    const onFormModalHidden = () => $('#leave-add').trigger('focus');
+
+    const onEmployeeSearchInput = () => {
+        if (activeSearch) {
+            searchVersions[activeSearch]++;
+        }
     };
 
     const initialize = () => {
         initializeEmployeeLookup('EmployeeNo');
         initializeEmployeeLookup('EmployeeName');
-        $('#LeaveTypeId').select2({ theme: 'bootstrap', width: '100%', dropdownParent: modal,
-            placeholder: 'Select Type of Leave', allowClear: true });
+        $('#LeaveTypeId').select2({
+            theme: 'bootstrap',
+            width: '100%',
+            dropdownParent: modal,
+            placeholder: 'Select Type of Leave',
+            allowClear: true
+        });
         attachEvents();
         initializeGrid();
     };

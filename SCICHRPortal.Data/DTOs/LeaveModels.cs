@@ -4,16 +4,23 @@ namespace SCICHRPortal.Data.DTOs
 {
     public sealed class LeaveWriteRequest
     {
-        [Required, Range(1, int.MaxValue)]
+        [Required]
+        [Range(1, int.MaxValue)]
         public int? EmployeeId { get; set; }
-        [Required, Range(1, int.MaxValue)]
+
+        [Required]
+        [Range(1, int.MaxValue)]
         public int? LeaveTypeId { get; set; }
+
         [Required]
         public DateOnly? FromDate { get; set; }
+
         [Required]
         public DateOnly? ToDate { get; set; }
+
         [Required]
         public TimeOnly? FromTime { get; set; }
+
         [Required]
         public TimeOnly? ToTime { get; set; }
     }
@@ -21,6 +28,9 @@ namespace SCICHRPortal.Data.DTOs
     public enum LeaveWriteStatus { Success, Invalid, NotFound, Conflict }
 
     public sealed record LeaveWriteResult(LeaveWriteStatus Status, string? Message = null, int? Id = null);
+
+    public sealed class LeavePersistenceConflictException(Exception innerException)
+        : Exception("A concurrent leave persistence conflict occurred.", innerException);
 
     public sealed class LeavePageQuery
     {

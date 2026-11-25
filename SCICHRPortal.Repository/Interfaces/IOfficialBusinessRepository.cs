@@ -15,6 +15,7 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<bool> EmployeeExistsAsync(int id, CancellationToken cancellationToken);
         Task<bool> HasOverlapAsync(int employeeId, DateTime from, DateTime to, int? excludingId, CancellationToken cancellationToken);
         Task InsertAsync(OfficialBusiness record, CancellationToken cancellationToken);
-        Task SaveAsync(CancellationToken cancellationToken);
+        Task UpdateAsync(OfficialBusiness record, OfficialBusiness changes, CancellationToken cancellationToken);
+        Task DeleteAsync(OfficialBusiness record, OfficialBusiness changes, CancellationToken cancellationToken);
     }
 }

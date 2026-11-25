@@ -58,19 +58,25 @@ namespace SCICHRPortal.Service.Implementations
                     return new(OfficialBusinessWriteStatus.Conflict, "This employee already has an Official Business record overlapping this period.");
 
                 var now = DateTime.UtcNow;
-                var record = existing ?? new OfficialBusiness { CreatedAt = now, CreatedBy = actor };
-                record.EmployeeId = employeeId;
-                record.From = from;
-                record.To = to;
-                if (existing == null)
-                    await OfficialBusinessRepository.InsertAsync(record, cancellationToken);
-                else
+                var changes = new OfficialBusiness
                 {
-                    record.UpdatedAt = now;
-                    record.UpdatedBy = actor;
-                    await OfficialBusinessRepository.SaveAsync(cancellationToken);
+                    EmployeeId = employeeId,
+                    From = from,
+                    To = to
+                };
+
+                if (existing == null)
+                {
+                    changes.CreatedAt = now;
+                    changes.CreatedBy = actor;
+                    await OfficialBusinessRepository.InsertAsync(changes, cancellationToken);
+                    return new(OfficialBusinessWriteStatus.Success, Id: changes.OfficialBusinessId);
                 }
-                return new(OfficialBusinessWriteStatus.Success, Id: record.OfficialBusinessId);
+
+                changes.UpdatedAt = now;
+                changes.UpdatedBy = actor;
+                await OfficialBusinessRepository.UpdateAsync(existing, changes, cancellationToken);
+                return new(OfficialBusinessWriteStatus.Success, Id: existing.OfficialBusinessId);
             }, cancellationToken);
         }
 
@@ -92,14 +98,20 @@ namespace SCICHRPortal.Service.Implementations
         {
             if (id <= 0)
                 return Task.FromResult(new OfficialBusinessWriteResult(OfficialBusinessWriteStatus.Invalid, "Select a valid record."));
+
             return OfficialBusinessRepository.ExecuteWriteAsync(async () =>
             {
                 var record = await OfficialBusinessRepository.GetAsync(id, cancellationToken);
-                if (record == null) return new(OfficialBusinessWriteStatus.NotFound, "Official Business record was not found.");
-                record.Deleted = true;
-                record.UpdatedAt = DateTime.UtcNow;
-                record.UpdatedBy = actor;
-                await OfficialBusinessRepository.SaveAsync(cancellationToken);
+                if (record == null)
+                    return new(OfficialBusinessWriteStatus.NotFound, "Official Business record was not found.");
+
+                var changes = new OfficialBusiness
+                {
+                    Deleted = true,
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = actor
+                };
+                await OfficialBusinessRepository.DeleteAsync(record, changes, cancellationToken);
                 return new(OfficialBusinessWriteStatus.Success, Id: id);
             }, cancellationToken);
         }

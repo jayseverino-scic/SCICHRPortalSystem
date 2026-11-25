@@ -114,29 +114,51 @@ namespace SCICHRPortal.Repository.Implementations
             await SaveAsync(cancellationToken);
         }
 
-        public async Task SaveAsync(CancellationToken cancellationToken)
+        public async Task UpdateAsync(Leave record, Leave changes, CancellationToken cancellationToken)
+        {
+            record.EmployeeId = changes.EmployeeId;
+            record.LeaveTypeId = changes.LeaveTypeId;
+            record.From = changes.From;
+            record.To = changes.To;
+            record.UpdatedAt = changes.UpdatedAt;
+            record.UpdatedBy = changes.UpdatedBy;
+
+            await SaveAsync(cancellationToken);
+        }
+
+        public async Task DeleteAsync(Leave record, Leave changes, CancellationToken cancellationToken)
+        {
+            record.Deleted = changes.Deleted;
+            record.UpdatedAt = changes.UpdatedAt;
+            record.UpdatedBy = changes.UpdatedBy;
+
+            await SaveAsync(cancellationToken);
+        }
+
+        private async Task SaveAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             // The parameterless overload includes SCIC's audit entries (including generated keys).
             await Context.SaveChangesAsync();
         }
 
-        public async Task<LeaveWriteResult> ExecuteWriteAsync(Func<Task<LeaveWriteResult>> operation, CancellationToken cancellationToken)
+        public async Task<TResult> ExecuteWriteAsync<TResult>(
+            Func<Task<(TResult Result, bool Commit)>> operation, CancellationToken cancellationToken)
         {
             await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
             try
             {
                 // The overlap predicate and audited saves must share this transaction so PostgreSQL
                 // detects concurrent inserts/edits even when neither could see the other's row.
-                var result = await operation();
-                if (result.Status == LeaveWriteStatus.Success)
+                var (result, commit) = await operation();
+                if (commit)
                     await transaction.CommitAsync(cancellationToken);
                 return result;
             }
             catch (Exception exception) when (IsWriteConflict(exception))
             {
                 Context.ChangeTracker.Clear();
-                return new(LeaveWriteStatus.Conflict, "The records changed while saving. Reload and try again.");
+                throw new LeavePersistenceConflictException(exception);
             }
         }
 
