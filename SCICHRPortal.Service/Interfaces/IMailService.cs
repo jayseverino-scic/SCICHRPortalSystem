@@ -8,7 +8,8 @@ namespace SCICHRPortal.Service.Interfaces
     {
         Task SendResetPasswordEmailAsync(string email, string name, string path);
         Task SendResetPasswordEmailAsync(string email, string name, FileStreamResult file);
-        Task SendForgotPasswordEmailAsync(string email, string name, string newPassword, FileStreamResult file);
+        Task SendForgotPasswordEmailAsync(string email, string name, string newPassword, FileStreamResult file,
+            CancellationToken cancellationToken = default);
         Task SendNewUserEmailAsync(string email, string name, string newPassword, FileStreamResult file);
         Task SendApprovedDeclinedRegistrationEmailAsync(string email, string parentName, string studentName, DateTime dateRegistered, FileStreamResult file);
         Task SendApprovedRegistrationEmailAsync(string email, string name, string studentName, FileStreamResult file);

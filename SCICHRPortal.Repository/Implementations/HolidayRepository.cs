@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Data;
+using Npgsql;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
@@ -13,6 +14,26 @@ namespace SCICHRPortal.Repository.Implementations
         public HolidayRepository(ApplicationContext context, XscribeContext xscribeContext, TimekeepingContext timekeepingContext)
     : base(context, xscribeContext, timekeepingContext)
         {
+        }
+        public async Task<IReadOnlyList<int>> GetAssignedProjectIdsAsync(int holidayId) =>
+            await Context.HolidayProject.AsNoTracking().Where(link => link.HolidayId == holidayId)
+                .Select(link => link.ProjectId).ToListAsync();
+
+        public async Task ExecuteWriteAsync(Func<Task> operation)
+        {
+            await using var transaction = await Context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+            try
+            {
+                await operation();
+                await transaction.CommitAsync();
+            }
+            catch (Exception exception) when (
+                exception is PostgresException { SqlState: "40001" or "40P01" } ||
+                exception is DbUpdateException { InnerException: PostgresException { SqlState: "40001" or "40P01" } })
+            {
+                Context.ChangeTracker.Clear();
+                throw new HolidayPersistenceConflictException(exception);
+            }
         }
         public async Task<bool> DeleteAsync(int holidayId)
         {

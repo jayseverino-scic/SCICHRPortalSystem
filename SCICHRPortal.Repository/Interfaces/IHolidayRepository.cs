@@ -14,5 +14,7 @@ namespace SCICHRPortal.Repository.Interfaces
         Task<Tuple<IEnumerable<Holiday>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword);
         Task InsertAsync(Holiday holiday, IReadOnlyCollection<int> projectIds);
         Task UpdateAsync(Holiday holiday, IReadOnlyCollection<int> projectIds);
+        Task<IReadOnlyList<int>> GetAssignedProjectIdsAsync(int holidayId);
+        Task ExecuteWriteAsync(Func<Task> operation);
     }
 }

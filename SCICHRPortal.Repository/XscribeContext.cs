@@ -3,12 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using SCICHRPortal.Data.XscribeTables;
+using SCICHRPortal.Utility.Securities;
 
 namespace SCICHRPortal.Repository
 {
     public class XscribeContext : DbContext
     {
-        public XscribeContext(DbContextOptions<XscribeContext> options) : base(options) { }
+        private readonly ProjectDataScope _projectDataScope;
+        private bool ProjectDataRestricted => _projectDataScope.Access.IsRestricted;
+        private string? ScopedProjectCode => _projectDataScope.Access.ProjectCode;
+        private string? ScopedProjectName => _projectDataScope.Access.ProjectName;
+
+        public XscribeContext(DbContextOptions<XscribeContext> options, ProjectDataScope? projectDataScope = null) : base(options)
+        {
+            _projectDataScope = projectDataScope ?? new();
+        }
 
         // DbSets for the tables you want to read from SQL Server
         public DbSet<XCompany_Branch> Company_Branch { get; set; }
@@ -54,6 +63,11 @@ namespace SCICHRPortal.Repository
                 entity.HasKey(e => e.Id);
             });
 
+            modelBuilder.Entity<XCompany_Branch>().HasQueryFilter("ProjectDataScope", row =>
+                !ProjectDataRestricted || ScopedProjectCode != null && row.Code != null && row.Code.Trim().ToUpper() == ScopedProjectCode ||
+                    ScopedProjectCode == null && ScopedProjectName != null && row.Name != null && row.Name.Trim().ToUpper() == ScopedProjectName);
+            modelBuilder.Entity<XEmployee>().HasQueryFilter("ProjectDataScope", row =>
+                !ProjectDataRestricted || Company_Branch.Any(branch => !branch._Deleted && branch.Id == row.Company_Branch_Id));
             base.OnModelCreating(modelBuilder);
         }
     }

@@ -19,6 +19,9 @@ public sealed class HolidayUpdateRequest
     public int[]? ProjectIds { get; set; }
 }
 
-public enum HolidayWriteStatus { Success, Invalid, Conflict, NotFound }
+public enum HolidayWriteStatus { Success, Invalid, Conflict, NotFound, Forbidden }
 
 public sealed record HolidayWriteResult(HolidayWriteStatus Status, string? Message = null);
+
+public sealed class HolidayPersistenceConflictException(Exception innerException)
+    : Exception("A concurrent holiday persistence conflict occurred.", innerException);

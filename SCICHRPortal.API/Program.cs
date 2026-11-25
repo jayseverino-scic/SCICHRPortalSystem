@@ -41,6 +41,7 @@ var builder = WebApplication.CreateBuilder(args);
 OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("Manuel A. Rivas Jr.");
 // Add services to the container.
 builder.Services.AddDerivedClassesServices();
+builder.Services.AddScoped<SCICHRPortal.Utility.Securities.ProjectDataScope>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IUserCredentialDelivery, SCICHRPortal.API.Storage.UserCredentialDelivery>();
 builder.Services.AddAttendanceImports(builder.Configuration);
@@ -83,8 +84,7 @@ builder.Services.AddAuthentication(options =>
 var appSettingsSection = builder.Configuration.GetSection("AppSettings");
 builder.Services.Configure<AppSettings>(appSettingsSection);
 
-var mailSettingsSection = builder.Configuration.GetSection("MailSettings");
-builder.Services.Configure<MailSettings>(mailSettingsSection);
+builder.Services.AddPortalEmail(builder.Configuration);
 
 
 builder.Services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
@@ -155,6 +155,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<SCICHRPortal.API.Authorization.ProjectDataScopeMiddleware>();
 app.UseAuthorization();
 app.UseAttendanceDashboard();
 app.UseEndpoints(endpoints =>

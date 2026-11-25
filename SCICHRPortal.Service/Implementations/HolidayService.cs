@@ -4,6 +4,7 @@ using SCICHRPortal.Data.Entities.Metadatas;
 using SCICHRPortal.Repository.Interfaces;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Data.Enums;
+using SCICHRPortal.Utility.Securities;
 
 namespace SCICHRPortal.Service.Implementations
 {
@@ -11,14 +12,20 @@ namespace SCICHRPortal.Service.Implementations
     {
         private IHolidayRepository HolidayRepository { get; }
         private IProjectRepository ProjectRepository { get; }
+        private ProjectDataScope ProjectScope { get; }
 
-        public HolidayService(IHolidayRepository holidayRepository, IProjectRepository projectRepository)
+        public HolidayService(IHolidayRepository holidayRepository, IProjectRepository projectRepository,
+            ProjectDataScope? projectScope = null)
         {
             HolidayRepository = holidayRepository;
             ProjectRepository = projectRepository;
+            ProjectScope = projectScope ?? new();
         }
 
-        public async Task<HolidayWriteResult> CreateAsync(HolidayCreateRequest request)
+        public Task<HolidayWriteResult> CreateAsync(HolidayCreateRequest request) =>
+            ExecuteAsync(() => CreateCoreAsync(request));
+
+        private async Task<HolidayWriteResult> CreateCoreAsync(HolidayCreateRequest request)
         {
             var error = ValidateCommon(request.HolidayName, request.HolidayDate, request.HolidayType);
             if (error != null) return new(HolidayWriteStatus.Invalid, error);
@@ -28,6 +35,8 @@ namespace SCICHRPortal.Service.Implementations
             if (error != null) return new(HolidayWriteStatus.Invalid, error);
 
             var selectedIds = projectIds.Distinct().ToArray();
+            if (!MayTargetProjects(request.AllProjects, selectedIds))
+                return new(HolidayWriteStatus.Forbidden, "You can only create holidays for your assigned project.");
             if (!await ProjectsAreActive(selectedIds))
                 return new(HolidayWriteStatus.Invalid, "One or more projects are not active.");
 
@@ -48,13 +57,18 @@ namespace SCICHRPortal.Service.Implementations
             return new(HolidayWriteStatus.Success);
         }
 
-        public async Task<HolidayWriteResult> UpdateAsync(HolidayUpdateRequest request)
+        public Task<HolidayWriteResult> UpdateAsync(HolidayUpdateRequest request) =>
+            ExecuteAsync(() => UpdateCoreAsync(request));
+
+        private async Task<HolidayWriteResult> UpdateCoreAsync(HolidayUpdateRequest request)
         {
             if (request.HolidayId <= 0)
                 return new(HolidayWriteStatus.Invalid, "Holiday ID is required.");
             var existing = await HolidayRepository.GetAsync(request.HolidayId);
             if (existing == null)
                 return new(HolidayWriteStatus.NotFound, "Holiday was not found.");
+            if (!await MayChangeHolidayAsync(request.HolidayId))
+                return new(HolidayWriteStatus.Forbidden, "Only an Administrator can change this holiday.");
 
             var error = ValidateCommon(request.HolidayName, request.HolidayDate, request.HolidayType);
             if (error != null) return new(HolidayWriteStatus.Invalid, error);
@@ -63,6 +77,8 @@ namespace SCICHRPortal.Service.Implementations
             error = ValidateScope(request.AllProjects, projectIds);
             if (error != null) return new(HolidayWriteStatus.Invalid, error);
             var selectedIds = projectIds.Distinct().ToArray();
+            if (!MayTargetProjects(request.AllProjects, selectedIds))
+                return new(HolidayWriteStatus.Forbidden, "You can only assign holidays to your own project.");
             var retainedIds = existing.Projects.Select(project => project.Id);
             if (!await ProjectsAreActive(selectedIds.Except(retainedIds)))
                 return new(HolidayWriteStatus.Invalid, "One or more new projects are not active.");
@@ -123,6 +139,34 @@ namespace SCICHRPortal.Service.Implementations
         private static string NormalizeWhitespace(string name) =>
             string.Join(" ", name.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
+        private bool MayTargetProjects(bool? allProjects, int[] projectIds) =>
+            !ProjectScope.Access.IsRestricted || ProjectScope.Access.ProjectId is > 0 &&
+                allProjects == false && projectIds.Length > 0 && projectIds.All(id => id == ProjectScope.Access.ProjectId);
+
+        private async Task<bool> MayChangeHolidayAsync(int holidayId)
+        {
+            if (!ProjectScope.Access.IsRestricted) return true;
+            if (ProjectScope.Access.ProjectId is not > 0) return false;
+            // Public reads hide other project assignments; the write decision
+            // requires the complete assignment facts inside the same transaction.
+            var ids = await HolidayRepository.GetAssignedProjectIdsAsync(holidayId);
+            return ids.Count == 1 && ids[0] == ProjectScope.Access.ProjectId;
+        }
+
+        private async Task<HolidayWriteResult> ExecuteAsync(Func<Task<HolidayWriteResult>> operation)
+        {
+            HolidayWriteResult? result = null;
+            try
+            {
+                await HolidayRepository.ExecuteWriteAsync(async () => result = await operation());
+                return result!;
+            }
+            catch (HolidayPersistenceConflictException)
+            {
+                return new(HolidayWriteStatus.Conflict, "The holiday changed while saving. Reload and try again.");
+            }
+        }
+
         public async Task<IEnumerable<Holiday>> GetAllAsync()
         {
             return await HolidayRepository.GetAllAsync();
@@ -135,7 +179,13 @@ namespace SCICHRPortal.Service.Implementations
 
         public async Task<bool> DeleteAsync(int holidayId)
         {
-            return await HolidayRepository.DeleteAsync(holidayId);
+            var result = await ExecuteAsync(async () =>
+            {
+                if (!await MayChangeHolidayAsync(holidayId)) return new(HolidayWriteStatus.Forbidden);
+                return await HolidayRepository.DeleteAsync(holidayId)
+                    ? new(HolidayWriteStatus.Success) : new(HolidayWriteStatus.NotFound);
+            });
+            return result.Status == HolidayWriteStatus.Success;
         }
 
         public async Task<Tuple<IEnumerable<Holiday>, int>> FilterAsync(int pageNumber, int pageSize, string searchKeyword)
