@@ -11,6 +11,8 @@ public interface IEmployeeDailyAttendanceComputationService : IScopedService
     Task<IReadOnlyList<EmployeeAttendanceDailyRow>> GetComputeRowsAsync(int projectId, DateOnly attendanceDate,
         CancellationToken cancellationToken);
 
+    Task<bool> SaveApprovalEditsAsync(DateOnly attendanceDate, IReadOnlyList<AttendanceApprovalEdit> edits,
+        ImportAudit audit, CancellationToken cancellationToken);
     Task<DailyAttendanceReimportResult?> ReimportAsync(int projectId, DateOnly attendanceDate, ImportAudit audit,
         CancellationToken cancellationToken);
 

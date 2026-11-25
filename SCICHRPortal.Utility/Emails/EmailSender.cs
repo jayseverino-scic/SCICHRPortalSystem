@@ -26,7 +26,7 @@ public sealed class EmailSender(IOptions<EmailSettings> settings, Func<ISmtpClie
         message.Subject = subject;
         message.Body = new TextPart("html") { Text = html };
 
-        // Match Kasina's SMTP setup, with a new connection for each message.
+        // Open a fresh SMTP connection for each message.
         using var client = createClient();
         await client.ConnectAsync(configuration.MailServer, configuration.MailPort, SecureSocketOptions.StartTls, cancellationToken);
         client.AuthenticationMechanisms.Remove("XOAUTH2");

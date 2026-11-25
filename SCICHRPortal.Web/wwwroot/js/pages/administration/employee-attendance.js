@@ -19,7 +19,7 @@
     let requestVersion = 0;
     let loading = false;
     let saving = false;
-    let hasApprovalEdits = false;
+    const approvalEdits = new Map();
 
     function todayInManila() {
         const parts = Object.fromEntries(manilaDate.formatToParts().map(part => [part.type, part.value]));
@@ -39,7 +39,7 @@
     }
 
     function canReimport(filter) {
-        return canEditGrid() && !hasApprovalEdits && filter.projectId > 0 &&
+        return canEditGrid() && approvalEdits.size === 0 && filter.projectId > 0 &&
             filter.attendanceDate <= todayInManila();
     }
 
@@ -47,12 +47,12 @@
         const editable = canEditGrid();
         const filter = readFilter();
         const hasRows = dataTable.rows().count() > 0;
-        $compute.prop('disabled', !editable || !hasRows);
+        $compute.prop('disabled', !editable || approvalEdits.size === 0);
         $reimport.prop('disabled', !canReimport(filter));
         $form.find('input, select, button').prop('disabled', saving);
         $(dataTable.table().container()).find('.select-all, .approval-check').prop('disabled', !editable || !hasRows);
 
-        const help = hasApprovalEdits ? 'Compute or discard your approval edits before reimporting.'
+        const help = approvalEdits.size > 0 ? 'Compute or discard your approval edits before reimporting.'
             : filter.projectId <= 0 ? 'Select one project to Reimport.'
             : filter.attendanceDate > todayInManila() ? 'Select today or a past date to Reimport.'
             : 'Reimport refreshes the cutoff results for the selected project and date.';
@@ -105,7 +105,7 @@
             } while (rows.length < total);
 
             loadedFilter = filter;
-            hasApprovalEdits = false;
+            approvalEdits.clear();
             dataTable.clear().rows.add(rows).draw();
             showGridStatus('');
         } catch (_) {
@@ -339,10 +339,28 @@
         }
     }
 
+    function updateApproval(row, column, checked) {
+        if (row[column] === checked) return false;
+
+        const original = approvalEdits.get(row) ?? {};
+        if (!Object.hasOwn(original, column)) original[column] = row[column];
+        row[column] = checked;
+
+        if (original[column] === checked) delete original[column];
+        if (Object.keys(original).length > 0) approvalEdits.set(row, original);
+        else approvalEdits.delete(row);
+        return true;
+    }
+
     async function onCompute() {
-        if (!canEditGrid() || dataTable.rows().count() === 0) return;
+        if (!canEditGrid() || approvalEdits.size === 0) return;
 
         const filter = loadedFilter;
+        const edits = Array.from(approvalEdits, ([row, original]) => ({
+            projectId: row.projectId,
+            timeLogId: row.timeLogId,
+            ...Object.fromEntries(Object.keys(original).map(column => [column, row[column]]))
+        }));
         saving = true;
         updateControls();
         showResult('Computing attendance…', 'info');
@@ -351,16 +369,16 @@
         try {
             const response = await apiHelper.post({
                 url: 'Authenticated/EmployeeAttendance/Compute',
-                data: dataTable.rows().data().toArray()
+                data: { ...filter, edits }
             });
             if (!response.ok) {
                 showResult(await readActionError(response, failure), 'danger');
                 return;
             }
 
-            hasApprovalEdits = false;
+            approvalEdits.clear();
             loadedFilter = null;
-            showResult('Attendance computed. Run Reimport for each applicable project to refresh cutoff results.', 'success');
+            showResult('Attendance changes saved and cutoff results updated.', 'success');
             await loadAttendance(filter);
         } catch (_) {
             showResult(failure, 'danger');
@@ -436,10 +454,9 @@
             if (!canEditGrid()) return;
             const cell = this.closest('td');
             const row = dataTable.row(this.closest('tr'));
-            row.data()[this.dataset.column] = this.checked;
+            if (!updateApproval(row.data(), this.dataset.column, this.checked)) return;
             row.invalidate();
             cell.querySelector('.approval-check')?.focus();
-            hasApprovalEdits = true;
             updateApprovalHeaders();
             updateControls();
         });
@@ -449,10 +466,8 @@
             const column = this.dataset.column;
             const checked = this.checked;
             dataTable.rows().every(function () {
-                this.data()[column] = checked;
-                this.invalidate();
+                if (updateApproval(this.data(), column, checked)) this.invalidate();
             });
-            hasApprovalEdits = true;
             dataTable.draw(false);
         });
     }
@@ -463,7 +478,7 @@
         $form.on('submit', event => {
             event.preventDefault();
             if (saving || !$form[0].reportValidity()) return;
-            if (hasApprovalEdits && !window.confirm('Discard unsaved approval edits and get attendance?')) return;
+            if (approvalEdits.size > 0 && !window.confirm('Discard unsaved approval edits and get attendance?')) return;
 
             showResult('');
             loadAttendance(readFilter());

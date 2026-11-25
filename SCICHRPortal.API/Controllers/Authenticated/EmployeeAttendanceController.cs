@@ -4,7 +4,6 @@ using SCICHRPortal.API.Models.RequestModels.Authenticated.Administration;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Data.Entities;
 using SCICHRPortal.Data.Entities.Metadatas;
-using SCICHRPortal.Service.Implementations;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Helpers;
 using System.Globalization;
@@ -21,16 +20,14 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         private IEmployeeService EmployeeService { get; }
         private IShiftService ShiftService { get; }
         private IDepartmentService DepartmentService { get; }
-        private IEmployeeShiftService EmployeeShiftService { get; }
         private IEmployeeDailyAttendanceComputationService DailyAttendanceComputationService { get; }
 
-        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IEmployeeShiftService employeeShiftService, IEmployeeDailyAttendanceComputationService dailyAttendanceComputationService)
+        public EmployeeAttendanceController(IEmployeeAttendanceService employeeAttendanceService, IEmployeeService employeeService, IShiftService shiftService, IDepartmentService departmentService, IEmployeeDailyAttendanceComputationService dailyAttendanceComputationService)
         {
             EmployeeAttendanceService = employeeAttendanceService;
             EmployeeService = employeeService;
             ShiftService = shiftService;
             DepartmentService = departmentService;
-            EmployeeShiftService = employeeShiftService;
             DailyAttendanceComputationService = dailyAttendanceComputationService;
         }
 
@@ -152,64 +149,29 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             return Ok(result);
         }
 
-        [Authorize]
         [HttpPost("Compute")]
-        public async Task<IActionResult> UpdateShiftAssignmentAsync(List<EmployeeAttendanceUpdateRequestModel> employeeAttendance)
+        public async Task<IActionResult> ComputeAsync(EmployeeAttendanceUpdateRequestModel request,
+            CancellationToken cancellationToken)
         {
-            if (employeeAttendance.Count() == 0 || employeeAttendance == null)
-                return BadRequest();
-
-            //TimekeepingAdminSetup timekeepingAdminSetup = await TimekeepingAdminSetupService.GetFirstOrDefault();
-
-            foreach (var item in employeeAttendance)
+            if (request.AttendanceDate is not { } date || date == default || request.ProjectId < 0 ||
+                request.Edits is not { Count: > 0 } ||
+                request.Edits.Any(edit => edit is null || edit.TimeLogId <= 0 || edit.ProjectId <= 0 ||
+                    !edit.HasChanges || request.ProjectId != 0 && edit.ProjectId != request.ProjectId))
             {
-                double shiftLateGracePeriodMinutes = 0;
-                var employeeShift = await EmployeeShiftService.GetAtAsync(item.EmployeeId, DateTime.SpecifyKind(item.TimeIn, DateTimeKind.Unspecified));
-                if (employeeShift != null)
-                {
-                    var shift = await ShiftService.GetAsync(employeeShift.ShiftId);
-                    if (shift != null)
-                        shiftLateGracePeriodMinutes = Convert.ToDouble(shift.ShiftLateMinuteGracePeriod);
-                }
-
-                var metrics = EmployeeDailyAttendanceCalculator.Calculate(item.TimeIn, item.TimeOut, item.ShiftStart!.Value,
-                    item.ShiftEnd!.Value, shiftLateGracePeriodMinutes, item.ApprovedOT);
-                EmployeeAttendance attendance = new EmployeeAttendance
-                {
-                    EmployeeAttendanceId = item.EmployeeAttendanceId,
-                    TimeLogId = item.TimeLogId,
-                    EmployeeId = item.EmployeeId,
-                    TimeIn = item.TimeIn,
-                    TimeOut = item.TimeOut,
-                    ShiftStart = item.ShiftStart,
-                    ShiftEnd = item.ShiftEnd,
-                    IsFlexibleShift = item.IsFlexibleShift,
-                    IsNoShift = item.IsNoShift,
-                    IsNoBreak = item.IsNoBreak,
-                    ShiftHours = metrics.ShiftHours,
-                    RegularHour = metrics.RegularHour,
-                    TotalLoggedHours = metrics.TotalLoggedHours,
-                    ApprovedOT = item.ApprovedOT,
-                    OTHours = metrics.OTHours,
-                    NDHours = metrics.NDHours,
-                    ShiftUndertime = metrics.ShiftUndertime,
-                    ShiftLate = metrics.ShiftLate,
-                    ApprovedHoliday = item.ApprovedHoliday,
-                    ApprovedHolidayOT = item.ApprovedHolidayOT,
-                    ApprovedSPHoliday = item.ApprovedSPHoliday,
-                    ApprovedSPHolidayOT = item.ApprovedSPHolidayOT,
-                    ApprovedRestDay = item.ApprovedRestDay,
-                    ApprovedRestDayOT = item.ApprovedRestDayOT,
-                    Employee = item.Employee,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = "manuel"
-                };
-                if (item.EmployeeAttendanceId == 0)
-                    await EmployeeAttendanceService.InsertAsync(attendance);
-                else
-                    await EmployeeAttendanceService.UpdateAsync(attendance);
+                return BadRequest(new { Message = "Provide approval edits for the selected project and attendance date." });
             }
-            return StatusCode(201, employeeAttendance);
+
+            var edits = request.Edits.OfType<AttendanceApprovalEdit>().ToArray();
+            if (edits.DistinctBy(edit => (edit.ProjectId, edit.TimeLogId)).Count() != edits.Length)
+                return BadRequest(new { Message = "Send each attendance row only once." });
+
+            var actor = User.Identity?.Name ?? User.FindFirstValue(ClaimTypes.Sid) ?? "Authenticated user";
+            var audit = new ImportAudit(actor, "Attendance Compute", "SCIC HR Portal");
+            var saved = await DailyAttendanceComputationService.SaveApprovalEditsAsync(date, edits, audit, cancellationToken);
+            if (!saved)
+                return Conflict(new { Message = "One or more attendance rows are unavailable or could not be recalculated. Check the project and date and review the saved attendance before retrying." });
+
+            return StatusCode(201);
         }
 
         [Authorize]

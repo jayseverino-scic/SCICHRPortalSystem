@@ -39,6 +39,17 @@ public sealed class EmployeeDailyAttendanceComputationRow
     public bool ApprovedRestDayOT { get; init; }
 }
 
+public sealed record AttendanceApprovalEdit(int ProjectId, int TimeLogId, bool? ApprovedOT, bool? ApprovedHoliday,
+    bool? ApprovedHolidayOT, bool? ApprovedSPHoliday, bool? ApprovedSPHolidayOT, bool? ApprovedRestDay,
+    bool? ApprovedRestDayOT)
+{
+    public bool HasChanges => ApprovedOT.HasValue || ApprovedHoliday.HasValue || ApprovedHolidayOT.HasValue ||
+        ApprovedSPHoliday.HasValue || ApprovedSPHolidayOT.HasValue || ApprovedRestDay.HasValue || ApprovedRestDayOT.HasValue;
+}
+
+public sealed record DailyAttendanceApprovalBatch(IReadOnlyList<EmployeeAttendance> Approvals,
+    IReadOnlyList<EmployeeDailyAttendanceComputation> Rows);
+
 public sealed record DailyAttendanceSkippedLog(int TimeLogId, string Reason);
 
 public sealed record DailyAttendanceReimportResult(

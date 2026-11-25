@@ -14,6 +14,10 @@ public interface IEmployeeDailyAttendanceComputationRepository : IScopedService
     Task<IReadOnlyList<EmployeeDailyAttendanceComputation>> GetForCutOffAsync(int projectId,
         DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default);
 
+    Task<bool> SaveApprovalEditsAsync(DateOnly attendanceDate, IReadOnlyList<AttendanceApprovalEdit> edits,
+        ImportAudit audit, Func<int, DailyAttendanceComputationSource, IReadOnlyList<AttendanceApprovalEdit>,
+            DailyAttendanceApprovalBatch?> compute, CancellationToken cancellationToken);
+
     Task<DailyAttendanceReimportResult?> SaveAsync(int projectId, DateOnly attendanceDate, ImportAudit audit,
         Func<EmployeeDailyAttendanceImportCheckpoint, bool>? recordPhase,
         Func<DailyAttendanceComputationSource, DailyAttendanceComputationBatch> compute,

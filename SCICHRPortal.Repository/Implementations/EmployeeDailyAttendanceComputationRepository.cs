@@ -89,9 +89,7 @@ public sealed class EmployeeDailyAttendanceComputationRepository(ApplicationCont
     {
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        // PostgreSQL releases this project/date lock at commit or rollback. Both write paths use it.
-        await context.Database.ExecuteSqlInterpolatedAsync(
-            $"SELECT pg_advisory_xact_lock({projectId}, {attendanceDate.DayNumber})", cancellationToken);
+        await LockProjectDateAsync(projectId, attendanceDate, cancellationToken);
 
         bool projectActive = await context.Project.AnyAsync(project => project.Id == projectId && !project.Deleted,
             cancellationToken);
@@ -133,10 +131,119 @@ public sealed class EmployeeDailyAttendanceComputationRepository(ApplicationCont
         var savedLogDeletionStates = existing.ToDictionary(entry => entry.Key, entry => entry.Value.Deleted);
         var source = await ReadSourceAsync(projectId, attendanceDate, savedLogDeletionStates, cancellationToken);
         var batch = compute(source);
-        await SaveRowsAsync(existing, batch.Rows, audit, cancellationToken);
+        StageSavedRows(existing, batch.Rows, audit.Actor, DateTime.UtcNow);
+        cancellationToken.ThrowIfCancellationRequested();
+        await context.SaveChangesAsync(audit);
         await transaction.CommitAsync(cancellationToken);
         return new DailyAttendanceReimportResult(batch.Rows.Count, batch.SkippedLogs.Count, batch.SkippedLogs);
     }
+
+    public async Task<bool> SaveApprovalEditsAsync(DateOnly attendanceDate, IReadOnlyList<AttendanceApprovalEdit> edits,
+        ImportAudit audit, Func<int, DailyAttendanceComputationSource, IReadOnlyList<AttendanceApprovalEdit>,
+            DailyAttendanceApprovalBatch?> compute, CancellationToken cancellationToken)
+    {
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        var projectGroups = edits.GroupBy(edit => edit.ProjectId).OrderBy(group => group.Key).ToArray();
+        var projectIds = projectGroups.Select(group => group.Key).ToArray();
+        var activeProjectCount = await context.Project.CountAsync(project => projectIds.Contains(project.Id) &&
+            !project.Deleted, cancellationToken);
+        if (activeProjectCount != projectIds.Length)
+            return false;
+
+        var batches = new List<(Dictionary<int, EmployeeDailyAttendanceComputation> Existing, DailyAttendanceApprovalBatch Batch)>();
+        foreach (var group in projectGroups)
+        {
+            var projectId = group.Key;
+            await LockProjectDateAsync(projectId, attendanceDate, cancellationToken);
+
+            var existing = await context.EmployeeDailyAttendanceComputation
+                .Where(row => row.ProjectId == projectId && row.AttendanceDate == attendanceDate)
+                .ToDictionaryAsync(row => row.TimeLogId, cancellationToken);
+            var projectEdits = group.ToArray();
+            var editedRows = new Dictionary<int, EmployeeDailyAttendanceComputation>(projectEdits.Length);
+            foreach (var edit in projectEdits)
+            {
+                if (!existing.TryGetValue(edit.TimeLogId, out var row) || row.Deleted)
+                    return false;
+
+                editedRows.Add(edit.TimeLogId, row);
+            }
+
+            if (!await LockApprovalSourcesAsync(projectId, editedRows.Keys.ToArray(), cancellationToken))
+                return false;
+
+            // Include the full project/date source so Compute applies the same duplicate-session rules as Reimport.
+            var savedLogDeletionStates = existing.ToDictionary(entry => entry.Key, entry => entry.Value.Deleted);
+            var source = await ReadSourceAsync(projectId, attendanceDate, savedLogDeletionStates, cancellationToken);
+            if (source.TimeLogs.Any(log => editedRows.TryGetValue(log.TimeLogId, out var row) &&
+                row.EmployeeId != log.EmployeeId))
+                return false;
+
+            var batch = compute(projectId, source, projectEdits);
+            if (batch is null)
+                return false;
+
+            batches.Add((editedRows, batch));
+        }
+
+        var approvals = batches.SelectMany(item => item.Batch.Approvals).ToArray();
+        var updatedApprovalIds = approvals.Where(approval => approval.EmployeeAttendanceId != 0)
+            .Select(approval => approval.EmployeeAttendanceId).ToArray();
+        var existingApprovals = await context.EmployeeAttendance
+            .Where(approval => !approval.Deleted && updatedApprovalIds.Contains(approval.EmployeeAttendanceId))
+            .ToDictionaryAsync(approval => approval.EmployeeAttendanceId, cancellationToken);
+        if (existingApprovals.Count != updatedApprovalIds.Length)
+            return false;
+
+        var now = DateTime.UtcNow;
+        foreach (var approval in approvals)
+        {
+            if (approval.EmployeeAttendanceId == 0)
+            {
+                approval.CreatedAt = now;
+                approval.CreatedBy = audit.Actor;
+                context.EmployeeAttendance.Add(approval);
+            }
+            else
+            {
+                var existing = existingApprovals[approval.EmployeeAttendanceId];
+                approval.CreatedAt = existing.CreatedAt;
+                approval.CreatedBy = existing.CreatedBy;
+                approval.UpdatedAt = now;
+                approval.UpdatedBy = audit.Actor;
+                context.Entry(existing).CurrentValues.SetValues(approval);
+            }
+        }
+
+        foreach (var (existing, batch) in batches)
+            StageSavedRows(existing, batch.Rows, audit.Actor, now);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        await context.SaveChangesAsync(audit);
+        await transaction.CommitAsync(cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> LockApprovalSourcesAsync(int projectId, int[] timeLogIds, CancellationToken cancellationToken)
+    {
+        // These IDs come from scoped saved rows. Keep ordinary time-log edits, employee transfers,
+        // and project deactivation from changing the source during this save.
+        var locked = await context.Database.SqlQuery<int>($"""
+            SELECT log."TimeLogId" AS "Value"
+            FROM "EmployeeTimeLog" AS log
+            JOIN "Employee" AS employee ON employee."EmployeeId" = log."id"
+            JOIN "Project" AS project ON project."Id" = employee."ProjectId"
+            WHERE log."TimeLogId" = ANY({timeLogIds}) AND project."Id" = {projectId}
+                AND NOT log."Deleted" AND NOT employee."Deleted" AND NOT project."Deleted"
+            ORDER BY log."TimeLogId"
+            FOR SHARE OF log, employee, project
+            """).ToListAsync(cancellationToken);
+        return locked.Count == timeLogIds.Length;
+    }
+
+    private Task LockProjectDateAsync(int projectId, DateOnly attendanceDate, CancellationToken cancellationToken) =>
+        context.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT pg_advisory_xact_lock({projectId}, {attendanceDate.DayNumber})", cancellationToken);
 
     public async Task<DailyAttendanceComputationSource> GetComputeSourceAsync(int projectId, DateOnly attendanceDate,
         CancellationToken cancellationToken)
@@ -200,11 +307,9 @@ public sealed class EmployeeDailyAttendanceComputationRepository(ApplicationCont
         return new DailyAttendanceComputationSource(timeLogs, approvals, periods, graceByShift, savedLogDeletionStates);
     }
 
-    private async Task SaveRowsAsync(Dictionary<int, EmployeeDailyAttendanceComputation> existing,
-        IReadOnlyList<EmployeeDailyAttendanceComputation> rows, ImportAudit audit, CancellationToken cancellationToken)
+    private void StageSavedRows(Dictionary<int, EmployeeDailyAttendanceComputation> existing,
+        IReadOnlyList<EmployeeDailyAttendanceComputation> rows, string actor, DateTime now)
     {
-        var now = DateTime.UtcNow;
-
         foreach (var row in rows)
         {
             if (existing.Remove(row.TimeLogId, out var saved))
@@ -212,13 +317,13 @@ public sealed class EmployeeDailyAttendanceComputationRepository(ApplicationCont
                 row.CreatedAt = saved.CreatedAt;
                 row.CreatedBy = saved.CreatedBy;
                 row.UpdatedAt = now;
-                row.UpdatedBy = audit.Actor;
+                row.UpdatedBy = actor;
                 context.Entry(saved).CurrentValues.SetValues(row);
             }
             else
             {
                 row.CreatedAt = now;
-                row.CreatedBy = audit.Actor;
+                row.CreatedBy = actor;
                 context.EmployeeDailyAttendanceComputation.Add(row);
             }
         }
@@ -227,10 +332,7 @@ public sealed class EmployeeDailyAttendanceComputationRepository(ApplicationCont
         {
             stale.Deleted = true;
             stale.UpdatedAt = now;
-            stale.UpdatedBy = audit.Actor;
+            stale.UpdatedBy = actor;
         }
-
-        cancellationToken.ThrowIfCancellationRequested();
-        await context.SaveChangesAsync(audit);
     }
 }

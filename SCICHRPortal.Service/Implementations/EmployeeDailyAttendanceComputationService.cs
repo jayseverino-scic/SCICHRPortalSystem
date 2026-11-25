@@ -56,6 +56,67 @@ public sealed class EmployeeDailyAttendanceComputationService(IEmployeeDailyAtte
         };
     }
 
+    public Task<bool> SaveApprovalEditsAsync(DateOnly attendanceDate, IReadOnlyList<AttendanceApprovalEdit> edits,
+        ImportAudit audit, CancellationToken cancellationToken) =>
+        repository.SaveApprovalEditsAsync(attendanceDate, edits, audit,
+            (projectId, source, projectEdits) => ComputeApprovalEdits(projectId, attendanceDate, source, projectEdits,
+                cancellationToken), cancellationToken);
+
+    private static DailyAttendanceApprovalBatch? ComputeApprovalEdits(int projectId, DateOnly attendanceDate,
+        DailyAttendanceComputationSource source, IReadOnlyList<AttendanceApprovalEdit> edits,
+        CancellationToken cancellationToken)
+    {
+        var currentApprovals = GetLatestApprovals(source.Approvals);
+        var overrides = edits.ToDictionary(edit => edit.TimeLogId,
+            edit => ApplyApprovalEdit(edit, currentApprovals.GetValueOrDefault(edit.TimeLogId)));
+        var updatedSource = source with
+        {
+            Approvals = source.Approvals.Where(approval => !overrides.ContainsKey(approval.TimeLogId))
+                .Concat(overrides.Values).ToArray()
+        };
+        var (batch, _) = Compute(projectId, attendanceDate, updatedSource, cancellationToken);
+        var editedRows = batch.Rows.Where(row => overrides.ContainsKey(row.TimeLogId)).ToArray();
+        if (editedRows.Length != edits.Count)
+            return null;
+
+        foreach (var row in editedRows)
+        {
+            var approval = overrides[row.TimeLogId];
+            approval.EmployeeId = row.EmployeeId;
+            approval.TimeIn = row.TimeIn;
+            approval.TimeOut = row.TimeOut;
+            approval.ShiftStart = row.ShiftStart;
+            approval.ShiftEnd = row.ShiftEnd;
+            approval.IsFlexibleShift = row.IsFlexibleShift;
+            approval.IsNoShift = row.IsNoShift;
+            approval.IsNoBreak = row.IsNoBreak;
+            approval.ShiftHours = row.ShiftHours;
+            approval.RegularHour = row.RegularHour;
+            approval.TotalLoggedHours = row.TotalLoggedHours;
+            approval.OTHours = row.OTHours;
+            approval.NDHours = row.NDHours;
+            approval.ShiftLate = row.ShiftLate;
+            approval.ShiftUndertime = row.ShiftUndertime;
+        }
+
+        return new DailyAttendanceApprovalBatch(overrides.Values.ToArray(), editedRows);
+    }
+
+    private static EmployeeAttendance ApplyApprovalEdit(AttendanceApprovalEdit edit, EmployeeAttendance? current) => new()
+    {
+        EmployeeAttendanceId = current?.EmployeeAttendanceId ?? 0,
+        TimeLogId = edit.TimeLogId,
+        CreatedAt = current?.CreatedAt ?? default,
+        UpdatedAt = current?.UpdatedAt,
+        ApprovedOT = edit.ApprovedOT ?? current?.ApprovedOT ?? false,
+        ApprovedHoliday = edit.ApprovedHoliday ?? current?.ApprovedHoliday ?? false,
+        ApprovedHolidayOT = edit.ApprovedHolidayOT ?? current?.ApprovedHolidayOT ?? false,
+        ApprovedSPHoliday = edit.ApprovedSPHoliday ?? current?.ApprovedSPHoliday ?? false,
+        ApprovedSPHolidayOT = edit.ApprovedSPHolidayOT ?? current?.ApprovedSPHolidayOT ?? false,
+        ApprovedRestDay = edit.ApprovedRestDay ?? current?.ApprovedRestDay ?? false,
+        ApprovedRestDayOT = edit.ApprovedRestDayOT ?? current?.ApprovedRestDayOT ?? false
+    };
+
     public Task<DailyAttendanceReimportResult?> ReimportAsync(int projectId, DateOnly attendanceDate, ImportAudit audit,
         CancellationToken cancellationToken) =>
         repository.SaveAsync(projectId, attendanceDate, audit, null,
@@ -82,9 +143,7 @@ public sealed class EmployeeDailyAttendanceComputationService(IEmployeeDailyAtte
         int projectId, DateOnly attendanceDate,
         DailyAttendanceComputationSource source, CancellationToken cancellationToken)
     {
-        var approvalsByLog = source.Approvals.GroupBy(row => row.TimeLogId).ToDictionary(group => group.Key,
-            group => group.OrderByDescending(row => row.UpdatedAt ?? row.CreatedAt)
-                .ThenByDescending(row => row.EmployeeAttendanceId).First());
+        var approvalsByLog = GetLatestApprovals(source.Approvals);
         var periodsByEmployee = source.ShiftPeriods.ToLookup(row => row.EmployeeId);
         var rows = new List<EmployeeDailyAttendanceComputation>(source.TimeLogs.Count);
         var skipped = new List<DailyAttendanceSkippedLog>();
@@ -176,6 +235,11 @@ public sealed class EmployeeDailyAttendanceComputationService(IEmployeeDailyAtte
 
         return (new DailyAttendanceComputationBatch(uniqueRows, skipped), approvalsByLog);
     }
+
+    private static Dictionary<int, EmployeeAttendance> GetLatestApprovals(IEnumerable<EmployeeAttendance> approvals) =>
+        approvals.GroupBy(row => row.TimeLogId).ToDictionary(group => group.Key,
+            group => group.OrderByDescending(row => row.UpdatedAt ?? row.CreatedAt)
+                .ThenByDescending(row => row.EmployeeAttendanceId).First());
 
     private static int GetSavedLogPriority(IReadOnlyDictionary<int, bool> savedLogDeletionStates, int timeLogId)
     {
