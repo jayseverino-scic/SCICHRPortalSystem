@@ -90,6 +90,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
             {
                 HolidayWriteStatus.Invalid => BadRequest(new { result.Message }),
                 HolidayWriteStatus.Conflict => Conflict(new { result.Message }),
+                HolidayWriteStatus.Forbidden => StatusCode(403, new { result.Message }),
                 _ => StatusCode(201)
             };
         }
@@ -106,6 +107,7 @@ namespace SCICHRPortal.API.Controllers.Authenticated
                 HolidayWriteStatus.Invalid => BadRequest(new { result.Message }),
                 HolidayWriteStatus.Conflict => Conflict(new { result.Message }),
                 HolidayWriteStatus.NotFound => NotFound(ResponseMessage.NotFound),
+                HolidayWriteStatus.Forbidden => StatusCode(403, new { result.Message }),
                 _ => Ok()
             };
         }

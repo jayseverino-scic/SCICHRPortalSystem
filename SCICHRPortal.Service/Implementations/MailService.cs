@@ -7,6 +7,7 @@ using System.Net.Mail;
 using SCICHRPortal.Service.Interfaces;
 using SCICHRPortal.Utility.Extensions;
 using SCICHRPortal.Utility.Settings;
+using SCICHRPortal.Utility.Emails.Interfaces;
 
 namespace SCICHRPortal.Service.Implementations
 {
@@ -14,10 +15,12 @@ namespace SCICHRPortal.Service.Implementations
     {
         private MailSettings MailSettings { get; }
         private AppSettings AppSettings { get; }
-        public MailService(IOptions<MailSettings> mailSettings, IOptions<AppSettings> appSettings)
+        private IEmailSender EmailSender { get; }
+        public MailService(IOptions<MailSettings> mailSettings, IOptions<AppSettings> appSettings, IEmailSender emailSender)
         {
             MailSettings = mailSettings.Value;
             AppSettings = appSettings.Value;
+            EmailSender = emailSender;
         }
 
         private SmtpClient ConfigureMailClient()
@@ -85,29 +88,13 @@ namespace SCICHRPortal.Service.Implementations
             await smtpClient.SendMailAsync(message);
         }
 
-        public async Task SendForgotPasswordEmailAsync(string email, string name, string newPassword, FileStreamResult file)
+        public async Task SendForgotPasswordEmailAsync(string email, string name, string newPassword, FileStreamResult file,
+            CancellationToken cancellationToken = default)
         {
-            StreamReader str = new StreamReader(file.FileStream);
-            string MailText = str.ReadToEnd();
-            str.Close();
-
-            MailText = RenderPasswordEmail(MailText, name, newPassword);
-
-            var smtpClient = ConfigureMailClient();
-
-            MailMessage message = new MailMessage
-            {
-                From = new MailAddress(MailSettings.Mail!, MailSettings.DisplayName),
-                Subject = $"New Password",
-                BodyEncoding = System.Text.Encoding.UTF8,
-                SubjectEncoding = System.Text.Encoding.Default,
-                IsBodyHtml = true,
-                Body = MailText
-            };
-
-            message.To.Add(new MailAddress(email));
-
-            await smtpClient.SendMailAsync(message);
+            using var reader = new StreamReader(file.FileStream, leaveOpen: true);
+            var template = await reader.ReadToEndAsync(cancellationToken);
+            var body = RenderPasswordEmail(template, name, newPassword);
+            await EmailSender.SendEmailAsync(email, "New Password", body, cancellationToken);
         }
 
         public static string RenderPasswordEmail(string template, string name, string password) =>

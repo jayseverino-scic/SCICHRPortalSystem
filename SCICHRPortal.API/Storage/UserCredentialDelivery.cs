@@ -1,23 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using SCICHRPortal.Service.Interfaces;
-using SCICHRPortal.Utility.Settings;
 
 namespace SCICHRPortal.API.Storage;
 
-public sealed class UserCredentialDelivery(IHttpClientFactory clients, IMailService mail, IOptions<AppSettings> settings)
+public sealed class UserCredentialDelivery(IMailService mail)
     : IUserCredentialDelivery
 {
     public async Task SendAsync(string email, string name, string password, CancellationToken cancellationToken)
     {
-        var templateUrl = new Uri(new Uri(settings.Value.WebUrl!), "html/templates/NewPasswordTemplate.html");
-        using var client = clients.CreateClient(nameof(UserCredentialDelivery));
-        using var response = await client.GetAsync(templateUrl, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
-        await using var copy = new MemoryStream();
-        await content.CopyToAsync(copy, cancellationToken);
-        copy.Position = 0;
-        await mail.SendForgotPasswordEmailAsync(email, name, password, new FileStreamResult(copy, "text/html"));
+        cancellationToken.ThrowIfCancellationRequested();
+        await using var template = typeof(UserCredentialDelivery).Assembly.GetManifestResourceStream(
+            "SCICHRPortal.API.EmailTemplates.NewPasswordTemplate.html")
+            ?? throw new InvalidOperationException("The password email template is missing from the API assembly.");
+        await mail.SendForgotPasswordEmailAsync(email, name, password, new FileStreamResult(template, "text/html"), cancellationToken);
     }
 }

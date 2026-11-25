@@ -4,7 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>SCICHRPortal.API-7f46957d-43c2-4599-bb2c-e3d1dc1ab9be</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +13,12 @@
 
   <ItemGroup>
     <None Remove="SCICHRPortal.API.http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\SCICHRPortal.Web\wwwroot\html\templates\NewPasswordTemplate.html"
+                      Link="EmailTemplates\NewPasswordTemplate.html"
+                      LogicalName="SCICHRPortal.API.EmailTemplates.NewPasswordTemplate.html" />
   </ItemGroup>
 
   <ItemGroup>

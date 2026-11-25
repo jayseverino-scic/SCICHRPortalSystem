@@ -5,12 +5,14 @@ using SCICHRPortal.Data.Mappings;
 using SCICHRPortal.Data.Mappings.Metadatas;
 using SCICHRPortal.Repository.AuditTrail.Contexts;
 using SCICHRPortal.Utility.HttpContext.Interfaces;
+using SCICHRPortal.Utility.Securities;
 
 namespace SCICHRPortal.Repository
 {
-    public class ApplicationContext : AuditableContext
+    public partial class ApplicationContext : AuditableContext
     {
         private readonly IHttpContextService? _httpContextService;
+        private readonly ProjectDataScope _projectDataScope = new();
         //static ApplicationContext()
         //{
         //    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -18,9 +20,11 @@ namespace SCICHRPortal.Repository
         public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
         {
         }
-        public ApplicationContext(DbContextOptions<ApplicationContext> options, IHttpContextService httpContextService)
+        public ApplicationContext(DbContextOptions<ApplicationContext> options, IHttpContextService httpContextService,
+            ProjectDataScope? projectDataScope = null)
            : base(options, httpContextService) {
             _httpContextService = httpContextService;
+            _projectDataScope = projectDataScope ?? new();
         }
         public DbSet<Announcement>? Announcement { get; set; }
         public DbSet<User>? User { get; set; }
@@ -124,6 +128,7 @@ namespace SCICHRPortal.Repository
             new EmployeeShiftDeviceMap(modelBuilder.Entity<EmployeeShiftDevice>());
             new DeviceMap(modelBuilder.Entity<Device>());
             new ProjectMap(modelBuilder.Entity<Project>());
+            ConfigureProjectDataScope(modelBuilder);
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
 
