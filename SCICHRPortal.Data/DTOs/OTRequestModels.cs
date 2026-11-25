@@ -10,13 +10,19 @@ namespace SCICHRPortal.Data.DTOs
         [Required, Range(1, int.MaxValue)]
         public int? EmployeeId { get; set; }
         [Required]
-        public DateOnly? FromDate { get; set; }
+        public DateOnly? DateIn { get; set; }
         [Required]
-        public DateOnly? ToDate { get; set; }
+        public DateOnly? DateOut { get; set; }
         [Required]
-        public TimeOnly? FromTime { get; set; }
+        public TimeOnly? TimeIn { get; set; }
         [Required]
-        public TimeOnly? ToTime { get; set; }
+        public TimeOnly? TimeOut { get; set; }
+        public TimeOnly? ShiftStart { get; set; }
+        public TimeOnly? ShiftEnd { get; set; }
+        [Required]
+        public string? Activity { get; set; }
+        [Required]
+        public DateOnly? DateRequest { get; set; }
     }
     public enum OTRequestWriteStatus { Success, Invalid, NotFound, Conflict }
     public sealed record OTRequestWriteResult(OTRequestWriteStatus Status, string? Message = null, int? Id = null);
@@ -51,8 +57,14 @@ namespace SCICHRPortal.Data.DTOs
         public string? EmployeeNo { get; set; }
         public string? EmployeeName { get; set; }
         public bool EmployeeDeleted { get; set; }
-        public DateTime From { get; set; }
-        public DateTime To { get; set; }
+        public DateTime DateIn { get; set; }
+        public DateTime DateOut { get; set; }
+        public TimeOnly TimeIn { get; set; }
+        public TimeOnly TimeOut { get; set; }
+        public TimeOnly ShiftStart { get; set; }
+        public TimeOnly ShiftEnd { get; set; }
+        public string? Activity { get; set; }
+        public DateTime DateRequest { get; set; }
     }
 
     public sealed class OTRequestEmployeeLookupItem
