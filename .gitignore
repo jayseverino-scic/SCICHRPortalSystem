@@ -370,3 +370,5 @@ FodyWeavers.xsd
 /docs
 # Local agent and development documentation.
 /agent-docs/
+/.agents/skills
+/skills-lock.json

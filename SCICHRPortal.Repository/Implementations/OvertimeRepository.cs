@@ -76,8 +76,8 @@ namespace SCICHRPortal.Repository.Implementations
 
         private async Task<SourceRelation> GetSourceAsync(CancellationToken cancellationToken)
         {
-            var schema = configuration["ClaraForms:OvertimeSchema"] ?? "";
-            var name = configuration["ClaraForms:OvertimeRelation"] ?? "";
+            var schema = configuration["ClaraForms:OvertimeSchema"] ?? "public";
+            var name = configuration["ClaraForms:OvertimeRelation"] ?? "employee_overtime_summary_view";
             var matches = await context.Database.SqlQuery<SourceRelation>($"""
                 SELECT space.nspname::text AS "Schema", source.relname::text AS "Name"
                 FROM pg_catalog.pg_class AS source

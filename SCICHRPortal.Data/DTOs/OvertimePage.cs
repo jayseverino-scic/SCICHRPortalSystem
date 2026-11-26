@@ -20,10 +20,10 @@ namespace SCICHRPortal.Data.DTOs
         TimeOnly? ApprovedStartTime,
         DateOnly? OvertimeDateTo,
         TimeOnly? ApprovedEndTime,
-        double? FiledHours,
-        double? ApprovedHours,
+        decimal? FiledHours,
+        decimal? ApprovedHours,
         string? RequestReference,
-        TimeSpan? ClosedAt,
-        TimeSpan? DateCreated,
+        DateTimeOffset? ClosedAt,
+        DateTimeOffset? DateCreated,
         Guid? SummaryId);
 }

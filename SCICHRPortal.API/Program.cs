@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using SCICHRPortal.API.BackgroundJobs;
 using SCICHRPortal.API.Extensions;
 using SCICHRPortal.Repository;
@@ -107,7 +108,15 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
      options => options.MigrationsAssembly("SCICHRPortal.Repository")));
 
 builder.Services.AddDbContext<ClaraFormsContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ClaraFormsConnection")));
+{
+    var connection = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("ClaraFormsConnection"));
+    if (!string.IsNullOrWhiteSpace(connection.RootCertificate) && !Path.IsPathFullyQualified(connection.RootCertificate))
+    {
+        connection.RootCertificate = Path.GetFullPath(connection.RootCertificate, AppContext.BaseDirectory);
+    }
+
+    options.UseNpgsql(connection.ConnectionString);
+});
 
 //builder.Services.AddDbContext<TimekeepingContext>(options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("TimekeepingConnection")));

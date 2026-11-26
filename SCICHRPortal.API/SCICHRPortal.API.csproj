@@ -13,6 +13,9 @@
 
   <ItemGroup>
     <None Remove="SCICHRPortal.API.http" />
+    <None Update="Certificates\SupabaseRoot2021.crt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
