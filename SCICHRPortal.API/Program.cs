@@ -106,6 +106,9 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
     //ServerVersion.AutoDetect(mySqlConnectionStr),
      options => options.MigrationsAssembly("SCICHRPortal.Repository")));
 
+builder.Services.AddDbContext<ClaraFormsContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ClaraFormsConnection")));
+
 //builder.Services.AddDbContext<TimekeepingContext>(options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("TimekeepingConnection")));
 

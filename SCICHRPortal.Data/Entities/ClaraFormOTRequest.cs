@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace SCICHRPortal.Data.Entities
 {
-    public class ClaraFormOTRequest : BaseEntity
+    public class ClaraFormOTRequest
     {
         public string? employee_overtime_summary_employee_name { get; set; }
         public string? employee_overtime_summary_employee_hris_id { get; set; }

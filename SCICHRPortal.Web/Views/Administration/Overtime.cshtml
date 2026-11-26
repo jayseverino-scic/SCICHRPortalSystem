@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Overtime";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/lib/datatables/css/jquery.dataTables.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/side-bar.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/pages/admin/overtime.css" rel="stylesheet" asp-append-version="true" />
+}
+
+<section class="overtime-page" aria-labelledby="overtime-heading">
+    <div class="overtime-header">
+        <img class="icon" src="~/images/administration/attendancebig.png" alt="" />
+        <h1 id="overtime-heading">Overtime</h1>
+    </div>
+    <div id="overtime-page-status" role="status" aria-live="polite"></div>
+    <button id="overtime-retry" type="button" class="btn btn-default" hidden>Retry loading records</button>
+    <div class="overtime-table-wrapper">
+        <table id="overtime-grid" class="display stripe" style="width: 100%" aria-labelledby="overtime-heading">
+            <thead>
+                <tr>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">Employee HRIS ID</th>
+                    <th scope="col">Overtime Date From</th>
+                    <th scope="col">Approved Start Time</th>
+                    <th scope="col">Overtime Date To</th>
+                    <th scope="col">Approved End Time</th>
+                    <th scope="col">Filed Hours</th>
+                    <th scope="col">Approved Hours</th>
+                    <th scope="col">Request Reference</th>
+                    <th scope="col">Closed At</th>
+                    <th scope="col">Date Created</th>
+                    <th scope="col">Summary ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/lib/datatables/js/jquery.dataTables.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/overtime.js" asp-append-version="true"></script>
+}

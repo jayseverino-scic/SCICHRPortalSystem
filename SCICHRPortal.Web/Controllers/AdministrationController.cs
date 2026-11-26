@@ -64,6 +64,12 @@ namespace SCICHRPortal.Web.Controllers
             ViewBag.SystemSelected = "Administration";
             return View(new Models.ViewModels.Administration.LeaveViewModel());
         }
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+        public IActionResult Overtime()
+        {
+            ViewBag.SystemSelected = "Administration";
+            return View();
+        }
         public IActionResult CutOff()
         {
             ViewBag.SystemSelected = "Administration";
