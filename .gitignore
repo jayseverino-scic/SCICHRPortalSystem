@@ -372,3 +372,6 @@ FodyWeavers.xsd
 /agent-docs/
 /.agents/skills
 /skills-lock.json
+
+# Local API settings may contain credentials.
+/SCICHRPortal.API/appsettings.Local.json

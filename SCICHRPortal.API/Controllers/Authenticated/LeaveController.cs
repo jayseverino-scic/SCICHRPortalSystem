@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SCICHRPortal.API.Extensions;
 using SCICHRPortal.API.Imports;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Service.Interfaces;
+using SCICHRPortal.Utility.Jira;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -42,6 +44,16 @@ namespace SCICHRPortal.API.Controllers.Authenticated
 
             var page = await LeaveService.GetPageAsync(query, cancellationToken);
             return Ok(page);
+        }
+
+        [HttpGet("ApprovedRequests")]
+        [Authorize(Policy = JiraRequestsExtensions.PolicyName)]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ApprovedRequestsAsync(
+            [FromQuery] string? cursor, [FromServices] JiraRequestsPageReader jiraRequests, CancellationToken cancellationToken)
+        {
+            var result = await jiraRequests.GetPageAsync(JiraRequestType.Leave, cursor, cancellationToken);
+            return result;
         }
 
         [HttpGet("{id:int}")]

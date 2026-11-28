@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SCICHRPortal.API.Extensions;
 using SCICHRPortal.Data.DTOs;
 using SCICHRPortal.Service.Interfaces;
+using SCICHRPortal.Utility.Jira;
 
 namespace SCICHRPortal.API.Controllers.Authenticated
 {
@@ -35,6 +37,16 @@ namespace SCICHRPortal.API.Controllers.Authenticated
         {
             if (!query.IsValid()) return BadRequest(new { Message = "Enter valid paging, search, and sort options." });
             return Ok(await OfficialBusinessService.GetPageAsync(query, cancellationToken));
+        }
+
+        [HttpGet("ApprovedRequests")]
+        [Authorize(Policy = JiraRequestsExtensions.PolicyName)]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ApprovedRequestsAsync(
+            [FromQuery] string? cursor, [FromServices] JiraRequestsPageReader jiraRequests, CancellationToken cancellationToken)
+        {
+            var result = await jiraRequests.GetPageAsync(JiraRequestType.OfficialBusiness, cursor, cancellationToken);
+            return result;
         }
 
         [HttpGet("{id:int}")]

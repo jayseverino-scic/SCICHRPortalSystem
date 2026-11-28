@@ -17,24 +17,35 @@
         <img class="icon" src="~/images/administration/attendancebig.png" alt="" />
         <h1 id="leave-heading">Leave</h1>
     </div>
-    <fieldset class="leave-section leave-page-actions" aria-labelledby="leave-actions-title">
-        <legend id="leave-actions-title" class="leave-section-title">Leave actions</legend>
-        <button type="button" class="btn btn-primary" id="leave-add">New Leave</button>
-        <button type="button" class="btn btn-primary" id="leave-import">Upload Excel</button>
-        <button type="button" class="btn btn-primary" id="leave-template">Download Template</button>
-    </fieldset>
-    <div id="leave-page-status" role="status" aria-live="polite"></div>
-    <button type="button" class="btn btn-default" id="leave-retry" hidden>Retry loading records</button>
-    <div class="leave-table-wrapper">
-        <table id="leave-grid" class="display stripe" width="100%">
-            <thead>
-                <tr>
-                    <th>Employee No.</th><th>Employee Name</th>
-                    <th>From Date</th><th>From Time</th><th>To Date</th><th>To Time</th>
-                    <th>Type of Leave</th><th>Actions</th>
-                </tr>
-            </thead>
-        </table>
+    <div class="nav nav-tabs mb-3" role="tablist" aria-label="Record source">
+        <button class="nav-link active" id="portal-records-tab" type="button" role="tab" data-bs-toggle="tab"
+                data-bs-target="#portal-records-panel" aria-controls="portal-records-panel" aria-selected="true">Portal Records</button>
+        <button class="nav-link" id="jira-requests-tab" type="button" role="tab" data-bs-toggle="tab"
+                data-bs-target="#jira-requests-panel" aria-controls="jira-requests-panel" aria-selected="false" tabindex="-1">Approved Requests</button>
+    </div>
+    <div class="tab-content">
+        <div class="tab-pane active" id="portal-records-panel" role="tabpanel" aria-labelledby="portal-records-tab">
+            <fieldset class="leave-section leave-page-actions" aria-labelledby="leave-actions-title">
+                <legend id="leave-actions-title" class="leave-section-title">Leave actions</legend>
+                <button type="button" class="btn btn-primary" id="leave-add">New Leave</button>
+                <button type="button" class="btn btn-primary" id="leave-import">Upload Excel</button>
+                <button type="button" class="btn btn-primary" id="leave-template">Download Template</button>
+            </fieldset>
+            <div id="leave-page-status" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn-default" id="leave-retry" hidden>Retry loading records</button>
+            <div class="leave-table-wrapper">
+                <table id="leave-grid" class="display stripe" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Employee No.</th><th>Employee Name</th>
+                            <th>From Date</th><th>From Time</th><th>To Date</th><th>To Time</th>
+                            <th>Type of Leave</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <partial name="_JiraRequests" model='@("Leave")' />
     </div>
 </section>
 
@@ -142,5 +153,6 @@
     <script src="~/lib/select2/js/select2.min.js" asp-append-version="true"></script>
     <script src="~/lib/datatables/js/jquery.dataTables.js" asp-append-version="true"></script>
     <script src="~/js/pages/administration/leave.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/jira-requests.js" asp-append-version="true"></script>
     <script src="~/js/pages/administration/leave-import.js" asp-append-version="true"></script>
 }

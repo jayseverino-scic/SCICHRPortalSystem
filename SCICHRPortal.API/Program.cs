@@ -23,6 +23,7 @@
 //app.Run();
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
@@ -39,11 +40,25 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+if (builder.Environment.IsDevelopment())
+{
+    var sources = builder.Configuration.Sources;
+    var developmentSettings = sources.OfType<JsonConfigurationSource>()
+        .Last(source => source.Path == "appsettings.Development.json");
+    sources.Insert(sources.IndexOf(developmentSettings) + 1, new JsonConfigurationSource
+    {
+        Path = "appsettings.Local.json",
+        FileProvider = builder.Environment.ContentRootFileProvider,
+        Optional = true
+    });
+}
+
 OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("Manuel A. Rivas Jr.");
 // Add services to the container.
 builder.Services.AddDerivedClassesServices();
 builder.Services.AddScoped<SCICHRPortal.Utility.Securities.ProjectDataScope>();
 builder.Services.AddHttpClient();
+builder.Services.AddJiraRequests(builder.Configuration);
 builder.Services.AddScoped<IUserCredentialDelivery, SCICHRPortal.API.Storage.UserCredentialDelivery>();
 builder.Services.AddAttendanceImports(builder.Configuration);
 builder.Services.AddSingleton<ITimeLogAttachmentStorage>(_ =>

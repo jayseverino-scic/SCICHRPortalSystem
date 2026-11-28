@@ -17,24 +17,35 @@
         <img class="icon" src="~/images/administration/attendancebig.png" alt="" />
         <h1 id="official-business-heading">Official Business</h1>
     </div>
-    <fieldset class="official-business-section official-business-page-actions" aria-labelledby="official-business-actions-title">
-        <legend id="official-business-actions-title" class="official-business-section-title">Official Business actions</legend>
-        <button type="button" class="btn btn-primary" id="official-business-add">New Official Business</button>
-        <button type="button" class="btn btn-primary" id="official-business-import">Upload Excel</button>
-        <button type="button" class="btn btn-primary" id="official-business-template">Download Template</button>
-    </fieldset>
-    <div id="official-business-page-status" role="status" aria-live="polite"></div>
-    <button type="button" class="btn btn-default" id="official-business-retry" hidden>Retry loading records</button>
-    <div class="official-business-table-wrapper">
-        <table id="official-business-grid" class="display stripe" width="100%">
-            <thead>
-                <tr>
-                    <th>Employee No.</th><th>Employee Name</th>
-                    <th>From Date OB</th><th>From Time OB</th><th>To Date OB</th><th>To Time OB</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-        </table>
+    <div class="nav nav-tabs mb-3" role="tablist" aria-label="Record source">
+        <button class="nav-link active" id="portal-records-tab" type="button" role="tab" data-bs-toggle="tab"
+                data-bs-target="#portal-records-panel" aria-controls="portal-records-panel" aria-selected="true">Portal Records</button>
+        <button class="nav-link" id="jira-requests-tab" type="button" role="tab" data-bs-toggle="tab"
+                data-bs-target="#jira-requests-panel" aria-controls="jira-requests-panel" aria-selected="false" tabindex="-1">Approved Requests</button>
+    </div>
+    <div class="tab-content">
+        <div class="tab-pane active" id="portal-records-panel" role="tabpanel" aria-labelledby="portal-records-tab">
+            <fieldset class="official-business-section official-business-page-actions" aria-labelledby="official-business-actions-title">
+                <legend id="official-business-actions-title" class="official-business-section-title">Official Business actions</legend>
+                <button type="button" class="btn btn-primary" id="official-business-add">New Official Business</button>
+                <button type="button" class="btn btn-primary" id="official-business-import">Upload Excel</button>
+                <button type="button" class="btn btn-primary" id="official-business-template">Download Template</button>
+            </fieldset>
+            <div id="official-business-page-status" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn-default" id="official-business-retry" hidden>Retry loading records</button>
+            <div class="official-business-table-wrapper">
+                <table id="official-business-grid" class="display stripe" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Employee No.</th><th>Employee Name</th>
+                            <th>From Date OB</th><th>From Time OB</th><th>To Date OB</th><th>To Time OB</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <partial name="_JiraRequests" model='@("OfficialBusiness")' />
     </div>
 </section>
 
@@ -138,5 +149,6 @@
     <script src="~/lib/select2/js/select2.min.js" asp-append-version="true"></script>
     <script src="~/lib/datatables/js/jquery.dataTables.js" asp-append-version="true"></script>
     <script src="~/js/pages/administration/official-business.js" asp-append-version="true"></script>
+    <script src="~/js/pages/administration/jira-requests.js" asp-append-version="true"></script>
     <script src="~/js/pages/administration/official-business-import.js" asp-append-version="true"></script>
 }
